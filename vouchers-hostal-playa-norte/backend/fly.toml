@@ -1,0 +1,79 @@
+# fly.toml - Configuración Fly.io para Backend
+
+app = "hostal-vouchers-backend"
+primary_region = "gru" # São Paulo (más cercano a Argentina)
+
+kill_signal = "SIGINT"
+kill_timeout = "5s"
+
+[experimental]
+  auto_rollback = true
+
+[build]
+  dockerfile = "Dockerfile"
+
+[deploy]
+  strategy = "rolling"
+
+[env]
+  NODE_ENV = "production"
+  PORT = "3000"
+  TZ = "America/Argentina/Buenos_Aires"
+  HOTEL_CODE = "HPN"
+  HOTEL_NAME = "Hostal Playa Norte"
+  APP_VERSION = "3.0.0"
+  ENABLE_OFFLINE_SYNC = "true"
+  MAX_SYNC_ATTEMPTS = "5"
+  SYNC_RETRY_DELAY = "300000"
+  RATE_LIMIT_VALIDATE = "100"
+  RATE_LIMIT_REDEEM = "50"
+  RATE_LIMIT_SYNC = "10"
+  LOG_LEVEL = "info"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ["app"]
+
+  [http_service.concurrency]
+    type = "connections"
+    hard_limit = 100
+    soft_limit = 80
+
+  [[http_service.checks]]
+    grace_period = "10s"
+    interval = "30s"
+    method = "GET"
+    timeout = "5s"
+    path = "/health"
+
+[[services]]
+  protocol = "tcp"
+  internal_port = 3000
+
+  [[services.ports]]
+    port = 80
+    handlers = ["http"]
+    force_https = true
+
+  [[services.ports]]
+    port = 443
+    handlers = ["tls", "http"]
+
+  [services.concurrency]
+    type = "connections"
+    hard_limit = 100
+    soft_limit = 80
+
+[[mounts]]
+  source = "vouchers_data"
+  destination = "/data"
+  initial_size = "1GB"
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 512

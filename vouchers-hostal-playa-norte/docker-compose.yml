@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: vouchers-backend
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      DATABASE_PATH: /data/vouchers.db
+      VOUCHER_SECRET: ${VOUCHER_SECRET}
+      JWT_SECRET: ${JWT_SECRET}
+      ALLOWED_ORIGINS: http://localhost:3001
+      LOG_LEVEL: debug
+    volumes:
+      - ./backend/src:/app/src
+      - ./backend/db:/app/db
+      - backend-data:/data
+      - backend-logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # PWA Cafetería (desarrollo con Vite)
+  pwa:
+    build:
+      context: ./pwa-cafeteria
+      dockerfile: Dockerfile.dev
+    container_name: vouchers-pwa
+    ports:
+      - "3001:3001"
+    environment:
+      VITE_API_URL: http://localhost:3000/api
+    volumes:
+      - ./pwa-cafeteria/src:/app/src
+      - ./pwa-cafeteria/public:/app/public
+    restart: unless-stopped
+    depends_on:
+      - backend
+
+volumes:
+  backend-data:
+    driver: local
+  backend-logs:
+    driver: local
+
+networks:
+  default:
+    name: vouchers-network
