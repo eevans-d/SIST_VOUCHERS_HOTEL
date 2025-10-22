@@ -5,6 +5,8 @@
  */
 
 import express from 'express';
+import { loginLimiter, registerLimiter, refreshTokenLimiter } from '../middleware/rateLimiter.middleware.js';
+import { tokenBlacklist, checkTokenBlacklist } from '../../../services/tokenBlacklist.service.js';
 
 /**
  * Crear router de autenticación
@@ -19,8 +21,11 @@ export function createAuthRoutes(services) {
   /**
    * POST /auth/register
    * Registrar nuevo usuario
+   * 
+   * RATE LIMITING: 3 intentos por IP en 15 minutos
+   * @see rateLimiter.middleware.js - registerLimiter
    */
-  router.post('/register', async (req, res, next) => {
+  router.post('/register', registerLimiter, async (req, res, next) => {
     try {
       const result = await registerUser.execute(req.body);
 
@@ -37,8 +42,14 @@ export function createAuthRoutes(services) {
   /**
    * POST /auth/login
    * Autenticar usuario y obtener tokens
+   * 
+   * RATE LIMITING: 5 intentos FALLIDOS por email+IP en 15 minutos
+   * @see rateLimiter.middleware.js - loginLimiter
+   * 
+   * Nota: skipSuccessfulRequests=true significa que el contador se resetea
+   * después de un login exitoso, pero se incrementa para cada intento fallido.
    */
-  router.post('/login', async (req, res, next) => {
+  router.post('/login', loginLimiter, async (req, res, next) => {
     try {
       const result = await loginUser.execute(req.body);
 
@@ -66,8 +77,11 @@ export function createAuthRoutes(services) {
   /**
    * POST /auth/refresh
    * Refrescar access token usando refresh token
+   * 
+   * RATE LIMITING: 10 intentos por IP en 15 minutos
+   * @see rateLimiter.middleware.js - refreshTokenLimiter
    */
-  router.post('/refresh', (req, res, next) => {
+  router.post('/refresh', refreshTokenLimiter, (req, res, next) => {
     try {
       const refreshToken = req.cookies?.refreshToken || req.body?.refreshToken;
 
@@ -103,14 +117,24 @@ export function createAuthRoutes(services) {
 
   /**
    * POST /auth/logout
-   * Logout (limpiar refresh token)
+   * Logout + Blacklist token
    */
-  router.post('/logout', (req, res) => {
-    res.clearCookie('refreshToken');
-    res.json({
-      success: true,
-      message: 'Sesión cerrada correctamente',
-    });
+  router.post('/logout', authenticateToken(jwtService), async (req, res, next) => {
+    try {
+      const authHeader = req.headers['authorization'];
+      const token = jwtService.extractBearerToken(authHeader);
+      
+      // Add token to blacklist
+      await tokenBlacklist.blacklist(token);
+      
+      res.clearCookie('refreshToken');
+      res.json({
+        success: true,
+        message: 'Sesión cerrada correctamente',
+      });
+    } catch (error) {
+      next(error);
+    }
   });
 
   /**

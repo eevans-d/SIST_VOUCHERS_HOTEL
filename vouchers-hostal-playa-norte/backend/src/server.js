@@ -6,6 +6,7 @@ const { logger } = require('./config/logger');
 const { dbManager } = require('./config/database');
 const { correlationMiddleware } = require('./middleware/correlation');
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
+const { cacheMiddleware, invalidateCacheMiddleware, cacheService } = require('./services/cacheService');
 
 // Routes
 const vouchersRoutes = require('./routes/vouchers');
@@ -44,6 +45,9 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Correlation ID
 app.use(correlationMiddleware);
+
+// ⚡ Cache middleware (GET request caching)
+app.use(cacheMiddleware);
 
 // Request logging
 app.use((req, res, next) => {
@@ -92,6 +96,9 @@ app.get('/health', (req, res) => {
 // ============================================
 // API ROUTES
 // ============================================
+
+// ⚡ Cache invalidation middleware (POST, PUT, DELETE, PATCH)
+app.use(invalidateCacheMiddleware);
 
 app.use('/api/vouchers', vouchersRoutes);
 app.use('/api/sync', syncRoutes);

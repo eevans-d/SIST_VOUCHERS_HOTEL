@@ -7,7 +7,6 @@
 import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
-import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import Database from 'better-sqlite3';
 import winston from 'winston';
@@ -35,6 +34,19 @@ import { createVouchersRoutes } from './presentation/http/routes/vouchers.js';
 import { createOrdersRoutes } from './presentation/http/routes/orders.js';
 import { createReportsRoutes } from './presentation/http/routes/reports.js';
 import { authenticate, authorize } from './presentation/http/middleware/auth.middleware.js';
+import { 
+  globalLimiter,
+  loginLimiter,
+  registerLimiter,
+  refreshTokenLimiter,
+  redeemVoucherLimiter 
+} from './presentation/http/middleware/rateLimiter.middleware.js';
+import {
+  enforceHttps,
+  helmetConfig,
+  hstsPreloadResponder,
+  secureHeaders
+} from './presentation/http/middleware/production.middleware.js';
 
 // Cargar variables de entorno
 dotenv.config();
@@ -132,6 +144,22 @@ logger.info('✅ Servicios inicializados correctamente');
 
 const app = express();
 
+// 🔒 SEGURIDAD - HTTPS ENFORCEMENT (P0)
+// Redirigir HTTP → HTTPS en producción
+app.use(enforceHttps);
+logger.info('✅ HTTPS enforcement activado');
+
+// 🔒 SEGURIDAD - HELMET HEADERS
+// Content-Security-Policy, X-Frame-Options, HSTS, etc.
+app.use(helmetConfig());
+logger.info('✅ Helmet security headers configurados');
+
+// 🔒 SEGURIDAD - WELL-KNOWN SECURITY
+app.use(hstsPreloadResponder);
+
+// 🔒 SEGURIDAD - SECURE CUSTOM HEADERS
+app.use(secureHeaders);
+
 // Middleware de seguridad
 app.use(helmet());
 
@@ -147,13 +175,10 @@ app.use(
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100,
-  message: 'Demasiadas solicitudes desde esta IP',
-});
-app.use(limiter);
+// 🔒 Rate limiting - SEGURIDAD CRÍTICA (P0)
+// Global: 100 req/15min por IP
+app.use(globalLimiter);
+logger.info('✅ Rate limiting global activado (100 req/15min)');
 
 // ==================== RUTAS ====================
 

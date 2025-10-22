@@ -1,14 +1,43 @@
-import React from 'react';
+import React, { Suspense, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { useAuth } from '@/store';
-import LoginPage from '@/pages/LoginPage';
-import DashboardPage from '@/pages/DashboardPage';
-import VouchersPage from '@/pages/VouchersPage';
-import OrdersPage from '@/pages/OrdersPage';
+import ErrorBoundary from '@/components/ErrorBoundary';
+import LazyLoadErrorBoundary from '@/components/LazyLoadErrorBoundary';
+import { LoadingFallback, PageLoadingFallback } from '@/components/LoadingFallback';
+import { createLazyPage, prefetchLazyComponent } from '@/utils/lazyLoading';
+
+// Lazy load all pages with code splitting
+const { Component: LazyLoginPage, fallback: loginFallback } = createLazyPage(
+  () => import('@/pages/LoginPage'),
+  { preload: true, onLoad: ({ loadTime }) => console.debug(`LoginPage: ${loadTime.toFixed(2)}ms`) }
+);
+
+const { Component: LazyDashboardPage, fallback: dashboardFallback } = createLazyPage(
+  () => import('@/pages/DashboardPage'),
+  { preload: true, onLoad: ({ loadTime }) => console.debug(`DashboardPage: ${loadTime.toFixed(2)}ms`) }
+);
+
+const { Component: LazyVouchersPage, fallback: vouchersFallback } = createLazyPage(
+  () => import('@/pages/VouchersPage'),
+  { preload: true, onLoad: ({ loadTime }) => console.debug(`VouchersPage: ${loadTime.toFixed(2)}ms`) }
+);
+
+const { Component: LazyOrdersPage, fallback: ordersFallback } = createLazyPage(
+  () => import('@/pages/OrdersPage'),
+  { preload: true, onLoad: ({ loadTime }) => console.debug(`OrdersPage: ${loadTime.toFixed(2)}ms`) }
+);
 
 function ProtectedRoute({ children }) {
   const isAuthenticated = useAuth((s) => s.isAuthenticated);
+  
+  // Prefetch dashboard on login page view
+  useEffect(() => {
+    if (isAuthenticated && LazyDashboardPage.preload) {
+      prefetchLazyComponent(LazyDashboardPage.preload);
+    }
+  }, [isAuthenticated]);
+
   return isAuthenticated ? children : <Navigate to="/login" />;
 }
 
@@ -52,37 +81,63 @@ function Navigation() {
 
 export default function App() {
   return (
-    <Router>
-      <Toaster position="top-center" />
-      <Navigation />
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <DashboardPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/vouchers"
-          element={
-            <ProtectedRoute>
-              <VouchersPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/orders"
-          element={
-            <ProtectedRoute>
-              <OrdersPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route path="/" element={<Navigate to="/dashboard" />} />
-      </Routes>
-    </Router>
+    <ErrorBoundary>
+      <LazyLoadErrorBoundary>
+        <Router>
+          <Toaster position="top-center" />
+          <Navigation />
+          <Routes>
+            {/* Login route - lazy loaded */}
+            <Route
+              path="/login"
+              element={
+                <Suspense fallback={loginFallback}>
+                  <LazyLoginPage />
+                </Suspense>
+              }
+            />
+
+            {/* Dashboard route - lazy loaded with protection */}
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <Suspense fallback={dashboardFallback}>
+                    <LazyDashboardPage />
+                  </Suspense>
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Vouchers route - lazy loaded with protection */}
+            <Route
+              path="/vouchers"
+              element={
+                <ProtectedRoute>
+                  <Suspense fallback={vouchersFallback}>
+                    <LazyVouchersPage />
+                  </Suspense>
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Orders route - lazy loaded with protection */}
+            <Route
+              path="/orders"
+              element={
+                <ProtectedRoute>
+                  <Suspense fallback={ordersFallback}>
+                    <LazyOrdersPage />
+                  </Suspense>
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Default route */}
+            <Route path="/" element={<Navigate to="/dashboard" />} />
+          </Routes>
+        </Router>
+      </LazyLoadErrorBoundary>
+    </ErrorBoundary>
   );
 }
