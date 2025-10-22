@@ -1,20 +1,29 @@
-# 🏛️ SISTEMA DE VOUCHERS DIGITALES - VERSIÓN CONSTITUCIONAL
+# � Sistema de Vouchers - Hotel Playa Norte
 
-## Hostal Playa Norte | 100% Alineado con 12 Pilares Constitucionales IA/Agénticos
+> **Estado Actual: 40% Completado | Target: 80% (Esta sesión) | Especificación: 100%**
+
+## 🎯 Lee Esto Primero
+
+**Para Ejecutivos:** [`RESUMEN_EJECUTIVO_ACTUAL.md`](./RESUMEN_EJECUTIVO_ACTUAL.md) ← Inicio recomendado
+
+**Para Desarrolladores:** [`QUICK_START.md`](./QUICK_START.md)
+
+**Para Arquitectos:** [`README_CONSTITUCIONAL.md`](./README_CONSTITUCIONAL.md) + [`BLUEPRINT_ARQUITECTURA.md`](./BLUEPRINT_ARQUITECTURA.md)
 
 ---
 
-## 📊 PROGRESO DEL PROYECTO
+## 📊 Estado del Proyecto
 
-### ✅ Fases Completadas
+| Módulo | Nombre | Status | Líneas | Endpoints | Tests |
+|--------|--------|--------|--------|-----------|-------|
+| M0 | Setup | ✅ 100% | 500+ | - | - |
+| M1 | Autenticación | ✅ 100% | 800+ | 5 | 25+ |
+| M2 | Estadías | ✅ 100% | 900+ | 9 | 30+ |
+| M3 | Vouchers | 📋 SPEC | 1,700 | 6 | 25+ |
+| M4 | Órdenes | 📋 SPEC | 1,480 | 8 | 20+ |
+| **TOTAL** | **Backend** | **40%** | **2,500+** | **14** | **50+** |
 
-| Fase | Modulo | Estado | Documentación |
-|------|--------|--------|---------------|
-| 🏛️ Setup | MÓDULO 0 | ✅ 100% | [STATUS.md](STATUS.md) |
-| 🔐 Autenticación | MÓDULO 1 | ✅ 100% | [MODULO_1_README.md](vouchers-hostal-playa-norte/MODULO_1_README.md) |
-| 🏨 Estadías | MÓDULO 2 | ⏳ 0% | - |
-| 🎟️ Vouchers | MÓDULO 3 | ⏳ 0% | - |
-| ☕ Cafetería | MÓDULO 4 | ⏳ 0% | - |
+**📈 Próximo objetivo: 80% (agregar M3+M4 = 3 horas)**
 
 ---
 
