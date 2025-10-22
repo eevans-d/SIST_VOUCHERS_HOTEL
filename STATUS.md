@@ -3,16 +3,17 @@
 **Última actualización:** 21-10-2025  
 **Status Actual:** ✅ MÓDULO 1 COMPLETADO
 
-## ✅ Fase Completada: MÓDULO 1 - Autenticación
+## ✅ Fases Completadas
 
-### 🏆 Completitud por Módulo
-- ✅ MÓDULO 0: Setup Constitucional (100%)
-- ✅ MÓDULO 1: Autenticación (100%)
-- ⏳ MÓDULO 2: Estadías (0%)
-- ⏳ MÓDULO 3: Vouchers (0%)
-- ⏳ MÓDULO 4: Cafetería (0%)
+| Fase | Modulo | Estado | Documentación |
+|------|--------|--------|---------------|
+| 🛠️ Setup | MÓDULO 0 | ✅ 100% | [STATUS.md](STATUS.md) |
+| 🔐 Autenticación | MÓDULO 1 | ✅ 100% | [MODULO_1_README.md](vouchers-hostal-playa-norte/MODULO_1_README.md) |
+| 🏨 Estadías | MÓDULO 2 | ✅ 100% | [MODULO_2_README.md](vouchers-hostal-playa-norte/MODULO_2_README.md) |
+| 🎟️ Vouchers | MÓDULO 3 | ✅ 100% | [MODULO_3_README.md](MODULO_3_README.md) |
+| ☕ Cafetería | MÓDULO 4 | ⏳ 0% | - |
 
-**PROGRESO TOTAL:** 25%
+**PROGRESO TOTAL:** 60%
 
 ### 📚 Documentación (100%)
 - ✅ CONSTITUCION_SISTEMA_VOUCHERS.md (Pillars 1-5)
@@ -84,37 +85,39 @@ vouchers-hostal-playa-norte/
 - Indexes de performance
 - WAL mode habilitado
 
----
+### 🚀 Próximos Pasos (MÓDULO 4)
 
-## 🚀 Próximos Pasos (MÓDULO 2)
-
-### 1️⃣ Implementar Stay Entity
+### 1️⃣ Implementar Redención Entity
 ```
-src/domain/entities/Stay.js
-src/domain/repositories/StayRepository.js
-src/application/use-cases/CreateStay.js
-src/application/use-cases/UpdateStay.js
-src/application/use-cases/DeleteStay.js
+src/domain/entities/Redemption.js
+src/domain/repositories/RedemptionRepository.js
 ```
 
-### 2️⃣ Crear Endpoints de Stay
+### 2️⃣ Crear Use Cases de Cafetería
 ```
-GET    /api/stays              (list - paginated)
-GET    /api/stays/:id          (get - with auth)
-POST   /api/stays              (create - solo staff)
-PUT    /api/stays/:id          (update - solo owner)
-DELETE /api/stays/:id          (soft delete - admin)
+src/application/use-cases/CreateOrder.js
+src/application/use-cases/AddOrderItem.js
+src/application/use-cases/CompleteOrder.js
 ```
 
-### 3️⃣ Integrar con Autenticación
-- Middleware de verificación en rutas
-- RBAC: Solo staff/admin pueden crear/modificar stays
-- Guests solo ven sus propias estadías
+### 3️⃣ Crear Endpoints de Órdenes
+```
+GET    /api/orders                (list)
+POST   /api/orders                (create nueva orden)
+POST   /api/orders/:id/items      (agregar item)
+POST   /api/orders/:id/complete   (cerrar orden)
+```
 
 ### 4️⃣ Tests de Integración
 ```
-tests/integration/auth-stay.test.js
-tests/integration/rbac-stay.test.js
+tests/integration/order-voucher-flow.test.js
+tests/integration/redemption-flow.test.js
+```
+
+### 5️⃣ Reportes y Auditoría
+```
+GET /api/reports/consumption
+GET /api/reports/voucher-usage
 ```
 
 ---

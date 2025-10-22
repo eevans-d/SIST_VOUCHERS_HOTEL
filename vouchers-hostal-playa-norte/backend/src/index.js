@@ -14,11 +14,20 @@ import winston from 'winston';
 
 // Importar servicios y repositorios
 import { UserRepository } from './domain/repositories/UserRepository.js';
+import { StayRepository } from './domain/repositories/StayRepository.js';
+import { VoucherRepository } from './domain/repositories/VoucherRepository.js';
 import { JWTService } from './infrastructure/security/JWTService.js';
 import { PasswordService } from './infrastructure/security/PasswordService.js';
+import { QRService } from './infrastructure/services/QRService.js';
 import { LoginUser } from './application/use-cases/LoginUser.js';
 import { RegisterUser } from './application/use-cases/RegisterUser.js';
+import { CreateStay } from './application/use-cases/CreateStay.js';
+import { GenerateVoucher } from './application/use-cases/GenerateVoucher.js';
+import { ValidateVoucher } from './application/use-cases/ValidateVoucher.js';
+import { RedeemVoucher } from './application/use-cases/RedeemVoucher.js';
 import { createAuthRoutes } from './presentation/http/routes/auth.js';
+import { createStaysRoutes } from './presentation/http/routes/stays.js';
+import { createVouchersRoutes } from './presentation/http/routes/vouchers.js';
 
 // Cargar variables de entorno
 dotenv.config();
@@ -82,9 +91,22 @@ const passwordService = new PasswordService(
 );
 
 const userRepository = new UserRepository(db);
+const stayRepository = new StayRepository(db);
+const voucherRepository = new VoucherRepository(db);
 
 const loginUser = new LoginUser(userRepository, passwordService, jwtService, logger);
 const registerUser = new RegisterUser(userRepository, passwordService, logger);
+const createStay = new CreateStay(stayRepository, userRepository, logger);
+
+const qrService = new QRService({
+  size: 250,
+  margin: 10,
+  errorCorrection: 'M',
+});
+
+const generateVoucher = new GenerateVoucher(stayRepository, voucherRepository, qrService, logger);
+const validateVoucher = new ValidateVoucher(voucherRepository, stayRepository, logger);
+const redeemVoucher = new RedeemVoucher(voucherRepository, stayRepository, logger);
 
 logger.info('✅ Servicios inicializados correctamente');
 
@@ -133,6 +155,29 @@ app.use(
     loginUser,
     registerUser,
     jwtService,
+  })
+);
+
+// API de estadías
+app.use(
+  '/api/stays',
+  createStaysRoutes({
+    createStay,
+    stayRepository,
+    userRepository,
+  })
+);
+
+// API de vouchers
+app.use(
+  createVouchersRoutes({
+    voucherRepository,
+    stayRepository,
+    generateVoucher,
+    validateVoucher,
+    redeemVoucher,
+    qrService,
+    logger,
   })
 );
 
@@ -223,6 +268,16 @@ const server = app.listen(PORT, () => {
   - POST /api/auth/login     (Autenticación)
   - POST /api/auth/logout    (Cerrar sesión)
   - GET  /api/auth/me        (Mi perfil)
+  
+  - GET    /api/stays              (Listar estadías)
+  - GET    /api/stays/:id          (Obtener estadía)
+  - POST   /api/stays              (Crear estadía)
+  - PUT    /api/stays/:id          (Actualizar)
+  - DELETE /api/stays/:id          (Cancelar)
+  - POST   /api/stays/:id/activate (Activar)
+  - POST   /api/stays/:id/complete (Completar)
+  - GET    /api/stays/occupancy/:hotelCode (Ocupación)
+  - GET    /api/stays/checkpoints/:hotelCode (Check-in/out hoy)
 
   Documentación: docs/API.md
   `);
