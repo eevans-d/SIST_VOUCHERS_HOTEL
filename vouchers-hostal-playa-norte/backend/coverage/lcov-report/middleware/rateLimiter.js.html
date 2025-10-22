@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">66.66% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>8/12</span>
+                <span class='fraction'>0/12</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">66.66% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>8/12</span>
+                <span class='fraction'>0/12</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line medium'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -123,12 +123,12 @@
 <a name='L58'></a><a href='#L58'>58</a>
 <a name='L59'></a><a href='#L59'>59</a>
 <a name='L60'></a><a href='#L60'>60</a>
-<a name='L61'></a><a href='#L61'>61</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
+<a name='L61'></a><a href='#L61'>61</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -145,7 +145,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -155,7 +155,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -169,7 +169,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -179,16 +179,16 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">const rateLimit = require('express-rate-limit');
-const { logger } = require('../config/logger');
-const config = require('../config/environment');
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">const rateLimit = <span class="cstat-no" title="statement not covered" >require('express-rate-limit');</span>
+const { logger } = <span class="cstat-no" title="statement not covered" >require('../config/logger');</span>
+const config = <span class="cstat-no" title="statement not covered" >require('../config/environment');</span>
 &nbsp;
 // Handler personalizado para rate limit
-const rateLimitHandler = <span class="fstat-no" title="function not covered" >(r</span>eq, res) =&gt; {
+const rateLimitHandler = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(r</span>eq, res) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >  logger.warn({</span>
     event: 'rate_limit_exceeded',
     correlation_id: req.correlationId,
@@ -205,7 +205,7 @@ const rateLimitHandler = <span class="fstat-no" title="function not covered" >(r
 };
 &nbsp;
 // Limiter para validaciones
-const validateLimiter = rateLimit({
+const validateLimiter = <span class="cstat-no" title="statement not covered" >rateLimit({</span>
   windowMs: 60 * 1000, // 1 minuto
   max: config.RATE_LIMIT_VALIDATE,
   message: 'Demasiadas validaciones',
@@ -215,7 +215,7 @@ const validateLimiter = rateLimit({
 });
 &nbsp;
 // Limiter para canjes (por dispositivo)
-const redeemLimiter = rateLimit({
+const redeemLimiter = <span class="cstat-no" title="statement not covered" >rateLimit({</span>
   windowMs: 60 * 1000,
   max: config.RATE_LIMIT_REDEEM,
   keyGenerator: <span class="fstat-no" title="function not covered" >(r</span>eq) =&gt; {
@@ -229,7 +229,7 @@ const redeemLimiter = rateLimit({
 });
 &nbsp;
 // Limiter para sincronización
-const syncLimiter = rateLimit({
+const syncLimiter = <span class="cstat-no" title="statement not covered" >rateLimit({</span>
   windowMs: 60 * 1000,
   max: config.RATE_LIMIT_SYNC,
   keyGenerator: <span class="fstat-no" title="function not covered" >(r</span>eq) =&gt; <span class="cstat-no" title="statement not covered" >req.body.device_id || req.ip,</span>
@@ -239,7 +239,7 @@ const syncLimiter = rateLimit({
   legacyHeaders: false
 });
 &nbsp;
-module.exports = {
+<span class="cstat-no" title="statement not covered" >module.exports = {</span>
   validateLimiter,
   redeemLimiter,
   syncLimiter
@@ -250,7 +250,7 @@ module.exports = {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-10-21T06:20:19.393Z
+                at 2025-10-22T04:20:45.546Z
             </div>
         <script src="../prettify.js"></script>
         <script>
