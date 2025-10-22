@@ -16,6 +16,7 @@ import winston from 'winston';
 import { UserRepository } from './domain/repositories/UserRepository.js';
 import { StayRepository } from './domain/repositories/StayRepository.js';
 import { VoucherRepository } from './domain/repositories/VoucherRepository.js';
+import { OrderRepository } from './domain/repositories/OrderRepository.js';
 import { JWTService } from './infrastructure/security/JWTService.js';
 import { PasswordService } from './infrastructure/security/PasswordService.js';
 import { QRService } from './infrastructure/services/QRService.js';
@@ -25,9 +26,12 @@ import { CreateStay } from './application/use-cases/CreateStay.js';
 import { GenerateVoucher } from './application/use-cases/GenerateVoucher.js';
 import { ValidateVoucher } from './application/use-cases/ValidateVoucher.js';
 import { RedeemVoucher } from './application/use-cases/RedeemVoucher.js';
+import { CreateOrder } from './application/use-cases/CreateOrder.js';
+import { CompleteOrder } from './application/use-cases/CompleteOrder.js';
 import { createAuthRoutes } from './presentation/http/routes/auth.js';
 import { createStaysRoutes } from './presentation/http/routes/stays.js';
 import { createVouchersRoutes } from './presentation/http/routes/vouchers.js';
+import { createOrdersRoutes } from './presentation/http/routes/orders.js';
 
 // Cargar variables de entorno
 dotenv.config();
@@ -93,6 +97,7 @@ const passwordService = new PasswordService(
 const userRepository = new UserRepository(db);
 const stayRepository = new StayRepository(db);
 const voucherRepository = new VoucherRepository(db);
+const orderRepository = new OrderRepository(db);
 
 const loginUser = new LoginUser(userRepository, passwordService, jwtService, logger);
 const registerUser = new RegisterUser(userRepository, passwordService, logger);
@@ -107,6 +112,9 @@ const qrService = new QRService({
 const generateVoucher = new GenerateVoucher(stayRepository, voucherRepository, qrService, logger);
 const validateVoucher = new ValidateVoucher(voucherRepository, stayRepository, logger);
 const redeemVoucher = new RedeemVoucher(voucherRepository, stayRepository, logger);
+
+const createOrder = new CreateOrder(stayRepository, orderRepository, logger);
+const completeOrder = new CompleteOrder(orderRepository, voucherRepository, logger);
 
 logger.info('✅ Servicios inicializados correctamente');
 
@@ -177,6 +185,17 @@ app.use(
     validateVoucher,
     redeemVoucher,
     qrService,
+    logger,
+  })
+);
+
+// API de órdenes
+app.use(
+  createOrdersRoutes({
+    orderRepository,
+    stayRepository,
+    createOrder,
+    completeOrder,
     logger,
   })
 );
