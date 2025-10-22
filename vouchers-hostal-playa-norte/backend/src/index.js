@@ -28,10 +28,13 @@ import { ValidateVoucher } from './application/use-cases/ValidateVoucher.js';
 import { RedeemVoucher } from './application/use-cases/RedeemVoucher.js';
 import { CreateOrder } from './application/use-cases/CreateOrder.js';
 import { CompleteOrder } from './application/use-cases/CompleteOrder.js';
+import { ReportService } from './application/services/ReportService.js';
 import { createAuthRoutes } from './presentation/http/routes/auth.js';
 import { createStaysRoutes } from './presentation/http/routes/stays.js';
 import { createVouchersRoutes } from './presentation/http/routes/vouchers.js';
 import { createOrdersRoutes } from './presentation/http/routes/orders.js';
+import { createReportsRoutes } from './presentation/http/routes/reports.js';
+import { authenticate, authorize } from './presentation/http/middleware/auth.middleware.js';
 
 // Cargar variables de entorno
 dotenv.config();
@@ -116,6 +119,13 @@ const redeemVoucher = new RedeemVoucher(voucherRepository, stayRepository, logge
 const createOrder = new CreateOrder(stayRepository, orderRepository, logger);
 const completeOrder = new CompleteOrder(orderRepository, voucherRepository, logger);
 
+const reportService = new ReportService({
+  stayRepository,
+  orderRepository,
+  voucherRepository,
+  logger
+});
+
 logger.info('✅ Servicios inicializados correctamente');
 
 // ==================== CREAR APLICACIÓN EXPRESS ====================
@@ -197,6 +207,17 @@ app.use(
     createOrder,
     completeOrder,
     logger,
+  })
+);
+
+// API de reportes
+app.use(
+  '/api/reports',
+  createReportsRoutes({
+    reportService,
+    authenticate,
+    authorize,
+    logger
   })
 );
 

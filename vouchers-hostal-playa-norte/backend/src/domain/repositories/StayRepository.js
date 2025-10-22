@@ -103,6 +103,20 @@ export class StayRepository {
   }
 
   /**
+   * Obtener estadías por código de hotel
+   * @param {string} hotelCode
+   * @returns {Stay[]}
+   */
+  findByHotelCode(hotelCode) {
+    const stmt = this.db.prepare(`
+      SELECT * FROM stays WHERE hotelCode = ? AND status = 'active'
+      ORDER BY checkInDate DESC
+    `);
+    const rows = stmt.all(hotelCode);
+    return rows.map(row => Stay.fromPersistence(row));
+  }
+
+  /**
    * Obtener todas las estadías con filtros
    * @param {Object} filters - { userId, status, roomType, hotelCode, limit, offset }
    * @returns {Stay[]}
