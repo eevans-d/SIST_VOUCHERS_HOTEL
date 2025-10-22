@@ -1,0 +1,341 @@
+{
+  "info": {
+    "_postman_id": "vouchers-hotel-api",
+    "name": "Vouchers Hotel API",
+    "description": "Colección completa para testing de API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\",\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"role\": \"staff\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@hotel.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/refresh",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "refresh"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Stays",
+      "item": [
+        {
+          "name": "Create Stay",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"hotelCode\": \"H001\",\n  \"roomNumber\": \"101\",\n  \"checkIn\": \"2025-01-15T14:00:00Z\",\n  \"checkOut\": \"2025-01-18T11:00:00Z\",\n  \"numberOfNights\": 3,\n  \"totalPrice\": 300\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/stays",
+              "host": ["{{base_url}}"],
+              "path": ["stays"]
+            }
+          }
+        },
+        {
+          "name": "List Stays",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/stays?status=active",
+              "host": ["{{base_url}}"],
+              "path": ["stays"],
+              "query": [
+                { "key": "status", "value": "active" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Occupancy",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/stays/occupancy/H001",
+              "host": ["{{base_url}}"],
+              "path": ["stays", "occupancy", "H001"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Vouchers",
+      "item": [
+        {
+          "name": "Generate Voucher",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"stayId\": \"{{stayId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/vouchers",
+              "host": ["{{base_url}}"],
+              "path": ["vouchers"]
+            }
+          }
+        },
+        {
+          "name": "List Vouchers",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/vouchers",
+              "host": ["{{base_url}}"],
+              "path": ["vouchers"]
+            }
+          }
+        },
+        {
+          "name": "Validate Voucher",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/vouchers/{{voucherCode}}/validate",
+              "host": ["{{base_url}}"],
+              "path": ["vouchers", "{{voucherCode}}", "validate"]
+            }
+          }
+        },
+        {
+          "name": "Redeem Voucher",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/vouchers/{{voucherCode}}/redeem",
+              "host": ["{{base_url}}"],
+              "path": ["vouchers", "{{voucherCode}}", "redeem"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Orders",
+      "item": [
+        {
+          "name": "Create Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"stayId\": \"{{stayId}}\",\n  \"items\": []\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/orders",
+              "host": ["{{base_url}}"],
+              "path": ["orders"]
+            }
+          }
+        },
+        {
+          "name": "Add Item to Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productCode\": \"CAFE\",\n  \"quantity\": 2,\n  \"unitPrice\": 3.5\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/orders/{{orderId}}/items",
+              "host": ["{{base_url}}"],
+              "path": ["orders", "{{orderId}}", "items"]
+            }
+          }
+        },
+        {
+          "name": "Complete Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/orders/{{orderId}}/complete",
+              "host": ["{{base_url}}"],
+              "path": ["orders", "{{orderId}}", "complete"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reports",
+      "item": [
+        {
+          "name": "Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/reports/dashboard/H001",
+              "host": ["{{base_url}}"],
+              "path": ["reports", "dashboard", "H001"]
+            }
+          }
+        },
+        {
+          "name": "Occupancy Rate",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/reports/occupancy/H001",
+              "host": ["{{base_url}}"],
+              "path": ["reports", "occupancy", "H001"]
+            }
+          }
+        },
+        {
+          "name": "Voucher Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/reports/vouchers/stats",
+              "host": ["{{base_url}}"],
+              "path": ["reports", "vouchers", "stats"]
+            }
+          }
+        },
+        {
+          "name": "Consumption Report",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/reports/orders/consumption",
+              "host": ["{{base_url}}"],
+              "path": ["reports", "orders", "consumption"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3001/api",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "stayId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "orderId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "voucherCode",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

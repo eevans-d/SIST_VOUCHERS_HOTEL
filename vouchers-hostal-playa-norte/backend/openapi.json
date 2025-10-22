@@ -1,0 +1,397 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Sistema de Vouchers Hotel API",
+    "version": "1.0.0",
+    "description": "API REST para gestión de vouchers, estadías y órdenes en hoteles",
+    "contact": {
+      "name": "Hostal Playa Norte",
+      "email": "dev@hostalplayanorte.com"
+    },
+    "license": {
+      "name": "MIT"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3001/api",
+      "description": "Development"
+    },
+    {
+      "url": "https://api.hostalplayanorte.com/api",
+      "description": "Production"
+    }
+  ],
+  "paths": {
+    "/auth/register": {
+      "post": {
+        "summary": "Registrar nuevo usuario",
+        "tags": ["Auth"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": { "type": "string", "format": "email" },
+                  "password": { "type": "string", "minLength": 8 },
+                  "firstName": { "type": "string" },
+                  "lastName": { "type": "string" },
+                  "role": { "type": "string", "enum": ["admin", "staff", "cafemanager", "guest"] }
+                },
+                "required": ["email", "password", "firstName", "lastName"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Usuario registrado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": { "type": "string", "format": "uuid" },
+                    "email": { "type": "string" },
+                    "role": { "type": "string" },
+                    "accessToken": { "type": "string" },
+                    "refreshToken": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Datos inválidos" },
+          "409": { "description": "Email ya registrado" }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "summary": "Autenticar usuario",
+        "tags": ["Auth"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": { "type": "string", "format": "email" },
+                  "password": { "type": "string" }
+                },
+                "required": ["email", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Autenticación exitosa",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "user": {
+                      "type": "object",
+                      "properties": {
+                        "id": { "type": "string" },
+                        "email": { "type": "string" },
+                        "role": { "type": "string" }
+                      }
+                    },
+                    "accessToken": { "type": "string" },
+                    "refreshToken": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Credenciales inválidas" }
+        }
+      }
+    },
+    "/vouchers": {
+      "post": {
+        "summary": "Generar nuevo voucher",
+        "tags": ["Vouchers"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "stayId": { "type": "string", "format": "uuid" }
+                },
+                "required": ["stayId"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Voucher generado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": { "type": "string", "format": "uuid" },
+                    "code": { "type": "string" },
+                    "status": { "type": "string", "enum": ["pending", "active", "redeemed", "expired", "cancelled"] },
+                    "qrCode": { "type": "string", "format": "uri" },
+                    "expiryDate": { "type": "string", "format": "date-time" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "No autenticado" }
+        }
+      },
+      "get": {
+        "summary": "Listar vouchers",
+        "tags": ["Vouchers"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "status", "in": "query", "schema": { "type": "string" } },
+          { "name": "page", "in": "query", "schema": { "type": "integer", "default": 1 } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 20 } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de vouchers",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vouchers/{code}/validate": {
+      "post": {
+        "summary": "Validar voucher",
+        "tags": ["Vouchers"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "code", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Voucher válido y activado" },
+          "404": { "description": "Voucher no encontrado" },
+          "400": { "description": "Voucher inválido o expirado" }
+        }
+      }
+    },
+    "/vouchers/{code}/redeem": {
+      "post": {
+        "summary": "Redimir voucher",
+        "tags": ["Vouchers"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "code", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Voucher redimido exitosamente" },
+          "400": { "description": "Voucher no puede ser redimido" }
+        }
+      }
+    },
+    "/orders": {
+      "post": {
+        "summary": "Crear nueva orden",
+        "tags": ["Orders"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "stayId": { "type": "string", "format": "uuid" },
+                  "items": { "type": "array", "default": [] }
+                },
+                "required": ["stayId"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Orden creada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": { "type": "string", "format": "uuid" },
+                    "status": { "type": "string" },
+                    "total": { "type": "number" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "Listar órdenes",
+        "tags": ["Orders"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Lista de órdenes" }
+        }
+      }
+    },
+    "/orders/{id}/items": {
+      "post": {
+        "summary": "Agregar item a orden",
+        "tags": ["Orders"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "productCode": { "type": "string" },
+                  "quantity": { "type": "integer" },
+                  "unitPrice": { "type": "number" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Item agregado" }
+        }
+      }
+    },
+    "/orders/{id}/complete": {
+      "post": {
+        "summary": "Completar orden",
+        "tags": ["Orders"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Orden completada" }
+        }
+      }
+    },
+    "/reports/dashboard/{hotelCode}": {
+      "get": {
+        "summary": "Dashboard consolidado",
+        "tags": ["Reports"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "hotelCode", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Dashboard con todos los KPIs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "occupancy": { "type": "object" },
+                    "vouchers": { "type": "object" },
+                    "consumption": { "type": "object" },
+                    "peakHours": { "type": "object" },
+                    "kpis": { "type": "object" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reports/occupancy/{hotelCode}": {
+      "get": {
+        "summary": "Tasa de ocupación",
+        "tags": ["Reports"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "hotelCode", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Datos de ocupación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "occupancyRate": { "type": "number" },
+                    "activeStays": { "type": "integer" },
+                    "maxRooms": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "email": { "type": "string", "format": "email" },
+          "firstName": { "type": "string" },
+          "lastName": { "type": "string" },
+          "role": { "type": "string" },
+          "isActive": { "type": "boolean" }
+        }
+      },
+      "Voucher": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "code": { "type": "string" },
+          "status": { "type": "string" },
+          "expiryDate": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Order": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "status": { "type": "string" },
+          "total": { "type": "number" },
+          "items": { "type": "array" }
+        }
+      }
+    }
+  }
+}
