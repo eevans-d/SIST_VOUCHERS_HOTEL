@@ -1,16 +1,20 @@
+/**
+ * Jest setup utilities for tests
+ * Import this file in test suites that need setup
+ */
+
 import fs from 'fs';
 import path from 'path';
-import Database from 'better-sqlite3';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Base de datos de test
-const TEST_DB_PATH = path.join(__dirname, '../test.db');
+export const TEST_DB_PATH = path.join(__dirname, '../test.db');
 
-// Setup global antes de todos los tests
-beforeAll(() => {
+// Setup function to call in test files
+export function setupTestDB() {
   // Limpiar DB de test si existe
   if (fs.existsSync(TEST_DB_PATH)) {
     fs.unlinkSync(TEST_DB_PATH);
@@ -23,14 +27,14 @@ beforeAll(() => {
   process.env.JWT_SECRET = 'test-jwt-secret-32-bytes-long-string';
   process.env.TZ = 'America/Argentina/Buenos_Aires';
   process.env.LOG_LEVEL = 'error';
-});
+}
 
-// Cleanup después de todos los tests
-afterAll(() => {
+// Cleanup function to call after tests
+export function cleanupTestDB() {
   if (fs.existsSync(TEST_DB_PATH)) {
     fs.unlinkSync(TEST_DB_PATH);
   }
-});
+}
 
 // Helpers globales para tests
 global.createTestDB = () => {

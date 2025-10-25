@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from '@jest/globals';
 import PaginationService from '../services/paginationService.js';
 
 describe('PaginationService', () => {
@@ -499,7 +499,7 @@ describe('PaginationService', () => {
         },
       };
       const res = {};
-      const next = vi.fn();
+      const next = jest.fn();
 
       middleware(req, res, next);
 
@@ -517,10 +517,10 @@ describe('PaginationService', () => {
         },
       };
       const res = {
-        status: vi.fn().mockReturnThis(),
-        json: vi.fn(),
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
       };
-      const next = vi.fn();
+      const next = jest.fn();
 
       middleware(req, res, next);
 

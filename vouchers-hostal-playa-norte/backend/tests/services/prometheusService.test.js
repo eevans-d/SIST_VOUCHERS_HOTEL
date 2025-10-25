@@ -4,7 +4,7 @@
  * 45+ casos de prueba con cobertura 100%
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from '@jest/globals';
 import PrometheusService from '../services/prometheusService.js';
 
 describe('PrometheusService', () => {

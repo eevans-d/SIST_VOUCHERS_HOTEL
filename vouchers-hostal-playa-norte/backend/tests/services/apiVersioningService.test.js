@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from '@jest/globals';
 import APIVersioningService, {
   createVersionedEndpoint,
   migrateRequest,
@@ -30,7 +30,7 @@ describe('APIVersioningService', () => {
 
     it('should register with handlers', () => {
       const handlers = {
-        'GET /orders': vi.fn(),
+        'GET /orders': jest.fn(),
       };
 
       versioningService.registerVersion('1.0.0', handlers);
@@ -214,14 +214,14 @@ describe('APIVersioningService', () => {
 
   describe('Endpoint Registration', () => {
     it('should register endpoint', () => {
-      const handler = vi.fn();
+      const handler = jest.fn();
       versioningService.registerEndpoint('1.0.0', 'GET', '/orders', handler);
 
       expect(versioningService.versionRegistry.has('1.0.0')).toBe(true);
     });
 
     it('should get endpoint handler', () => {
-      const handler = vi.fn();
+      const handler = jest.fn();
       versioningService.registerEndpoint('1.0.0', 'GET', '/orders', handler);
 
       const retrieved = versioningService.getEndpointHandler(
@@ -244,7 +244,7 @@ describe('APIVersioningService', () => {
     });
 
     it('should support backward compatibility', () => {
-      const handler1 = vi.fn();
+      const handler1 = jest.fn();
       versioningService.registerEndpoint('1.0.0', 'GET', '/orders', handler1);
 
       // v1.5.0 hereda de v1.0.0 si no hay override
@@ -261,10 +261,10 @@ describe('APIVersioningService', () => {
   describe('Versioned Handler', () => {
     it('should create versioned handler', () => {
       const handlers = {
-        '1.0.0': vi.fn().mockImplementation((req, res) => {
+        '1.0.0': jest.fn().mockImplementation((req, res) => {
           res.json({ version: '1.0.0' });
         }),
-        '2.0.0': vi.fn().mockImplementation((req, res) => {
+        '2.0.0': jest.fn().mockImplementation((req, res) => {
           res.json({ version: '2.0.0' });
         }),
       };
@@ -276,14 +276,14 @@ describe('APIVersioningService', () => {
 
     it('should route to correct handler by version', () => {
       const handlers = {
-        '1.0.0': vi.fn(),
-        '2.0.0': vi.fn(),
+        '1.0.0': jest.fn(),
+        '2.0.0': jest.fn(),
       };
 
       const handler = versioningService.versionedHandler(handlers);
       const req = { apiVersion: '1.0.0' };
       const res = {};
-      const next = vi.fn();
+      const next = jest.fn();
 
       handler(req, res, next);
 
@@ -291,7 +291,7 @@ describe('APIVersioningService', () => {
     });
 
     it('should use default handler if no version match', () => {
-      const defaultHandler = vi.fn();
+      const defaultHandler = jest.fn();
       const handlers = {
         default: defaultHandler,
       };
@@ -311,8 +311,8 @@ describe('APIVersioningService', () => {
 
       const req = { apiVersion: '1.0.0' };
       const res = {
-        status: vi.fn().mockReturnThis(),
-        json: vi.fn(),
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
       };
 
       handler(req, res);
@@ -418,8 +418,8 @@ describe('APIVersioningService', () => {
   describe('Helper Functions', () => {
     it('should create versioned endpoint', () => {
       const handlers = {
-        '1.0.0': vi.fn(),
-        '2.0.0': vi.fn(),
+        '1.0.0': jest.fn(),
+        '2.0.0': jest.fn(),
       };
 
       const endpoint = createVersionedEndpoint(versioningService, handlers);

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi, afterEach } from '@jest/globals';
 import { CDNService, cdnMiddleware } from '../services/cdnService.js';
 
 describe('CDNService', () => {
@@ -14,14 +14,14 @@ describe('CDNService', () => {
 
     cdnService = new CDNService();
     cdnService.s3Client = {
-      upload: vi.fn(() => ({
-        promise: vi.fn().mockResolvedValue({
+      upload: jest.fn(() => ({
+        promise: jest.fn().mockResolvedValue({
           Key: 'test/file.js',
           ETag: '"abc123"',
         }),
       })),
-      headObject: vi.fn(() => ({
-        promise: vi.fn().mockResolvedValue({
+      headObject: jest.fn(() => ({
+        promise: jest.fn().mockResolvedValue({
           ContentLength: 1024,
           LastModified: new Date(),
           ETag: '"abc123"',
@@ -29,22 +29,22 @@ describe('CDNService', () => {
           CacheControl: 'public, max-age=86400',
         }),
       })),
-      listObjects: vi.fn(() => ({
-        promise: vi.fn().mockResolvedValue({
+      listObjects: jest.fn(() => ({
+        promise: jest.fn().mockResolvedValue({
           Contents: [
             { Key: 'test/file.js', Size: 1024 },
             { Key: 'test/style.css', Size: 2048 },
           ],
         }),
       })),
-      deleteObject: vi.fn(() => ({
-        promise: vi.fn().mockResolvedValue({}),
+      deleteObject: jest.fn(() => ({
+        promise: jest.fn().mockResolvedValue({}),
       })),
     };
 
     cdnService.cloudfront = {
-      createInvalidation: vi.fn(() => ({
-        promise: vi.fn().mockResolvedValue({
+      createInvalidation: jest.fn(() => ({
+        promise: jest.fn().mockResolvedValue({
           Invalidation: { Id: 'I123456789' },
         }),
       })),
@@ -186,8 +186,8 @@ describe('CDNService', () => {
     });
 
     it('should handle upload errors', async () => {
-      cdnService.s3Client.upload = vi.fn(() => ({
-        promise: vi.fn().mockRejectedValue(new Error('Upload failed')),
+      cdnService.s3Client.upload = jest.fn(() => ({
+        promise: jest.fn().mockRejectedValue(new Error('Upload failed')),
       }));
 
       await expect(
@@ -227,8 +227,8 @@ describe('CDNService', () => {
 
     it('should handle partial failures in batch', async () => {
       let callCount = 0;
-      cdnService.s3Client.upload = vi.fn(() => ({
-        promise: vi.fn().mockImplementation(() => {
+      cdnService.s3Client.upload = jest.fn(() => ({
+        promise: jest.fn().mockImplementation(() => {
           callCount++;
           if (callCount === 2) {
             return Promise.reject(new Error('Upload failed'));
@@ -282,8 +282,8 @@ describe('CDNService', () => {
     });
 
     it('should handle invalidation errors', async () => {
-      cdnService.cloudfront.createInvalidation = vi.fn(() => ({
-        promise: vi.fn().mockRejectedValue(new Error('Invalid distribution')),
+      cdnService.cloudfront.createInvalidation = jest.fn(() => ({
+        promise: jest.fn().mockRejectedValue(new Error('Invalid distribution')),
       }));
 
       await expect(
@@ -320,8 +320,8 @@ describe('CDNService', () => {
     });
 
     it('should handle metadata errors', async () => {
-      cdnService.s3Client.headObject = vi.fn(() => ({
-        promise: vi.fn().mockRejectedValue(new Error('Not found')),
+      cdnService.s3Client.headObject = jest.fn(() => ({
+        promise: jest.fn().mockRejectedValue(new Error('Not found')),
       }));
 
       const metadata = await cdnService.getAssetMetadata('/nonexistent/file.js');
@@ -343,8 +343,8 @@ describe('CDNService', () => {
     });
 
     it('should handle deletion errors', async () => {
-      cdnService.s3Client.deleteObject = vi.fn(() => ({
-        promise: vi.fn().mockRejectedValue(new Error('Delete failed')),
+      cdnService.s3Client.deleteObject = jest.fn(() => ({
+        promise: jest.fn().mockRejectedValue(new Error('Delete failed')),
       }));
 
       await expect(
@@ -365,8 +365,8 @@ describe('CDNService', () => {
     });
 
     it('should handle stats errors', async () => {
-      cdnService.s3Client.listObjects = vi.fn(() => ({
-        promise: vi.fn().mockRejectedValue(new Error('List error')),
+      cdnService.s3Client.listObjects = jest.fn(() => ({
+        promise: jest.fn().mockRejectedValue(new Error('List error')),
       }));
 
       const stats = await cdnService.getStats();
@@ -377,8 +377,8 @@ describe('CDNService', () => {
   describe('Middleware', () => {
     it('should skip non-asset paths', () => {
       const req = { path: '/api/users' };
-      const res = { set: vi.fn() };
-      const next = vi.fn();
+      const res = { set: jest.fn() };
+      const next = jest.fn();
 
       cdnMiddleware(req, res, next);
 
@@ -388,8 +388,8 @@ describe('CDNService', () => {
 
     it('should process JavaScript assets', () => {
       const req = { path: '/assets/app.js' };
-      const res = { set: vi.fn() };
-      const next = vi.fn();
+      const res = { set: jest.fn() };
+      const next = jest.fn();
 
       cdnMiddleware(req, res, next);
 
@@ -399,8 +399,8 @@ describe('CDNService', () => {
 
     it('should process CSS assets', () => {
       const req = { path: '/styles/main.css' };
-      const res = { set: vi.fn() };
-      const next = vi.fn();
+      const res = { set: jest.fn() };
+      const next = jest.fn();
 
       cdnMiddleware(req, res, next);
 
@@ -409,8 +409,8 @@ describe('CDNService', () => {
 
     it('should process image assets', () => {
       const req = { path: '/images/logo.png' };
-      const res = { set: vi.fn() };
-      const next = vi.fn();
+      const res = { set: jest.fn() };
+      const next = jest.fn();
 
       cdnMiddleware(req, res, next);
 
@@ -419,8 +419,8 @@ describe('CDNService', () => {
 
     it('should set CDN URL header', () => {
       const req = { path: '/fonts/arial.woff2' };
-      const res = { set: vi.fn() };
-      const next = vi.fn();
+      const res = { set: jest.fn() };
+      const next = jest.fn();
 
       cdnMiddleware(req, res, next);
 
@@ -429,8 +429,8 @@ describe('CDNService', () => {
 
     it('should handle middleware errors gracefully', () => {
       const req = { path: '/assets/app.js' };
-      const res = { set: vi.fn(() => { throw new Error('Set failed'); }) };
-      const next = vi.fn();
+      const res = { set: jest.fn(() => { throw new Error('Set failed'); }) };
+      const next = jest.fn();
 
       cdnMiddleware(req, res, next);
 

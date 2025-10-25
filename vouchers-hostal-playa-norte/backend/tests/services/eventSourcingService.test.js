@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from '@jest/globals';
 import EventSourcingService, {
   publishDomainEvent,
   rebuildAggregateState,
@@ -12,8 +12,8 @@ describe('EventSourcingService', () => {
 
   beforeEach(() => {
     mockDb = {
-      prepare: vi.fn().mockReturnThis(),
-      run: vi.fn().mockReturnThis(),
+      prepare: jest.fn().mockReturnThis(),
+      run: jest.fn().mockReturnThis(),
     };
 
     eventService = new EventSourcingService(mockDb);
@@ -316,7 +316,7 @@ describe('EventSourcingService', () => {
     });
 
     it('should unsubscribe', () => {
-      const unsubscribe = eventService.subscribe('order.created', vi.fn());
+      const unsubscribe = eventService.subscribe('order.created', jest.fn());
       unsubscribe();
 
       expect(eventService.subscribers.get('order.created').size).toBe(0);
@@ -340,8 +340,8 @@ describe('EventSourcingService', () => {
     });
 
     it('should support multiple subscribers', () => {
-      const callback1 = vi.fn();
-      const callback2 = vi.fn();
+      const callback1 = jest.fn();
+      const callback2 = jest.fn();
 
       eventService.subscribe('order.created', callback1);
       eventService.subscribe('order.created', callback2);

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from '@jest/globals';
 import { TokenBlacklist, checkTokenBlacklist } from '../src/services/tokenBlacklist.service.js';
 import jwt from 'jsonwebtoken';
 

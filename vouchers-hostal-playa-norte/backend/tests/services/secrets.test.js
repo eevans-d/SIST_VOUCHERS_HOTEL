@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi, afterEach } from '@jest/globals';
 import { SecretsManager } from '@/services/secrets.service.js';
 
 describe('SecretsManager Service', () => {
@@ -8,11 +8,11 @@ describe('SecretsManager Service', () => {
   beforeEach(() => {
     process.env.NODE_ENV = 'development';
     secretsManager = new SecretsManager();
-    mockAwsClient = vi.fn();
+    mockAwsClient = jest.fn();
   });
 
   afterEach(() => {
-    vi.clearAllMocks();
+    jest.clearAllMocks();
     secretsManager = null;
   });
 
@@ -187,7 +187,7 @@ describe('SecretsManager Service', () => {
     });
 
     it('should log errors on load failure', async () => {
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
       process.env.NODE_ENV = 'production';
       secretsManager.client = null;
 

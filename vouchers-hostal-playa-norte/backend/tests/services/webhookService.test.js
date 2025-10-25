@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from '@jest/globals';
 import WebhookService, {
   publishWebhookEvent,
   verifyWebhookSignature,
@@ -11,8 +11,8 @@ describe('WebhookService', () => {
 
   beforeEach(() => {
     mockDb = {
-      prepare: vi.fn().mockReturnThis(),
-      run: vi.fn().mockReturnThis(),
+      prepare: jest.fn().mockReturnThis(),
+      run: jest.fn().mockReturnThis(),
     };
 
     webhookService = new WebhookService(mockDb);

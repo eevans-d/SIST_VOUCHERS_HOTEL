@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi, afterEach } from '@jest/globals';
 import DDoSProtectionService from '../services/ddosProtectionService.js';
 
 describe('DDoSProtectionService', () => {

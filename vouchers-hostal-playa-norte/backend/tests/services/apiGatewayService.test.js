@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from '@jest/globals';
 import APIGatewayService from '../services/apiGatewayService.js';
 
 describe('APIGatewayService', () => {
@@ -25,15 +25,15 @@ describe('APIGatewayService', () => {
 
     mockRes = {
       statusCode: 200,
-      status: vi.fn(function(code) {
+      status: jest.fn(function(code) {
         this.statusCode = code;
         return this;
       }),
-      json: vi.fn(function(data) {
+      json: jest.fn(function(data) {
         this.data = data;
         return data;
       }),
-      get: vi.fn()
+      get: jest.fn()
     };
   });
 
@@ -188,7 +188,7 @@ describe('APIGatewayService', () => {
       mockReq.headers.authorization = `Bearer ${token}`;
       
       const jwtLib = require('jsonwebtoken');
-      vi.spyOn(jwtLib, 'verify').mockReturnValue({ id: '123', name: 'Test' });
+      jest.spyOn(jwtLib, 'verify').mockReturnValue({ id: '123', name: 'Test' });
       
       gateway.registerRoute('GET', '/api/test', async (req, res) => ({}), { requiresAuth: true });
       

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from '@jest/globals';
 import GraphQLService from '../services/graphqlService.js';
 
 describe('GraphQLService', () => {
@@ -83,7 +83,7 @@ describe('GraphQLService', () => {
 
   describe('Query Resolvers', () => {
     beforeEach(() => {
-      graphqlService.queryDatabase = vi.fn().mockResolvedValue([
+      graphqlService.queryDatabase = jest.fn().mockResolvedValue([
         {
           id: '1',
           email: 'user@example.com',
@@ -132,7 +132,7 @@ describe('GraphQLService', () => {
         { id: '2', status: 'PENDING' },
       ]);
 
-      graphqlService.countOrders = vi.fn().mockResolvedValue(100);
+      graphqlService.countOrders = jest.fn().mockResolvedValue(100);
 
       const result = await graphqlService.resolveOrders(null, {
         limit: 20,
@@ -224,10 +224,10 @@ describe('GraphQLService', () => {
 
   describe('Mutation Resolvers', () => {
     beforeEach(() => {
-      graphqlService.insertDatabase = vi.fn().mockResolvedValue({ lastID: 1 });
-      graphqlService.updateDatabase = vi.fn().mockResolvedValue({});
-      graphqlService.deleteDatabase = vi.fn().mockResolvedValue({});
-      graphqlService.queryDatabase = vi.fn().mockResolvedValue([
+      graphqlService.insertDatabase = jest.fn().mockResolvedValue({ lastID: 1 });
+      graphqlService.updateDatabase = jest.fn().mockResolvedValue({});
+      graphqlService.deleteDatabase = jest.fn().mockResolvedValue({});
+      graphqlService.queryDatabase = jest.fn().mockResolvedValue([
         { id: '1', email: 'user@example.com', name: 'John' },
       ]);
     });
@@ -353,7 +353,7 @@ describe('GraphQLService', () => {
 
   describe('Field Resolvers', () => {
     beforeEach(() => {
-      graphqlService.queryDatabase = vi.fn().mockResolvedValue([
+      graphqlService.queryDatabase = jest.fn().mockResolvedValue([
         { id: '1', userId: '1', status: 'COMPLETED' },
       ]);
     });

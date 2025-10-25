@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 import ProfilingService from '../services/profilingService.js';
 
 describe('ProfilingService', () => {

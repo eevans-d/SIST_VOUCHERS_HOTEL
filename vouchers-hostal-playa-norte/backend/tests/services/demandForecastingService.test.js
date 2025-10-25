@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from '@jest/globals';
 import DemandForecastingService from '../services/demandForecastingService.js';
 
 describe('DemandForecastingService', () => {

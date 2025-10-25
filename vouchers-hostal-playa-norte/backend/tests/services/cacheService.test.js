@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from '@jest/globals';
 import { CacheService, cacheMiddleware, invalidateCacheMiddleware } from '../services/cacheService.js';
 
 describe('CacheService', () => {
@@ -300,7 +300,7 @@ describe('CacheService', () => {
         query: {},
       };
       const res = {};
-      const next = vi.fn();
+      const next = jest.fn();
       
       await cacheMiddleware(req, res, next);
       expect(next).toHaveBeenCalled();
@@ -319,9 +319,9 @@ describe('CacheService', () => {
       };
       
       const res = {
-        json: vi.fn((data) => ({ ...data })),
+        json: jest.fn((data) => ({ ...data })),
       };
-      const next = vi.fn();
+      const next = jest.fn();
       
       await cacheMiddleware(req, res, next);
       
@@ -337,8 +337,8 @@ describe('CacheService', () => {
         path: '/nocache',
         query: {},
       };
-      const res = { json: vi.fn() };
-      const next = vi.fn();
+      const res = { json: jest.fn() };
+      const next = jest.fn();
       
       await cacheMiddleware(req, res, next);
       expect(next).toHaveBeenCalled();
@@ -351,8 +351,8 @@ describe('CacheService', () => {
         path: '/public',
         query: {},
       };
-      const res = { json: vi.fn() };
-      const next = vi.fn();
+      const res = { json: jest.fn() };
+      const next = jest.fn();
       
       await cacheMiddleware(req, res, next);
       expect(next).toHaveBeenCalled();
@@ -391,8 +391,8 @@ describe('CacheService', () => {
         method: 'GET',
         path: '/vouchers',
       };
-      const res = { json: vi.fn() };
-      const next = vi.fn();
+      const res = { json: jest.fn() };
+      const next = jest.fn();
       
       await invalidateCacheMiddleware(req, res, next);
       expect(next).toHaveBeenCalled();
@@ -431,7 +431,7 @@ describe('CacheService', () => {
           return data;
         },
       };
-      const next = vi.fn();
+      const next = jest.fn();
       
       await invalidateCacheMiddleware(req, res, next);
       expect(next).toHaveBeenCalled();
@@ -447,7 +447,7 @@ describe('CacheService', () => {
           return data;
         },
       };
-      const next = vi.fn();
+      const next = jest.fn();
       
       await invalidateCacheMiddleware(req, res, next);
       expect(next).toHaveBeenCalled();
@@ -463,7 +463,7 @@ describe('CacheService', () => {
           return data;
         },
       };
-      const next = vi.fn();
+      const next = jest.fn();
       
       await invalidateCacheMiddleware(req, res, next);
       expect(next).toHaveBeenCalled();

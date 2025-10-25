@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi, afterEach } from '@jest/globals';
 import OAuth2Service from '../services/oauth2Service.js';
 
 describe('OAuth2Service', () => {
@@ -14,12 +14,12 @@ describe('OAuth2Service', () => {
       discoveryUrl: 'https://accounts.google.com/.well-known/openid-configuration'
     });
 
-    mockFetch = vi.fn();
+    mockFetch = jest.fn();
     global.fetch = mockFetch;
   });
 
   afterEach(() => {
-    vi.clearAllMocks();
+    jest.clearAllMocks();
   });
 
   // ===== INITIALIZATION TESTS =====

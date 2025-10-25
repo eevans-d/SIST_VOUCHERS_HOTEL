@@ -4,7 +4,7 @@
  * 45+ casos de prueba con cobertura 100%
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from '@jest/globals';
 import TracingService from '../services/tracingService.js';
 
 describe('TracingService', () => {

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from '@jest/globals';
 import { WebSocketService, emitToUser, emitToRoom, broadcast } from '../services/websocketService.js';
 
 describe('WebSocketService', () => {
@@ -8,28 +8,28 @@ describe('WebSocketService', () => {
 
   beforeEach(() => {
     mockHttpServer = {
-      on: vi.fn(),
-      listen: vi.fn(),
+      on: jest.fn(),
+      listen: jest.fn(),
     };
 
     mockSocket = {
       id: 'socket123',
-      emit: vi.fn(),
-      on: vi.fn(),
-      to: vi.fn().mockReturnThis(),
-      join: vi.fn(),
-      leave: vi.fn(),
+      emit: jest.fn(),
+      on: jest.fn(),
+      to: jest.fn().mockReturnThis(),
+      join: jest.fn(),
+      leave: jest.fn(),
       broadcast: {
-        to: vi.fn().mockReturnThis(),
-        emit: vi.fn(),
+        to: jest.fn().mockReturnThis(),
+        emit: jest.fn(),
       },
     };
 
     wsService = new WebSocketService(mockHttpServer);
     wsService.io = {
-      on: vi.fn(),
-      emit: vi.fn(),
-      to: vi.fn().mockReturnThis(),
+      on: jest.fn(),
+      emit: jest.fn(),
+      to: jest.fn().mockReturnThis(),
       engine: { clientsCount: 0 },
     };
   });
@@ -351,8 +351,8 @@ describe('WebSocketService', () => {
     beforeEach(() => {
       wsService.registerUser('socket1', 'user123');
       wsService.registerUser('socket2', 'user123');
-      wsService.io.to = vi.fn().mockReturnThis();
-      wsService.io.emit = vi.fn();
+      wsService.io.to = jest.fn().mockReturnThis();
+      wsService.io.emit = jest.fn();
     });
 
     it('should disconnect user', () => {
