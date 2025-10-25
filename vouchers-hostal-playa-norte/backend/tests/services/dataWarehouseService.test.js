@@ -1,4 +1,3 @@
-import { describe, it, expect, beforeEach } from 'vitest';
 import DataWarehouseService from '../../src/services/dataWarehouseService.js';
 
 describe('DataWarehouseService', () => {
@@ -122,7 +121,8 @@ describe('DataWarehouseService', () => {
         function: (item) => ({ ...item, priceWithTax: item.price * 1.1 })
       });
 
-      expect(transformed[0].priceWithTax).toBe(110);
+      // Tolerar precisión de punto flotante
+      expect(transformed[0].priceWithTax).toBeCloseTo(110, 6);
     });
 
     it('should apply filter transformation', async () => {

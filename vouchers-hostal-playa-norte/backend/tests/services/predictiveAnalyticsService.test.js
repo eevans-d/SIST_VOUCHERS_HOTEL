@@ -1,4 +1,3 @@
-import { describe, it, expect, beforeEach } from 'vitest';
 import PredictiveAnalyticsService from '../../src/services/predictiveAnalyticsService.js';
 
 describe('PredictiveAnalyticsService', () => {

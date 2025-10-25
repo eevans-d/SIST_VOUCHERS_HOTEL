@@ -383,14 +383,15 @@ class BIDashboardService {
   _determineKPIStatus(value, kpi) {
     if (!kpi.threshold) return 'normal';
 
-    if (kpi.threshold.critical && value >= kpi.threshold.critical) {
-      return 'critical';
+    // By default we assume higher values are better. Evaluate from 'good' down to 'critical'.
+    if (kpi.threshold.good != null && value >= kpi.threshold.good) {
+      return 'good';
     }
-    if (kpi.threshold.warning && value >= kpi.threshold.warning) {
+    if (kpi.threshold.warning != null && value >= kpi.threshold.warning) {
       return 'warning';
     }
-    if (kpi.threshold.good && value >= kpi.threshold.good) {
-      return 'good';
+    if (kpi.threshold.critical != null && value >= kpi.threshold.critical) {
+      return 'critical';
     }
 
     return 'normal';

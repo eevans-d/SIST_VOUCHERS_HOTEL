@@ -1,4 +1,3 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
 import ReportBuilderService from '../../src/services/reportBuilderService.js';
 
 describe('ReportBuilderService', () => {

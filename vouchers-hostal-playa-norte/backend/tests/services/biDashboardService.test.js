@@ -1,4 +1,3 @@
-import { describe, it, expect, beforeEach } from 'vitest';
 import BIDashboardService from '../../src/services/biDashboardService.js';
 
 describe('BIDashboardService', () => {
