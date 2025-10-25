@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from '@jest/globals';
+import { describe, it, expect, beforeEach } from '@jest/globals';
 import PaginationService from '../services/paginationService.js';
 
 describe('PaginationService', () => {

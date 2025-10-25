@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from '@jest/globals';
+import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 import { CDNService, cdnMiddleware } from '../services/cdnService.js';
 
 describe('CDNService', () => {

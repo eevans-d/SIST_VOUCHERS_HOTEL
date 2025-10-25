@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from '@jest/globals';
+import { describe, it, expect, beforeEach } from '@jest/globals';
 import APIGatewayService from '../services/apiGatewayService.js';
 
 describe('APIGatewayService', () => {

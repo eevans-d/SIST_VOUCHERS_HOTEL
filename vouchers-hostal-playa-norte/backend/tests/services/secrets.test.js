@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from '@jest/globals';
+import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 import { SecretsManager } from '@/services/secrets.service.js';
 
 describe('SecretsManager Service', () => {

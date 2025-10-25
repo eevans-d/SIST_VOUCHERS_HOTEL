@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from '@jest/globals';
+import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 import { WebSocketService, emitToUser, emitToRoom, broadcast } from '../services/websocketService.js';
 
 describe('WebSocketService', () => {

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from '@jest/globals';
+import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 import OAuth2Service from '../services/oauth2Service.js';
 
 describe('OAuth2Service', () => {
