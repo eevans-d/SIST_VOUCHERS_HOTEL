@@ -1,6 +1,6 @@
 # fly.toml - Configuración Fly.io para Backend
 
-app = "hostal-vouchers-backend"
+app = "hpn-vouchers-backend"
 primary_region = "gru" # São Paulo (más cercano a Argentina)
 
 kill_signal = "SIGINT"
