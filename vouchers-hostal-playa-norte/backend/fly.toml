@@ -43,12 +43,13 @@ kill_timeout = "5s"
     hard_limit = 100
     soft_limit = 80
 
-  [[http_service.checks]]
-    grace_period = "10s"
-    interval = "30s"
-    method = "GET"
-    timeout = "5s"
-    path = "/health"
+  # Health checks temporalmente deshabilitados para debug en producción
+  # [[http_service.checks]]
+  #   grace_period = "10s"
+  #   interval = "30s"
+  #   method = "GET"
+  #   timeout = "5s"
+  #   path = "/health"
 
 [[services]]
   protocol = "tcp"
