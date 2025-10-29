@@ -1,31 +1,29 @@
-const request = require('supertest');
-const { app } = require('../../src/server');
-const { getDb } = require('../../src/config/database');
+import request from 'supertest';
+import app from '../../src/index.js';
+
 
 describe('Sync API Integration', () => {
-  let db;
   let cafeteriaToken;
   let testVouchers;
 
   beforeAll(() => {
-    db = createTestDB();
     cafeteriaToken = generateTestToken(2, 'cafeteria');
   });
 
   afterAll(() => {
-    cleanupTestDB(db);
+    dbManager.close();
   });
 
   beforeEach(async () => {
     // Limpiar datos
-    db.exec('DELETE FROM sync_log');
-    db.exec('DELETE FROM redemptions');
-    db.exec('DELETE FROM vouchers');
-    db.exec('DELETE FROM stays');
-    db.exec('DELETE FROM sqlite_sequence');
+    dbManager.getDb().exec('DELETE FROM sync_log');
+    dbManager.getDb().exec('DELETE FROM redemptions');
+    dbManager.getDb().exec('DELETE FROM vouchers');
+    dbManager.getDb().exec('DELETE FROM stays');
+    dbManager.getDb().exec('DELETE FROM sqlite_sequence');
 
     // Crear estadía y vouchers de prueba
-    const stayResult = db.prepare(`
+    const stayResult = dbManager.getDb().prepare(`
       INSERT INTO stays (guest_name, room_number, checkin_date, checkout_date, breakfast_count)
       VALUES (?, ?, ?, ?, ?)
     `).run('Sync Test', '201', '2025-01-01', '2025-12-31', 5);

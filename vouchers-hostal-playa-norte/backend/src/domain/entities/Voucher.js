@@ -1,159 +1,105 @@
-import { v4 as uuidv4 } from 'uuid';
-import { z } from 'zod';
+/**
+ * @file Voucher Entity
+ * @description Entidad de dominio para Voucher
+ * @ref BLUEPRINT_ARQUITECTURA.md - Domain Layer
+ */
 
-// Esquema de validación para Voucher
-export const VoucherSchema = z.object({
-  id: z.string().uuid().optional(),
-  stayId: z.string().uuid(),
-  code: z.string().min(5).max(20),
-  qrCode: z.string().url().optional(),
-  status: z.enum(['pending', 'active', 'redeemed', 'expired', 'cancelled']),
-  redemptionDate: z.date().nullable().optional(),
-  expiryDate: z.date(),
-  redemptionNotes: z.string().optional(),
-  createdAt: z.date().optional(),
-  updatedAt: z.date().optional(),
+import { z } from 'zod';
+import { v4 as uuidv4 } from 'uuid';
+
+const VoucherSchema = z.object({
+  id: z.string().uuid().optional().default(() => uuidv4()),
+  code: z.string().min(1, "Code is required"),
+  stayId: z.string().uuid("Invalid Stay ID"),
+  validFrom: z.date("Invalid validFrom date"),
+  validUntil: z.date("Invalid validUntil date"),
+  hmacSignature: z.string().min(1, "HMAC signature is required"),
+  status: z.enum(['active', 'redeemed', 'expired', 'cancelled']).default('active'),
+  createdAt: z.date().default(() => new Date()),
+  updatedAt: z.date().default(() => new Date()),
 });
 
-/**
- * Entidad Voucher - Comprobantes digitales para consumo en cafetería
- * State Machine: pending → active → redeemed/expired/cancelled
- */
 export class Voucher {
-  constructor(props) {
-    this.id = props.id || uuidv4();
-    this.stayId = props.stayId;
-    this.code = props.code;
-    this.qrCode = props.qrCode;
-    this.status = props.status || 'pending';
-    this.redemptionDate = props.redemptionDate || null;
-    this.expiryDate = props.expiryDate;
-    this.redemptionNotes = props.redemptionNotes || '';
-    this.createdAt = props.createdAt || new Date();
-    this.updatedAt = props.updatedAt || new Date();
-  }
-
-  /**
-   * Factory method: Crear nuevo voucher
-   */
-  static create({ stayId, code, qrCode, expiryDate }) {
-    const props = {
-      id: uuidv4(),
-      stayId,
-      code,
-      qrCode,
-      expiryDate,
-      status: 'pending',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    VoucherSchema.parse(props);
-    return new Voucher(props);
-  }
-
-  /**
-   * Activar voucher (pending → active)
-   */
-  activate() {
-    if (this.status !== 'pending') {
-      throw new Error(`No se puede activar voucher con estado: ${this.status}`);
+  constructor(data) {
+    if (data.validUntil <= data.validFrom) {
+      throw new Error('validUntil must be after validFrom');
     }
-    this.status = 'active';
-    this.updatedAt = new Date();
+    const validated = VoucherSchema.parse(data);
+    Object.assign(this, validated);
   }
 
-  /**
-   * Canjear voucher (active → redeemed)
-   */
-  redeem(notes = '') {
-    if (this.status !== 'active') {
-      throw new Error(`No se puede canjear voucher con estado: ${this.status}`);
-    }
-    if (this.isExpired()) {
-      throw new Error('Voucher expirado');
-    }
-    this.status = 'redeemed';
-    this.redemptionDate = new Date();
-    this.redemptionNotes = notes;
-    this.updatedAt = new Date();
+  static create(data) {
+    return new Voucher(data);
   }
 
-  /**
-   * Expirar voucher (active → expired)
-   */
-  expire() {
-    if (this.status !== 'active') {
-      throw new Error(`No se puede expirar voucher con estado: ${this.status}`);
-    }
-    this.status = 'expired';
-    this.updatedAt = new Date();
+  isRedeemed() {
+    return this.status === 'redeemed';
   }
 
-  /**
-   * Cancelar voucher
-   */
-  cancel(reason = '') {
-    if (!['pending', 'active'].includes(this.status)) {
-      throw new Error(`No se puede cancelar voucher con estado: ${this.status}`);
-    }
-    this.status = 'cancelled';
-    this.redemptionNotes = reason;
-    this.updatedAt = new Date();
-  }
-
-  /**
-   * Verificar si voucher está expirado
-   */
   isExpired() {
-    return new Date() > new Date(this.expiryDate);
+    const now = new Date();
+    return now > this.validUntil;
   }
 
-  /**
-   * Verificar si voucher es válido para canjear
-   */
-  isValid() {
+  isActive() {
     return this.status === 'active' && !this.isExpired();
   }
 
-  /**
-   * Días restantes hasta expiración
-   */
-  getDaysRemaining() {
-    const now = new Date();
-    const diffTime = Math.abs(this.expiryDate - now);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
+  redeem() {
+    if (this.status !== 'active') {
+      throw new Error('Only active vouchers can be redeemed');
+    }
+    if (this.isExpired()) {
+      throw new Error('Cannot redeem an expired voucher');
+    }
+    this.status = 'redeemed';
+    this.updatedAt = new Date();
   }
 
-  /**
-   * Serializar para BD
-   */
+  cancel() {
+    if (this.status === 'redeemed') {
+      throw new Error('Cannot cancel a redeemed voucher');
+    }
+    this.status = 'cancelled';
+    this.updatedAt = new Date();
+  }
+
   toJSON() {
     return {
       id: this.id,
-      stayId: this.stayId,
       code: this.code,
-      qrCode: this.qrCode,
+      stayId: this.stayId,
+      validFrom: this.validFrom.toISOString(),
+      validUntil: this.validUntil.toISOString(),
       status: this.status,
-      redemptionDate: this.redemptionDate,
-      expiryDate: this.expiryDate,
-      redemptionNotes: this.redemptionNotes,
-      createdAt: this.createdAt,
-      updatedAt: this.updatedAt,
+      createdAt: this.createdAt.toISOString(),
+      updatedAt: this.updatedAt.toISOString(),
     };
   }
 
-  /**
-   * Crear desde BD
-   */
-  static fromDatabase(data) {
+  toPersistence() {
+    return {
+      id: this.id,
+      code: this.code,
+      stayId: this.stayId,
+      validFrom: this.validFrom.toISOString(),
+      validUntil: this.validUntil.toISOString(),
+      hmacSignature: this.hmacSignature,
+      status: this.status,
+      createdAt: this.createdAt.toISOString(),
+      updatedAt: this.updatedAt.toISOString(),
+    };
+  }
+
+  static fromPersistence(data) {
     return new Voucher({
       ...data,
-      expiryDate: new Date(data.expiryDate),
-      redemptionDate: data.redemptionDate ? new Date(data.redemptionDate) : null,
+      validFrom: new Date(data.validFrom),
+      validUntil: new Date(data.validUntil),
       createdAt: new Date(data.createdAt),
       updatedAt: new Date(data.updatedAt),
     });
   }
 }
+
+export default Voucher;

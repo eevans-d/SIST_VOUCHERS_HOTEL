@@ -19,6 +19,7 @@ import { OrderRepository } from './domain/repositories/OrderRepository.js';
 import { JWTService } from './infrastructure/security/JWTService.js';
 import { PasswordService } from './infrastructure/security/PasswordService.js';
 import { QRService } from './infrastructure/services/QRService.js';
+import { CryptoService } from './infrastructure/security/CryptoService.js';
 import { LoginUser } from './application/use-cases/LoginUser.js';
 import { RegisterUser } from './application/use-cases/RegisterUser.js';
 import { CreateStay } from './application/use-cases/CreateStay.js';
@@ -30,7 +31,7 @@ import { CompleteOrder } from './application/use-cases/CompleteOrder.js';
 import { ReportService } from './application/services/ReportService.js';
 import { createAuthRoutes } from './presentation/http/routes/auth.js';
 import { createStaysRoutes } from './presentation/http/routes/stays.js';
-import { createVouchersRoutes } from './presentation/http/routes/vouchers.js';
+import createVouchersRoutes from './presentation/http/routes/vouchers.js';
 import { createOrdersRoutes } from './presentation/http/routes/orders.js';
 import { createReportsRoutes } from './presentation/http/routes/reports.js';
 import { authenticate, authorize } from './presentation/http/middleware/auth.middleware.js';
@@ -124,9 +125,11 @@ const qrService = new QRService({
   errorCorrection: 'M',
 });
 
-const generateVoucher = new GenerateVoucher(stayRepository, voucherRepository, qrService, logger);
-const validateVoucher = new ValidateVoucher(voucherRepository, stayRepository, logger);
-const redeemVoucher = new RedeemVoucher(voucherRepository, stayRepository, logger);
+const cryptoService = new CryptoService(process.env.VOUCHER_SECRET || 'a-very-secret-secret-that-is-long-enough');
+
+const generateVoucher = new GenerateVoucher(stayRepository, voucherRepository, cryptoService, logger);
+const validateVoucher = new ValidateVoucher(voucherRepository, stayRepository, cryptoService, logger);
+const redeemVoucher = new RedeemVoucher(voucherRepository, logger);
 
 const createOrder = new CreateOrder(stayRepository, orderRepository, logger);
 const completeOrder = new CompleteOrder(orderRepository, voucherRepository, logger);
@@ -213,14 +216,12 @@ app.use(
 
 // API de vouchers
 app.use(
+  '/api/vouchers',
   createVouchersRoutes({
-    voucherRepository,
-    stayRepository,
     generateVoucher,
     validateVoucher,
     redeemVoucher,
-    qrService,
-    logger,
+    jwtService,
   })
 );
 

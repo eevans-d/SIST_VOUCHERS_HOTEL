@@ -1,33 +1,31 @@
-const request = require('supertest');
-const { app } = require('../../src/server');
-const { getDb } = require('../../src/config/database');
+import request from 'supertest';
+import app from '../../src/index.js';
+
 
 describe('Reports API - Test Case #10', () => {
-  let db;
   let adminToken;
   let cafeteriaToken;
 
   beforeAll(() => {
-    db = createTestDB();
     adminToken = generateTestToken(1, 'admin');
     cafeteriaToken = generateTestToken(2, 'cafeteria');
   });
 
   afterAll(() => {
-    cleanupTestDB(db);
+    dbManager.close();
   });
 
   describe('GET /api/reports/redemptions - CSV Format', () => {
     beforeEach(async () => {
       // Limpiar datos
-      db.exec('DELETE FROM sync_log');
-      db.exec('DELETE FROM redemptions');
-      db.exec('DELETE FROM vouchers');
-      db.exec('DELETE FROM stays');
-      db.exec('DELETE FROM sqlite_sequence');
+      dbManager.getDb().exec('DELETE FROM sync_log');
+      dbManager.getDb().exec('DELETE FROM redemptions');
+      dbManager.getDb().exec('DELETE FROM vouchers');
+      dbManager.getDb().exec('DELETE FROM stays');
+      dbManager.getDb().exec('DELETE FROM sqlite_sequence');
 
       // Crear estadía
-      const stayResult = db.prepare(`
+      const stayResult = dbManager.getDb().prepare(`
         INSERT INTO stays (guest_name, room_number, checkin_date, checkout_date, breakfast_count)
         VALUES (?, ?, ?, ?, ?)
       `).run('Test Guest CSV', '301', '2025-01-01', '2025-01-10', 10);
@@ -43,7 +41,7 @@ describe('Reports API - Test Case #10', () => {
           breakfast_count: 10
         });
 
-      const vouchers = db.prepare('SELECT code FROM vouchers ORDER BY id').all();
+      const vouchers = dbManager.getDb().prepare('SELECT code FROM vouchers ORDER BY id').all();
 
       // 3 canjes ONLINE
       for (let i = 0; i < 3; i++) {

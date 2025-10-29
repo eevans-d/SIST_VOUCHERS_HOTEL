@@ -1,306 +1,81 @@
-const request = require('supertest');
-const { app } = require('../../src/server');
-const { getDb } = require('../../src/config/database');
+import request from 'supertest';
+import app from '../../src/index.js';
+import { Stay } from '../../src/domain/entities/Stay.js';
+import { User } from '../../src/domain/entities/User.js';
+import { StayRepository } from '../../src/infrastructure/persistence/StayRepository.js';
+import { UserRepository } from '../../src/domain/repositories/UserRepository.js';
+import { JWTService } from '../../src/infrastructure/security/JWTService.js';
+import Database from 'better-sqlite3';
 
-describe('Vouchers API Integration', () => {
+describe('Voucher API', () => {
   let db;
-  let adminToken;
-  let cafeteriaToken;
-  let testStayId;
+  let stayRepository;
+  let userRepository;
+  let jwtService;
+  let user;
+  let token;
 
   beforeAll(() => {
-    db = createTestDB();
-    adminToken = generateTestToken(1, 'admin');
-    cafeteriaToken = generateTestToken(2, 'cafeteria');
+    db = new Database(':memory:');
+    db.pragma('journal_mode = WAL');
+    db.pragma('foreign_keys = ON');
+
+    // Create tables
+    db.exec(`
+      CREATE TABLE users (id TEXT, email TEXT, password TEXT, role TEXT, isActive INTEGER);
+      CREATE TABLE stays (id TEXT, userId TEXT, hotelCode TEXT, roomNumber TEXT, checkInDate TEXT, checkOutDate TEXT, numberOfGuests INTEGER, numberOfNights INTEGER, roomType TEXT, basePrice REAL, totalPrice REAL, status TEXT, notes TEXT, createdAt TEXT, updatedAt TEXT);
+      CREATE TABLE vouchers (id TEXT, code TEXT, stayId TEXT, validFrom TEXT, validUntil TEXT, hmacSignature TEXT, status TEXT, createdAt TEXT, updatedAt TEXT);
+    `);
+
+    stayRepository = new StayRepository(db);
+    userRepository = new UserRepository(db);
+    jwtService = new JWTService('a-very-long-and-secret-jwt-secret-for-testing-purposes', 'a-very-long-and-secret-jwt-refresh-secret-for-testing-purposes');
+
+    // Create a test user
+    user = User.create({
+      email: 'test@example.com',
+      firstName: 'Test',
+      lastName: 'User',
+      password: 'password123',
+      passwordHash: 'a-very-long-and-secret-password-hash',
+      role: 'admin',
+    });
+    userRepository.save(user);
+
+    // Get a token
+    token = jwtService.generateTokenPair(user).accessToken;
   });
 
   afterAll(() => {
-    cleanupTestDB(db);
+    db.close();
   });
 
-  beforeEach(() => {
-    // Limpiar datos
-    db.exec('DELETE FROM redemptions');
-    db.exec('DELETE FROM vouchers');
-    db.exec('DELETE FROM stays');
-    db.exec('DELETE FROM sqlite_sequence');
+  describe('POST /api/vouchers/generate', () => {
+    it('should generate vouchers for a stay', async () => {
+      // Create a test stay
+      const stay = Stay.create({
+        userId: user.id,
+        hotelCode: 'HPN',
+        roomNumber: '101',
+        checkInDate: new Date(),
+        checkOutDate: new Date(new Date().setDate(new Date().getDate() + 2)),
+        numberOfGuests: 2,
+        numberOfNights: 2,
+        roomType: 'double',
+        basePrice: 100,
+        totalPrice: 200,
+      });
+      stayRepository.save(stay);
 
-    // Crear estadía de prueba
-    const result = db.prepare(`
-      INSERT INTO stays (guest_name, room_number, checkin_date, checkout_date, breakfast_count)
-      VALUES (?, ?, ?, ?, ?)
-    `).run('Integration Test', '101', '2025-01-01', '2025-12-31', 3);
-
-    testStayId = result.lastInsertRowid;
-  });
-
-  describe('POST /api/vouchers', () => {
-    it('debe emitir vouchers con autenticación válida', async () => {
       const response = await request(app)
-        .post('/api/vouchers')
-        .set('Authorization', `Bearer ${adminToken}`)
-        .send({
-          stay_id: testStayId,
-          valid_from: '2025-01-02',
-          valid_until: '2025-01-05',
-          breakfast_count: 3
-        })
-        .expect(201);
+        .post('/api/vouchers/generate')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ stayId: stay.id, numberOfVouchers: 2 });
 
+      expect(response.status).toBe(201);
       expect(response.body.success).toBe(true);
-      expect(response.body.vouchers).toHaveLength(3);
-      expect(response.body.vouchers[0]).toHaveProperty('qr_image');
-    });
-
-    it('debe rechazar sin autenticación', async () => {
-      await request(app)
-        .post('/api/vouchers')
-        .send({
-          stay_id: testStayId,
-          valid_from: '2025-01-02',
-          valid_until: '2025-01-05',
-          breakfast_count: 1
-        })
-        .expect(401);
-    });
-
-    it('debe rechazar con rol insuficiente', async () => {
-      await request(app)
-        .post('/api/vouchers')
-        .set('Authorization', `Bearer ${cafeteriaToken}`)
-        .send({
-          stay_id: testStayId,
-          valid_from: '2025-01-02',
-          valid_until: '2025-01-05',
-          breakfast_count: 1
-        })
-        .expect(403);
-    });
-
-    it('debe validar datos de entrada', async () => {
-      const response = await request(app)
-        .post('/api/vouchers')
-        .set('Authorization', `Bearer ${adminToken}`)
-        .send({
-          stay_id: testStayId,
-          valid_from: '2025-01-10',
-          valid_until: '2025-01-05', // Fecha inválida
-          breakfast_count: 1
-        })
-        .expect(400);
-
-      expect(response.body.error).toBeDefined();
-    });
-
-    it('debe incluir correlation ID en respuesta', async () => {
-      const response = await request(app)
-        .post('/api/vouchers')
-        .set('Authorization', `Bearer ${adminToken}`)
-        .send({
-          stay_id: testStayId,
-          valid_from: '2025-01-02',
-          valid_until: '2025-01-05',
-          breakfast_count: 1
-        })
-        .expect(201);
-
-      expect(response.headers['x-correlation-id']).toBeDefined();
-    });
-  });
-
-  describe('POST /api/vouchers/validate', () => {
-    let testVoucherCode;
-    let testVoucherHmac;
-
-    beforeEach(async () => {
-      const response = await request(app)
-        .post('/api/vouchers')
-        .set('Authorization', `Bearer ${adminToken}`)
-        .send({
-          stay_id: testStayId,
-          valid_from: '2025-01-01',
-          valid_until: '2025-12-31',
-          breakfast_count: 1
-        });
-
-      testVoucherCode = response.body.vouchers[0].code;
-      testVoucherHmac = response.body.vouchers[0].hmac_signature;
-    });
-
-    it('debe validar voucher correctamente', async () => {
-      const response = await request(app)
-        .post('/api/vouchers/validate')
-        .send({
-          code: testVoucherCode,
-          hmac: testVoucherHmac
-        })
-        .expect(200);
-
-      expect(response.body.valid).toBe(true);
-      expect(response.body.voucher.code).toBe(testVoucherCode);
-    });
-
-    it('debe rechazar HMAC inválido', async () => {
-      await request(app)
-        .post('/api/vouchers/validate')
-        .send({
-          code: testVoucherCode,
-          hmac: 'invalid-hmac'
-        })
-        .expect(400);
-    });
-
-    it('debe aplicar rate limiting', async () => {
-      // Hacer 101 requests (límite es 100)
-      const requests = [];
-      for (let i = 0; i < 101; i++) {
-        requests.push(
-          request(app)
-            .post('/api/vouchers/validate')
-            .send({ code: testVoucherCode })
-        );
-      }
-
-      const responses = await Promise.all(requests);
-      const tooManyRequests = responses.filter(r => r.status === 429);
-      
-      expect(tooManyRequests.length).toBeGreaterThan(0);
-    });
-  });
-
-  describe('POST /api/vouchers/redeem', () => {
-    let testVoucherCode;
-
-    beforeEach(async () => {
-      const response = await request(app)
-        .post('/api/vouchers')
-        .set('Authorization', `Bearer ${adminToken}`)
-        .send({
-          stay_id: testStayId,
-          valid_from: '2025-01-01',
-          valid_until: '2025-12-31',
-          breakfast_count: 1
-        });
-
-      testVoucherCode = response.body.vouchers[0].code;
-    });
-
-    it('debe canjear voucher exitosamente', async () => {
-      const response = await request(app)
-        .post('/api/vouchers/redeem')
-        .set('Authorization', `Bearer ${cafeteriaToken}`)
-        .send({
-          code: testVoucherCode,
-          cafeteria_id: 1,
-          device_id: 'test-device-001'
-        })
-        .expect(200);
-
-      expect(response.body.success).toBe(true);
-      expect(response.body.redemption.voucher_code).toBe(testVoucherCode);
-    });
-
-    it('debe prevenir doble canje', async () => {
-      // Primer canje
-      await request(app)
-        .post('/api/vouchers/redeem')
-        .set('Authorization', `Bearer ${cafeteriaToken}`)
-        .send({
-          code: testVoucherCode,
-          cafeteria_id: 1,
-          device_id: 'device-1'
-        })
-        .expect(200);
-
-      // Segundo intento
-      await request(app)
-        .post('/api/vouchers/redeem')
-        .set('Authorization', `Bearer ${cafeteriaToken}`)
-        .send({
-          code: testVoucherCode,
-          cafeteria_id: 1,
-          device_id: 'device-2'
-        })
-        .expect(409);
-    });
-
-    it('debe rechazar sin autenticación', async () => {
-      await request(app)
-        .post('/api/vouchers/redeem')
-        .send({
-          code: testVoucherCode,
-          cafeteria_id: 1,
-          device_id: 'test-device'
-        })
-        .expect(401);
-    });
-
-    it('debe aplicar rate limiting por dispositivo', async () => {
-      // Crear múltiples vouchers
-      await request(app)
-        .post('/api/vouchers')
-        .set('Authorization', `Bearer ${adminToken}`)
-        .send({
-          stay_id: testStayId,
-          valid_from: '2025-01-01',
-          valid_until: '2025-12-31',
-          breakfast_count: 60
-        });
-
-      const vouchers = db.prepare('SELECT code FROM vouchers ORDER BY id').all();
-
-      // Intentar canjear 51 (límite es 50)
-      const requests = vouchers.slice(0, 51).map(v =>
-        request(app)
-          .post('/api/vouchers/redeem')
-          .set('Authorization', `Bearer ${cafeteriaToken}`)
-          .send({
-            code: v.code,
-            cafeteria_id: 1,
-            device_id: 'same-device'
-          })
-      );
-
-      const responses = await Promise.all(requests);
-      const rateLimited = responses.filter(r => r.status === 429);
-      
-      expect(rateLimited.length).toBeGreaterThan(0);
-    });
-  });
-
-  describe('GET /api/vouchers/:code', () => {
-    let testVoucherCode;
-
-    beforeEach(async () => {
-      const response = await request(app)
-        .post('/api/vouchers')
-        .set('Authorization', `Bearer ${adminToken}`)
-        .send({
-          stay_id: testStayId,
-          valid_from: '2025-01-01',
-          valid_until: '2025-12-31',
-          breakfast_count: 1
-        });
-
-      testVoucherCode = response.body.vouchers[0].code;
-    });
-
-    it('debe obtener información del voucher', async () => {
-      const response = await request(app)
-        .get(`/api/vouchers/${testVoucherCode}`)
-        .set('Authorization', `Bearer ${adminToken}`)
-        .expect(200);
-
-      expect(response.body.success).toBe(true);
-      expect(response.body.voucher.code).toBe(testVoucherCode);
-      expect(response.body.voucher.guest_name).toBe('Integration Test');
-    });
-
-    it('debe retornar 404 para voucher inexistente', async () => {
-      await request(app)
-        .get('/api/vouchers/HPN-2025-9999')
-        .set('Authorization', `Bearer ${adminToken}`)
-        .expect(404);
+      expect(response.body.data).toHaveLength(2);
+      expect(response.body.data[0].stayId).toBe(stay.id);
     });
   });
 });

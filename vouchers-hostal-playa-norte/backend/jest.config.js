@@ -3,13 +3,7 @@ export default {
   testMatch: [
     '**/tests/**/*.test.js'
   ],
-  moduleNameMapper: {
-    // Handle .js extensions in relative imports
-    '^(\\.{1,2}/.*)\\.js$': '$1',
-    // Handle @ alias imports (if configured elsewhere)
-    '^@/(.*)$': '<rootDir>/src/$1',
-  },
-  resolver: undefined, // Use default resolution with native ESM support
+  
   collectCoverageFrom: [
     'src/**/*.js',
     '!src/**/*.test.js',

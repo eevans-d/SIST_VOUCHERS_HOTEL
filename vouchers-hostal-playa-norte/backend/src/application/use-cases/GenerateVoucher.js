@@ -1,93 +1,112 @@
+import { z } from 'zod';
 import { Voucher } from '../../domain/entities/Voucher.js';
 
-/**
- * GenerateVoucher - Use Case para generar nuevos vouchers
- * Genera código único, QR y persiste en BD
- */
+const GenerateVoucherDTO = z.object({
+  stayId: z.string().uuid(),
+  numberOfVouchers: z.number().int().positive(),
+});
+
 export class GenerateVoucher {
-  constructor({ voucherRepository, stayRepository, qrService, logger }) {
+  constructor(voucherRepository, stayRepository, cryptoService, logger) {
     this.voucherRepository = voucherRepository;
     this.stayRepository = stayRepository;
-    this.qrService = qrService;
+    this.cryptoService = cryptoService;
     this.logger = logger;
   }
 
-  /**
-   * Ejecutar: Generar nuevo voucher
-   */
-  async execute({ stayId, expiryDays = 30 }) {
-    try {
-      // 1. Validar que la estadía existe
-      const stay = this.stayRepository.findById(stayId);
-      if (!stay) {
-        throw new AppError('Estadía no encontrada', 404);
-      }
+  async execute(input) {
+    const validated = GenerateVoucherDTO.parse(input);
+    const { stayId, numberOfVouchers } = validated;
 
-      // 2. Validar que la estadía está activa
-      if (stay.status !== 'active') {
-        throw new AppError('Estadía debe estar activa', 400);
-      }
-
-      // 3. Generar código único
-      const voucherCode = this.generateUniqueCode();
-
-      // 4. Calcular fecha de expiración
-      const expiryDate = new Date();
-      expiryDate.setDate(expiryDate.getDate() + expiryDays);
-
-      // 5. Crear voucher
-      const voucher = Voucher.create({
-        stayId,
-        code: voucherCode,
-        qrCode: '', // Se generará después
-        expiryDate,
-      });
-
-      // 6. Generar QR
-      const qrData = this.qrService.generateQRWithMetadata(
-        voucher.id,
-        voucher.code,
-        stayId
-      );
-      voucher.qrCode = qrData.url;
-
-      // 7. Activar voucher
-      voucher.activate();
-
-      // 8. Guardar en BD
-      const voucherId = this.voucherRepository.save(voucher);
-
-      this.logger.info(`Voucher generado: ${voucherId}`, {
-        stayId,
-        code: voucherCode,
-        expiryDate,
-      });
-
-      return {
-        id: voucher.id,
-        code: voucher.code,
-        qrCode: voucher.qrCode,
-        status: voucher.status,
-        expiryDate: voucher.expiryDate,
-        message: 'Voucher generado exitosamente',
-      };
-    } catch (error) {
-      this.logger.error('Error generando voucher', { error, stayId });
-      throw error;
+    const stay = await this.stayRepository.findById(stayId);
+    if (!stay) {
+      throw new Error('Stay not found');
     }
+
+    const vouchers = [];
+    for (let i = 0; i < numberOfVouchers; i++) {
+      const code = `HPN-${new Date().getFullYear()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+      const dataToSign = `${code}|${stay.checkInDate.toISOString()}|${stay.checkOutDate.toISOString()}|${stay.id}`;
+      const hmacSignature = this.cryptoService.generateHmac(dataToSign);
+
+      const voucher = Voucher.create({
+        code,
+        stayId: stay.id,
+        validFrom: stay.checkInDate,
+        validUntil: stay.checkOutDate,
+        hmacSignature,
+      });
+
+      await this.voucherRepository.save(voucher);
+      vouchers.push(voucher);
+    }
+
+    this.logger.info(`${numberOfVouchers} vouchers generated for stay ${stayId}`);
+    return vouchers.map(v => v.toJSON());
+  }
+}
+
+const ValidateVoucherDTO = z.object({
+  code: z.string(),
+  hmac: z.string(),
+});
+
+export class ValidateVoucher {
+  constructor(voucherRepository, cryptoService, logger) {
+    this.voucherRepository = voucherRepository;
+    this.cryptoService = cryptoService;
+    this.logger = logger;
   }
 
-  /**
-   * Generar código único alfanumérico
-   */
-  generateUniqueCode() {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let code = '';
+  async execute(input) {
+    const validated = ValidateVoucherDTO.parse(input);
+    const { code, hmac } = validated;
 
-    for (let i = 0; i < 10; i++) {
-      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    const voucher = await this.voucherRepository.findByCode(code);
+    if (!voucher) {
+      throw new Error('Voucher not found');
     }
 
-    return code;
+    const stay = await this.stayRepository.findById(voucher.stayId);
+    if (!stay) {
+      throw new Error('Stay not found');
+    }
+
+    const dataToSign = `${voucher.code}|${stay.checkInDate.toISOString()}|${stay.checkOutDate.toISOString()}|${stay.id}`;
+    const isValid = this.cryptoService.verifyHmac(dataToSign, hmac);
+
+    if (!isValid) {
+      throw new Error('Invalid HMAC signature');
+    }
+
+    return { ...voucher.toJSON(), isValid };
+  }
+}
+
+const RedeemVoucherDTO = z.object({
+  code: z.string(),
+});
+
+export class RedeemVoucher {
+  constructor(voucherRepository, logger) {
+    this.voucherRepository = voucherRepository;
+    this.logger = logger;
+  }
+
+  async execute(input) {
+    const validated = RedeemVoucherDTO.parse(input);
+    const { code } = validated;
+
+    const voucher = await this.voucherRepository.findByCode(code);
+    if (!voucher) {
+      throw new Error('Voucher not found');
+    }
+
+    voucher.redeem();
+
+    await this.voucherRepository.update(voucher);
+
+    this.logger.info(`Voucher ${code} redeemed successfully`);
+    return voucher.toJSON();
   }
 }

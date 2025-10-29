@@ -1,7 +1,7 @@
-const Database = require('better-sqlite3');
-const path = require('path');
-const fs = require('fs');
-const { logger } = require('./logger');
+import Database from 'better-sqlite3';
+import path from 'path';
+import fs from 'fs';
+import { logger } from './logger.js';
 
 class DatabaseManager {
   constructor() {
@@ -82,7 +82,5 @@ class DatabaseManager {
 // Singleton
 const dbManager = new DatabaseManager();
 
-module.exports = {
-  dbManager,
-  getDb: () => dbManager.getDb()
-};
+export const dbManager = new DatabaseManager();
+export const getDb = () => dbManager.getDb();
