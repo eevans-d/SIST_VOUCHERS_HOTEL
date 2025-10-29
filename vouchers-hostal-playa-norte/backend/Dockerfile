@@ -51,13 +51,14 @@ RUN mkdir -p /data /app/logs \
 ENV NODE_ENV=production \
     PORT=3000 \
     DATABASE_PATH=/data/vouchers.db \
+    LOG_TO_CONSOLE=true \
     TZ=America/Argentina/Buenos_Aires
 
 USER nodejs
 
 # Healthcheck
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3000/health', (r) => { process.exit(r.statusCode === 200 ? 0 : 1); });"
+    CMD curl -fsS http://localhost:3000/health >/dev/null || exit 1
 
 EXPOSE 3000
 

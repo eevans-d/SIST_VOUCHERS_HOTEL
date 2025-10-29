@@ -73,7 +73,9 @@ const logger = winston.createLogger({
   ],
 });
 
-if (NODE_ENV !== 'production') {
+// En producción, por defecto Winston no loguea a consola.
+// Habilitamos consola si no es producción o si LOG_TO_CONSOLE=true (útil en Fly.io)
+if (NODE_ENV !== 'production' || String(process.env.LOG_TO_CONSOLE).toLowerCase() === 'true') {
   logger.add(
     new winston.transports.Console({
       format: winston.format.combine(
@@ -369,14 +371,19 @@ process.on('SIGINT', () => {
   });
 });
 
-// Capturar excepciones no manejadas
+// Capturar excepciones no manejadas (imprimir también a consola por si el logger falla)
 process.on('uncaughtException', (error) => {
-  logger.error('❌ Excepción no manejada:', error);
+  try { logger.error('❌ Excepción no manejada:', error); } catch (_) { /* noop */ }
+  // Fallback a consola
+  // eslint-disable-next-line no-console
+  console.error('❌ Excepción no manejada (fallback):', error);
   process.exit(1);
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-  logger.error('❌ Promesa rechazada sin manejar:', { reason, promise });
+  try { logger.error('❌ Promesa rechazada sin manejar:', { reason, promise }); } catch (_) { /* noop */ }
+  // eslint-disable-next-line no-console
+  console.error('❌ Promesa rechazada sin manejar (fallback):', reason);
   process.exit(1);
 });
 
