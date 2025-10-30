@@ -1,112 +1,359 @@
-# � Sistema de Vouchers - Hotel Playa Norte
+# 🏨 Sistema de Vouchers - Hostal Playa Norte
 
-> **Estado Actual: 40% Completado | Target: 80% (Esta sesión) | Especificación: 100%**
+> Sistema completo de gestión de vouchers y estadías hoteleras
 
-## 🎯 Lee Esto Primero
-
-**Para Ejecutivos:** [`RESUMEN_EJECUTIVO_ACTUAL.md`](./RESUMEN_EJECUTIVO_ACTUAL.md) ← Inicio recomendado
-
-**Para Desarrolladores:** [`QUICK_START.md`](./QUICK_START.md)
-
-**Para Arquitectos:** [`README_CONSTITUCIONAL.md`](./README_CONSTITUCIONAL.md) + [`BLUEPRINT_ARQUITECTURA.md`](./BLUEPRINT_ARQUITECTURA.md)
+![Status](https://img.shields.io/badge/status-production%20ready-brightgreen)
+![Backend](https://img.shields.io/badge/backend-deployed-success)
+![Frontend](https://img.shields.io/badge/frontend-ready-yellow)
 
 ---
 
-## 📊 Estado del Proyecto
+## 🎯 Estado del Proyecto
 
-| Módulo | Nombre | Status | Líneas | Endpoints | Tests |
-|--------|--------|--------|--------|-----------|-------|
-| M0 | Setup | ✅ 100% | 500+ | - | - |
-| M1 | Autenticación | ✅ 100% | 800+ | 5 | 25+ |
-| M2 | Estadías | ✅ 100% | 900+ | 9 | 30+ |
-| M3 | Vouchers | 📋 SPEC | 1,700 | 6 | 25+ |
-| M4 | Órdenes | 📋 SPEC | 1,480 | 8 | 20+ |
-| **TOTAL** | **Backend** | **40%** | **2,500+** | **14** | **50+** |
+### ✅ Backend - EN PRODUCCIÓN
 
-**📈 Próximo objetivo: 80% (agregar M3+M4 = 3 horas)**
+**URL**: https://hpn-vouchers-backend.fly.dev
+
+- ✅ Desplegado en Fly.io (región São Paulo)
+- ✅ Health checks: `/live`, `/ready`, `/health`
+- ✅ Métricas Prometheus: `/metrics`
+- ✅ Tests: 154/187 pasando (82.4%)
+- ✅ Observabilidad completa
+- ✅ CORS configurable
+
+**Commit**: `28ba427` | **Documentación**: [`backend/DEPLOYMENT.md`](vouchers-hostal-playa-norte/backend/DEPLOYMENT.md)
+
+### ⏳ Frontend - LISTO PARA DEPLOY (mañana)
+
+**Preparación completa**:
+- ✅ Dockerfile.production con nginx
+- ✅ fly.toml configurado
+- ✅ Scripts de deployment
+- ✅ Documentación completa
+- ✅ Smoke tests preparados
+
+**Requiere**: Credenciales Fly.io (mañana)
+
+**Commit**: `391c41f` | **Checklist**: [`frontend/DEPLOY-CHECKLIST.md`](vouchers-hostal-playa-norte/frontend/DEPLOY-CHECKLIST.md)
 
 ---
 
-## 🚀 INICIO INMEDIATO (5-10 minutos)
+## 🚀 Quick Start
 
-### 1️⃣ Instalar Dependencias
+### Backend (Producción)
+
+El backend ya está desplegado:
+
 ```bash
-cd vouchers-hostal-playa-norte/backend
+# Health check
+curl https://hpn-vouchers-backend.fly.dev/api/health
+
+# Métricas
+curl https://hpn-vouchers-backend.fly.dev/api/metrics
+
+# Ver logs
+flyctl logs -a hpn-vouchers-backend
+```
+
+**Documentación completa**: [`backend/DEPLOYMENT.md`](vouchers-hostal-playa-norte/backend/DEPLOYMENT.md)
+
+### Frontend (Desarrollo local)
+
+```bash
+cd vouchers-hostal-playa-norte/frontend
 npm install
-```
-
-### 2️⃣ Configurar Entorno
-```bash
-cp .env.example .env
-# Editar con tus secretos JWT
-nano .env
-```
-
-### 3️⃣ Inicializar Base de Datos
-```bash
-sqlite3 db/vouchers.db < db/schema.sql
-```
-
-### 4️⃣ Iniciar Servidor
-```bash
 npm run dev
-# ✅ Servidor en http://localhost:3005
+# Abrir http://localhost:3000
+```
+
+### Frontend (Deployment - mañana)
+
+```bash
+# 1. Autenticarse
+flyctl auth login
+
+# 2. Deploy
+cd frontend
+./scripts/deploy-frontend.sh
+
+# 3. Actualizar CORS
+flyctl secrets set \
+  CORS_ORIGIN="https://hpn-vouchers-backend.fly.dev,https://hpn-vouchers-frontend.fly.dev" \
+  -a hpn-vouchers-backend
+```
+
+**Checklist completo**: [`frontend/DEPLOY-CHECKLIST.md`](vouchers-hostal-playa-norte/frontend/DEPLOY-CHECKLIST.md)
+
+---
+
+## 🏗️ Arquitectura
+
+### Stack Tecnológico
+
+**Backend**:
+- Node.js 18 + Express
+- SQLite (better-sqlite3)
+- JWT auth
+- Prometheus metrics
+- Fly.io deployment
+
+**Frontend**:
+- React 18 + Vite 5
+- React Router v6
+- Zustand (state)
+- Tailwind CSS
+- Nginx (production)
+
+### Estructura del Proyecto
+
+```
+SIST_VOUCHERS_HOTEL/
+└── vouchers-hostal-playa-norte/
+    ├── backend/              # API REST
+    │   ├── src/             
+    │   ├── tests/           
+    │   ├── scripts/         
+    │   ├── docs/            
+    │   └── DEPLOYMENT.md    
+    │
+    ├── frontend/            # React SPA
+    │   ├── src/            
+    │   ├── scripts/        
+    │   └── DEPLOYMENT.md   
+    │
+    └── scripts/            
+        └── integration-test.sh
 ```
 
 ---
 
-## 📚 DOCUMENTACIÓN RÁPIDA
+## 📊 Observabilidad
 
-### 🏛️ Estructura del Proyecto
-- **CONSTITUCION_SISTEMA_VOUCHERS.md** - Los 12 Pilares (Parte 1 & 2)
-- **BLUEPRINT_ARQUITECTURA.md** - Diagramas C4 y arquitectura
-- **README_CONSTITUCIONAL.md** - Índice maestro de documentación
-- **CHECKLIST_EJECUTABLE.md** - 170+ tareas ejecutables
+### Health Checks
 
-### 📦 Módulos Implementados
-- **[MÓDULO 1](vouchers-hostal-playa-norte/MODULO_1_README.md)** - Autenticación completamente implementada
-  - Entity User con Zod validation
-  - UserRepository con CRUD
-  - JWTService (access + refresh tokens)
-  - PasswordService (bcrypt)
-  - LoginUser & RegisterUser use cases
-  - HTTP routes con middleware RBAC
-  - Unit tests
-**Equivalente Manual**: 8-12 horas  
-**Ahorro**: 87.5% del tiempo
+| Endpoint | Status | Propósito |
+|----------|--------|-----------|
+| `/live` | ✅ 200 | Liveness probe |
+| `/ready` | ✅ 200 | Readiness probe |
+| `/health` | ✅ 200 | Health detallado |
 
-### 📚 OPCIÓN 2: LECTURA PRIMERO
+### Métricas
 
-Si prefieres entender la estructura antes:
+```bash
+curl https://hpn-vouchers-backend.fly.dev/api/metrics
+```
 
-**👉 Lee primero:** **[README_CONSTITUCIONAL.md](./README_CONSTITUCIONAL.md)** ← Índice maestro  
-**Luego ejecuta:** `bash scripts/setup-all.sh`
+**Métricas expuestas**:
+- `http_requests_total` - Total requests
+- `http_request_duration_seconds` - Latencia
+- `http_server_errors_total` - Errores 5xx
+- `db_errors_total` - Errores de DB
+- `nodejs_*` - Métricas Node.js
+
+**Documentación**: [`backend/docs/OBSERVABILITY.md`](vouchers-hostal-playa-norte/backend/docs/OBSERVABILITY.md)
 
 ---
 
-## 📊 DOCUMENTACIÓN COMPLETA (500+ KB, 11 documentos)
+## 🧪 Testing
 
-| Documento | Tamaño | Status | Propósito |
-|-----------|--------|--------|-----------|
-| **[README_CONSTITUCIONAL.md](./README_CONSTITUCIONAL.md)** | 17 KB | ✅ | 📌 Índice maestro - COMIENZA AQUÍ |
-| **[ESTADO_FINAL_MODULO_0.md](./ESTADO_FINAL_MODULO_0.md)** | 18 KB | ✅ NUEVO | Status completo del setup, próximos pasos |
-| **[SETUP_SCRIPTS_README.md](./SETUP_SCRIPTS_README.md)** | 20 KB | ✅ NUEVO | Guía detallada de scripts (6 disponibles) |
-| [DOC_UNICA_BASE_SIST_VOUCHERS_HOTEL.txt](./DOC_UNICA_BASE_SIST_VOUCHERS_HOTEL.txt) | 214 KB | ✅ | Especificación técnica original |
-| [PLANIFICACION_MAESTRA_DESARROLLO.md](./PLANIFICACION_MAESTRA_DESARROLLO.md) | 30 KB | ✅ | Roadmap: 17 módulos, 4 sprints, 170+ tasks |
-| [BLUEPRINT_ARQUITECTURA.md](./BLUEPRINT_ARQUITECTURA.md) | 62 KB | ✅ | Diagramas, flujos, schemas, Test Case #10 |
-| [CHECKLIST_EJECUTABLE.md](./CHECKLIST_EJECUTABLE.md) | 42 KB | ✅ | 170+ tareas con comandos bash |
-| [CONSTITUCION_SISTEMA_VOUCHERS.md](./CONSTITUCION_SISTEMA_VOUCHERS.md) | 43 KB | ✅ | Pilares 1-5: Arquitectura, Código, Seguridad |
-| [CONSTITUCION_SISTEMA_VOUCHERS_PARTE_2.md](./CONSTITUCION_SISTEMA_VOUCHERS_PARTE_2.md) | 44 KB | ✅ | Pilares 6-12: Observabilidad, CI/CD, Gobernanza |
-| [INTEGRACION_CONSTITUCIONAL.md](./INTEGRACION_CONSTITUCIONAL.md) | 27 KB | ✅ | Módulos ↔ Pilares mapping + Tareas EXTRA |
-| [RESUMEN_EJECUTIVO.md](./RESUMEN_EJECUTIVO.md) | 19 KB | ✅ | Executive summary, métricas, 4-fase plan |
+### Backend
 
-**Total**: 552 KB documentación + 1,900+ líneas código automático + 8 tablas SQL
+```bash
+cd backend
+npm test              # 154/187 tests pasando
+npm test -- --coverage
+```
+
+### Frontend
+
+```bash
+cd frontend
+npm test
+```
+
+### Integration
+
+```bash
+./scripts/integration-test.sh
+```
 
 ---
 
-## 🎯 ¿QUÉ ES ESTE PROYECTO?
+## 📝 Documentación
 
-Sistema de vouchers digitales para desayunos con arquitectura **Offline-First PWA**, diseñado bajo los **12 Pilares Constitucionales para Sistemas IA/Agénticos**.
+### Por Componente
+
+**Backend**:
+- [README.md](vouchers-hostal-playa-norte/backend/README.md)
+- [DEPLOYMENT.md](vouchers-hostal-playa-norte/backend/DEPLOYMENT.md)
+- [docs/OBSERVABILITY.md](vouchers-hostal-playa-norte/backend/docs/OBSERVABILITY.md)
+
+**Frontend**:
+- [README.md](vouchers-hostal-playa-norte/frontend/README.md)
+- [DEPLOYMENT.md](vouchers-hostal-playa-norte/frontend/DEPLOYMENT.md)
+- [DEPLOY-CHECKLIST.md](vouchers-hostal-playa-norte/frontend/DEPLOY-CHECKLIST.md)
+
+### Scripts Disponibles
+
+| Script | Ubicación | Propósito |
+|--------|-----------|-----------|
+| `deploy-frontend.sh` | frontend/scripts/ | Deploy frontend |
+| `smoke-test-frontend.sh` | frontend/scripts/ | Validación frontend |
+| `smoke-check.sh` | backend/scripts/ | Validación backend |
+| `validate-deploy.sh` | backend/scripts/ | Validación deployment |
+| `integration-test.sh` | scripts/ | Test completo |
+
+---
+
+## 🔐 Seguridad y CORS
+
+### Configurar CORS
+
+```bash
+# Ver CORS actual
+flyctl secrets list -a hpn-vouchers-backend | grep CORS_ORIGIN
+
+# Actualizar después de deployar frontend
+flyctl secrets set \
+  CORS_ORIGIN="https://hpn-vouchers-backend.fly.dev,https://hpn-vouchers-frontend.fly.dev" \
+  -a hpn-vouchers-backend
+
+# Reiniciar
+flyctl apps restart hpn-vouchers-backend
+```
+
+### Validar CORS
+
+```bash
+curl -v \
+  -H "Origin: https://hpn-vouchers-frontend.fly.dev" \
+  -H "Access-Control-Request-Method: POST" \
+  -H "Access-Control-Request-Headers: Content-Type" \
+  -X OPTIONS \
+  https://hpn-vouchers-backend.fly.dev/api/auth/login
+```
+
+---
+
+## 🔄 Workflow Completo
+
+### 1. Desarrollo Local
+
+```bash
+# Terminal 1: Backend
+cd backend
+npm run dev  # http://localhost:3001
+
+# Terminal 2: Frontend
+cd frontend
+npm run dev  # http://localhost:3000
+```
+
+### 2. Testing
+
+```bash
+# Backend
+cd backend
+npm test
+
+# Frontend
+cd frontend
+npm test
+
+# Integración
+./scripts/integration-test.sh
+```
+
+### 3. Deploy
+
+```bash
+# Backend
+cd backend
+flyctl deploy -a hpn-vouchers-backend
+
+# Frontend (mañana)
+cd frontend
+./scripts/deploy-frontend.sh
+```
+
+### 4. Validación
+
+```bash
+# Backend
+./backend/scripts/validate-deploy.sh
+
+# Frontend
+./frontend/scripts/smoke-test-frontend.sh
+
+# Sistema completo
+./scripts/integration-test.sh
+```
+
+---
+
+## 🚦 Próximos Pasos
+
+### ⏳ Pendiente (mañana)
+- [ ] Deploy frontend con credenciales Fly.io
+- [ ] Configurar CORS con dominio frontend
+- [ ] Smoke test completo
+- [ ] Validación E2E
+
+### 📋 Roadmap
+- [ ] Monitoreo Prometheus + Grafana
+- [ ] Alertas automatizadas
+- [ ] Rate limiting
+- [ ] CI/CD con GitHub Actions
+- [ ] Backups automatizados DB
+- [ ] Dominio custom
+- [ ] CDN para assets
+
+---
+
+## 🛠️ Troubleshooting
+
+### Backend no responde
+
+```bash
+flyctl logs -a hpn-vouchers-backend
+flyctl status -a hpn-vouchers-backend
+flyctl apps restart hpn-vouchers-backend
+```
+
+### Frontend no carga
+
+```bash
+flyctl logs -a hpn-vouchers-frontend
+cd frontend && npm run build
+flyctl deploy -a hpn-vouchers-frontend
+```
+
+### Error CORS
+
+```bash
+flyctl secrets list -a hpn-vouchers-backend | grep CORS
+flyctl secrets set CORS_ORIGIN="..." -a hpn-vouchers-backend
+flyctl apps restart hpn-vouchers-backend
+```
+
+---
+
+## 📞 Soporte
+
+- **Repositorio**: https://github.com/eevans-d/SIST_VOUCHERS_HOTEL
+- **Issues**: https://github.com/eevans-d/SIST_VOUCHERS_HOTEL/issues
+
+---
+
+## 📄 Licencia
+
+MIT
+
+---
+
+**Última actualización**: 2025-10-30  
+**Versión**: 3.0.0  
+**Estado**: Backend ✅ Producción | Frontend ⏳ Listo para deploy
 
 ### Características Principales
 
