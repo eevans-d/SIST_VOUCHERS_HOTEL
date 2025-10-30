@@ -19,16 +19,35 @@ kill_timeout = "5s"
   NODE_ENV = "production"
   PORT = "3000"
   TZ = "America/Argentina/Buenos_Aires"
+  DATABASE_PATH = "/data/vouchers.db"
+  
+  # HOTEL CONFIG
   HOTEL_CODE = "HPN"
   HOTEL_NAME = "Hostal Playa Norte"
   APP_VERSION = "3.0.0"
+  
+  # LOGGING
+  LOG_LEVEL = "info"
+  LOG_TO_CONSOLE = "true"
+  
+  # SEGURIDAD
+  BCRYPT_ROUNDS = "12"
+  CORS_ORIGIN = "https://hpn-vouchers-backend.fly.dev"
+  
+  # SYNC OFFLINE
   ENABLE_OFFLINE_SYNC = "true"
   MAX_SYNC_ATTEMPTS = "5"
   SYNC_RETRY_DELAY = "300000"
+  
+  # RATE LIMITING
   RATE_LIMIT_VALIDATE = "100"
   RATE_LIMIT_REDEEM = "50"
   RATE_LIMIT_SYNC = "10"
-  LOG_LEVEL = "info"
+  RATE_LIMIT_WINDOW_MS = "900000"
+  RATE_LIMIT_MAX_REQUESTS = "100"
+  
+  # CACHE
+  CACHE_ENABLED = "false"
 
 [http_service]
   internal_port = 3000
