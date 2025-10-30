@@ -348,7 +348,7 @@ app.use((req, res) => {
 
 // ==================== INICIAR SERVIDOR ====================
 
-const server = app.listen(PORT, () => {
+const server = app.listen(PORT, '0.0.0.0', () => {
   logger.info(`
 ╔═══════════════════════════════════════════╗
 ║   🏛️  SISTEMA VOUCHERS HOTEL              ║
