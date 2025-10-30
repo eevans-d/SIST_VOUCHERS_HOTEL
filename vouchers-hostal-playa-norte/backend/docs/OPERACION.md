@@ -84,6 +84,23 @@ curl https://hpn-vouchers-backend.fly.dev/health
   - Tasa de errores 5xx > 5% → investigar.
   - Latencia p95 > 2s → revisar índices/cache.
 
+### Métricas Prometheus
+
+- Endpoint: `GET /metrics` (formato de texto de Prometheus)
+- Métricas expuestas:
+  - `http_requests_total{method,route,status_code}`
+  - `http_request_duration_seconds_bucket` (histograma)
+  - `http_server_errors_total{route,status_code}`
+  - Métricas del proceso Node.js (GC, heap, event loop)
+
+```bash
+# Ver métricas rápidamente
+curl -s https://hpn-vouchers-backend.fly.dev/metrics | head -50
+
+# Filtrar por errores 5xx
+curl -s https://hpn-vouchers-backend.fly.dev/metrics | grep http_server_errors_total
+```
+
 ---
 
 ## Backups y restore

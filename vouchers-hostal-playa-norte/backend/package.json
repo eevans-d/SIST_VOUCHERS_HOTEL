@@ -30,7 +30,8 @@
     "qrcode": "^1.5.3",
     "uuid": "^9.0.1",
     "dotenv": "^16.3.1",
-    "redis": "^4.6.11"
+    "redis": "^4.6.11",
+    "prom-client": "^15.1.0"
   },
   "devDependencies": {
     "jest": "^29.7.0",

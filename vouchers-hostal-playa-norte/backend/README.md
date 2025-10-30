@@ -112,6 +112,7 @@ fly.toml                       # Configuración Fly.io
 | **Validación** | Zod | Schemas |
 | **Testing** | Jest + Supertest | Unit + Integration |
 | **Deploy** | Fly.io (Docker) | Producción |
+| **Observabilidad** | Prometheus (/metrics) | Métricas runtime |
 
 ---
 
@@ -265,6 +266,27 @@ flyctl releases -a hpn-vouchers-backend
 # Volver a versión anterior
 flyctl releases rollback -a hpn-vouchers-backend
 ```
+
+### Observabilidad (/metrics)
+
+Exponemos métricas Prometheus en `/metrics` con:
+
+- `http_requests_total{method,route,status_code}`
+- `http_request_duration_seconds_bucket` (histograma)
+- `http_server_errors_total{route,status_code}`
+- Métricas de proceso Node.js (GC, heap, event loop)
+
+Ejemplos:
+
+```bash
+# Ver métricas en local
+curl -s http://localhost:3000/metrics | head -40
+
+# En producción (Fly.io)
+curl -s https://hpn-vouchers-backend.fly.dev/metrics | head -40
+```
+
+Para scrape automático, apunta tu Prometheus al endpoint `/metrics`.
 
 ### Dockerfile
 

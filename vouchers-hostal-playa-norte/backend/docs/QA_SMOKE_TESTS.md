@@ -324,6 +324,23 @@ describe('Smoke Tests - Seguridad', () => {
   ```
   Esperado: Ver `Access-Control-Allow-Origin: https://hpn-vouchers-backend.fly.dev`
 
+### Observabilidad (3 min)
+
+- [ ] **/metrics responde y contiene contadores**
+  ```bash
+  curl -s https://hpn-vouchers-backend.fly.dev/metrics | head -30
+  ```
+  Esperado: Líneas que incluyan `http_requests_total` y `process_` metrics
+
+- [ ] **Errores 5xx se reflejan**
+  ```bash
+  # Forzar una ruta inexistente y ver que no suma 5xx (debe ser 404)
+  curl -s -o /dev/null -w "%{http_code}\n" https://hpn-vouchers-backend.fly.dev/no-existe
+  # Luego consultar métricas de errores
+  curl -s https://hpn-vouchers-backend.fly.dev/metrics | grep http_server_errors_total || true
+  ```
+  Esperado: Normalmente vacío si no hubo 5xx
+
 ### Performance (5 min)
 
 - [ ] **Latencia de /health < 500ms**

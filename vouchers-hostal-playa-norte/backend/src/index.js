@@ -53,6 +53,11 @@ import {
   helmetMiddleware,
   requireSecureHeaders
 } from './middleware/security.js';
+import {
+  metricsMiddleware,
+  metricsHandler,
+  registerDefaultMetrics,
+} from './middleware/metrics.js';
 
 // Cargar variables de entorno
 dotenv.config();
@@ -181,6 +186,11 @@ logger.info('✅ CORS dinámico configurado por entorno');
 // 🔒 SEGURIDAD - VALIDACIÓN DE HEADERS
 app.use(requireSecureHeaders);
 
+// 📈 MÉTRICAS - PROMETHEUS
+registerDefaultMetrics();
+app.use(metricsMiddleware());
+logger.info('✅ Métricas Prometheus registradas');
+
 // Body parser
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
@@ -194,12 +204,26 @@ logger.info('✅ Rate limiting global activado (100 req/15min)');
 
 // Health check
 app.get('/health', (req, res) => {
+  // Intentar una operación simple en DB para validar conexión
+  let dbStatus = 'connected';
+  try {
+    db.prepare('SELECT 1').get();
+  } catch (e) {
+    dbStatus = 'error';
+  }
+
   res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
     environment: NODE_ENV,
+    version: process.env.APP_VERSION || 'unknown',
+    uptime_seconds: Math.round(process.uptime()),
+    database: dbStatus,
   });
 });
+
+// Endpoint de métricas Prometheus
+app.get('/metrics', metricsHandler);
 
 // API de autenticación
 app.use(
