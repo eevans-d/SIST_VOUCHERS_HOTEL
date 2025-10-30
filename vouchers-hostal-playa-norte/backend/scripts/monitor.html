@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Backend Monitor - Hostal Playa Norte</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+      color: #333;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .header {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .header h1 {
+      color: #667eea;
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+
+    .header .subtitle {
+      color: #6b7280;
+      font-size: 14px;
+    }
+
+    .header .url {
+      color: #667eea;
+      font-weight: 600;
+      margin-top: 8px;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      transition: transform 0.2s;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-value {
+      font-size: 36px;
+      font-weight: 700;
+      color: #1f2937;
+      margin-bottom: 8px;
+    }
+
+    .card-label {
+      font-size: 14px;
+      color: #9ca3af;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .status-ok {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .status-error {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .status-warning {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .status-loading {
+      background: #e0e7ff;
+      color: #3730a3;
+    }
+
+    .metric-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid #f3f4f6;
+    }
+
+    .metric-row:last-child {
+      border-bottom: none;
+    }
+
+    .metric-label {
+      font-size: 14px;
+      color: #6b7280;
+    }
+
+    .metric-value {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1f2937;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: #f3f4f6;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #667eea, #764ba2);
+      border-radius: 4px;
+      transition: width 0.3s;
+    }
+
+    .progress-fill.warning {
+      background: linear-gradient(90deg, #fbbf24, #f59e0b);
+    }
+
+    .progress-fill.danger {
+      background: linear-gradient(90deg, #ef4444, #dc2626);
+    }
+
+    .chart-container {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      margin-bottom: 24px;
+    }
+
+    .refresh-info {
+      text-align: center;
+      color: white;
+      font-size: 14px;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      backdrop-filter: blur(10px);
+    }
+
+    .loading {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .error-message {
+      background: #fee2e2;
+      color: #991b1b;
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      border-left: 4px solid #dc2626;
+    }
+
+    .timestamp {
+      color: #9ca3af;
+      font-size: 12px;
+      font-family: 'Courier New', monospace;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🏨 Backend Monitor</h1>
+      <div class="subtitle">Sistema de Vouchers - Hostal Playa Norte</div>
+      <div class="url" id="backend-url">Loading...</div>
+    </div>
+
+    <div id="error-container"></div>
+
+    <div class="grid">
+      <!-- Health Status -->
+      <div class="card">
+        <div class="card-title">
+          <span>❤️</span> Health Status
+        </div>
+        <div class="card-value">
+          <span id="health-status" class="status-badge status-loading">Loading...</span>
+        </div>
+        <div class="card-label">
+          <span class="timestamp" id="health-timestamp">--</span>
+        </div>
+      </div>
+
+      <!-- Uptime -->
+      <div class="card">
+        <div class="card-title">
+          <span>⏱️</span> Uptime
+        </div>
+        <div class="card-value" id="uptime-value">--</div>
+        <div class="card-label">Process uptime</div>
+      </div>
+
+      <!-- Version -->
+      <div class="card">
+        <div class="card-title">
+          <span>🏷️</span> Version
+        </div>
+        <div class="card-value" id="version-value">--</div>
+        <div class="card-label">Application version</div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- Probes -->
+      <div class="card">
+        <div class="card-title">
+          <span>🔍</span> Probes
+        </div>
+        <div class="metric-row">
+          <span class="metric-label">Liveness</span>
+          <span class="metric-value" id="liveness-status">--</span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-label">Readiness</span>
+          <span class="metric-value" id="readiness-status">--</span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-label">Database</span>
+          <span class="metric-value" id="database-status">--</span>
+        </div>
+      </div>
+
+      <!-- HTTP Metrics -->
+      <div class="card">
+        <div class="card-title">
+          <span>📊</span> HTTP Metrics
+        </div>
+        <div class="metric-row">
+          <span class="metric-label">Total Requests</span>
+          <span class="metric-value" id="http-requests">--</span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-label">5xx Errors</span>
+          <span class="metric-value" id="http-errors">--</span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-label">DB Errors</span>
+          <span class="metric-value" id="db-errors">--</span>
+        </div>
+      </div>
+
+      <!-- Memory Usage -->
+      <div class="card">
+        <div class="card-title">
+          <span>💾</span> Memory (Heap)
+        </div>
+        <div class="metric-row">
+          <span class="metric-label">Used / Total</span>
+          <span class="metric-value" id="memory-value">--</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="memory-progress" style="width: 0%"></div>
+        </div>
+        <div class="card-label" style="margin-top: 8px;">
+          <span id="memory-percent">0%</span> used
+        </div>
+      </div>
+    </div>
+
+    <div class="refresh-info">
+      Auto-refresh every 5 seconds • Last update: <span id="last-update">--</span>
+    </div>
+  </div>
+
+  <script>
+    const BACKEND_URL = 'https://hpn-vouchers-backend.fly.dev';
+    const REFRESH_INTERVAL = 5000; // 5 seconds
+
+    document.getElementById('backend-url').textContent = BACKEND_URL;
+
+    function formatUptime(seconds) {
+      const days = Math.floor(seconds / 86400);
+      const hours = Math.floor((seconds % 86400) / 3600);
+      const minutes = Math.floor((seconds % 3600) / 60);
+      const secs = Math.floor(seconds % 60);
+
+      if (days > 0) return `${days}d ${hours}h ${minutes}m`;
+      if (hours > 0) return `${hours}h ${minutes}m ${secs}s`;
+      if (minutes > 0) return `${minutes}m ${secs}s`;
+      return `${secs}s`;
+    }
+
+    function updateStatus(elementId, status, isOk) {
+      const el = document.getElementById(elementId);
+      el.textContent = status;
+      el.className = 'status-badge ' + (isOk ? 'status-ok' : 'status-error');
+    }
+
+    function showError(message) {
+      const container = document.getElementById('error-container');
+      container.innerHTML = `<div class="error-message">⚠️ ${message}</div>`;
+      setTimeout(() => {
+        container.innerHTML = '';
+      }, 10000);
+    }
+
+    async function fetchHealth() {
+      try {
+        const response = await fetch(`${BACKEND_URL}/health`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        const data = await response.json();
+
+        // Health status
+        const statusEl = document.getElementById('health-status');
+        statusEl.textContent = data.status.toUpperCase();
+        statusEl.className = 'status-badge ' + (data.status === 'ok' ? 'status-ok' : 'status-error');
+
+        // Timestamp
+        document.getElementById('health-timestamp').textContent = new Date(data.timestamp).toLocaleTimeString();
+
+        // Uptime
+        document.getElementById('uptime-value').textContent = formatUptime(data.uptime_seconds || 0);
+
+        // Version
+        document.getElementById('version-value').textContent = data.version || 'unknown';
+
+        // Database
+        document.getElementById('database-status').textContent = data.database === 'connected' ? '✓ Connected' : '✗ Error';
+
+      } catch (error) {
+        console.error('Health fetch error:', error);
+        showError('Failed to fetch health data');
+        const statusEl = document.getElementById('health-status');
+        statusEl.textContent = 'ERROR';
+        statusEl.className = 'status-badge status-error';
+      }
+    }
+
+    async function fetchProbes() {
+      try {
+        // Liveness
+        const liveResponse = await fetch(`${BACKEND_URL}/live`);
+        document.getElementById('liveness-status').textContent =
+          liveResponse.ok ? '✓ OK' : '✗ FAIL';
+
+        // Readiness
+        const readyResponse = await fetch(`${BACKEND_URL}/ready`);
+        document.getElementById('readiness-status').textContent =
+          readyResponse.ok ? '✓ OK' : '✗ FAIL';
+
+      } catch (error) {
+        console.error('Probes fetch error:', error);
+      }
+    }
+
+    async function fetchMetrics() {
+      try {
+        const response = await fetch(`${BACKEND_URL}/metrics`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        const text = await response.text();
+
+        // Parse metrics
+        const lines = text.split('\n');
+
+        // HTTP Requests
+        let httpTotal = 0;
+        let httpErrors = 0;
+        let dbErrors = 0;
+        let heapUsed = 0;
+        let heapTotal = 0;
+
+        lines.forEach(line => {
+          if (line.startsWith('http_requests_total{')) {
+            const match = line.match(/\s([\d.]+)$/);
+            if (match) httpTotal += parseFloat(match[1]);
+          }
+          if (line.startsWith('http_server_errors_total{')) {
+            const match = line.match(/\s([\d.]+)$/);
+            if (match) httpErrors += parseFloat(match[1]);
+          }
+          if (line.startsWith('db_errors_total{')) {
+            const match = line.match(/\s([\d.]+)$/);
+            if (match) dbErrors += parseFloat(match[1]);
+          }
+          if (line.startsWith('nodejs_heap_size_used_bytes ')) {
+            const match = line.match(/\s([\d.]+)$/);
+            if (match) heapUsed = parseFloat(match[1]);
+          }
+          if (line.startsWith('nodejs_heap_size_total_bytes ')) {
+            const match = line.match(/\s([\d.]+)$/);
+            if (match) heapTotal = parseFloat(match[1]);
+          }
+        });
+
+        // Update UI
+        document.getElementById('http-requests').textContent = Math.round(httpTotal).toLocaleString();
+        document.getElementById('http-errors').textContent = Math.round(httpErrors).toLocaleString();
+        document.getElementById('db-errors').textContent = Math.round(dbErrors).toLocaleString();
+
+        // Memory
+        const heapUsedMB = (heapUsed / 1048576).toFixed(1);
+        const heapTotalMB = (heapTotal / 1048576).toFixed(1);
+        const heapPercent = ((heapUsed / heapTotal) * 100).toFixed(1);
+
+        document.getElementById('memory-value').textContent = `${heapUsedMB}MB / ${heapTotalMB}MB`;
+        document.getElementById('memory-percent').textContent = `${heapPercent}%`;
+
+        const progressEl = document.getElementById('memory-progress');
+        progressEl.style.width = `${heapPercent}%`;
+
+        if (heapPercent > 80) {
+          progressEl.className = 'progress-fill danger';
+        } else if (heapPercent > 60) {
+          progressEl.className = 'progress-fill warning';
+        } else {
+          progressEl.className = 'progress-fill';
+        }
+
+      } catch (error) {
+        console.error('Metrics fetch error:', error);
+        showError('Failed to fetch metrics');
+      }
+    }
+
+    async function updateAll() {
+      await Promise.all([
+        fetchHealth(),
+        fetchProbes(),
+        fetchMetrics()
+      ]);
+
+      document.getElementById('last-update').textContent = new Date().toLocaleTimeString();
+    }
+
+    // Initial load
+    updateAll();
+
+    // Auto-refresh
+    setInterval(updateAll, REFRESH_INTERVAL);
+  </script>
+</body>
+</html>

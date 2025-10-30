@@ -34,7 +34,7 @@ flyctl auth login
 Verificar que el backend esté operativo:
 
 ```bash
-curl https://hpn-vouchers-backend.fly.dev/api/health
+curl https://hpn-vouchers-backend.fly.dev/health
 # Debe retornar: {"status":"ok"}
 ```
 
@@ -179,7 +179,7 @@ Después de deployar, verificar:
 
 - [ ] Metrics del backend actualizados
   ```bash
-  curl https://hpn-vouchers-backend.fly.dev/api/metrics | grep http_requests_total
+  curl https://hpn-vouchers-backend.fly.dev/metrics | grep http_requests_total
   ```
 
 - [ ] No hay errores en logs
@@ -250,7 +250,7 @@ grep "internal_port" fly.toml
 **Solución**:
 ```bash
 # 1. Test directo al backend
-curl https://hpn-vouchers-backend.fly.dev/api/health
+curl https://hpn-vouchers-backend.fly.dev/health
 
 # 2. Ver estado del backend
 flyctl status -a hpn-vouchers-backend

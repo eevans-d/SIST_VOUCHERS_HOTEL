@@ -22,7 +22,7 @@ El backend expone múltiples capas de observabilidad:
 **Propósito**: Verificar que el proceso está vivo (sin validación de dependencias).
 
 ```bash
-curl https://hpn-vouchers-backend.fly.dev/api/live
+curl https://hpn-vouchers-backend.fly.dev/live
 ```
 
 **Respuesta**:
@@ -43,7 +43,7 @@ curl https://hpn-vouchers-backend.fly.dev/api/live
 **Propósito**: Verificar que el servicio está listo para recibir tráfico.
 
 ```bash
-curl https://hpn-vouchers-backend.fly.dev/api/ready
+curl https://hpn-vouchers-backend.fly.dev/ready
 ```
 
 **Respuesta OK**:
@@ -73,7 +73,7 @@ curl https://hpn-vouchers-backend.fly.dev/api/ready
 **Propósito**: Información completa de salud del sistema.
 
 ```bash
-curl https://hpn-vouchers-backend.fly.dev/api/health
+curl https://hpn-vouchers-backend.fly.dev/health
 ```
 
 **Respuesta**:
@@ -122,7 +122,7 @@ curl https://hpn-vouchers-backend.fly.dev/api/health
 ### Endpoint `/metrics`
 
 ```bash
-curl https://hpn-vouchers-backend.fly.dev/api/metrics
+curl https://hpn-vouchers-backend.fly.dev/metrics
 ```
 
 **Formato**: Prometheus text exposition format.

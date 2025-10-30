@@ -188,7 +188,7 @@ flyctl logs -a hpn-vouchers-frontend
 flyctl status -a hpn-vouchers-frontend --watch
 
 # Métricas del backend
-curl https://hpn-vouchers-backend.fly.dev/api/metrics | grep http_requests_total
+curl https://hpn-vouchers-backend.fly.dev/metrics | grep http_requests_total
 ```
 
 - [ ] No hay errores en logs

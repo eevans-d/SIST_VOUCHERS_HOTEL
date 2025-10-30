@@ -140,21 +140,21 @@ flyctl logs -a hpn-vouchers-backend
 
 #### `/live` - Liveness probe
 ```bash
-curl https://hpn-vouchers-backend.fly.dev/api/live
+curl https://hpn-vouchers-backend.fly.dev/live
 # Respuesta: {"status":"ok"}
 # No valida DB, solo que el proceso está vivo
 ```
 
 #### `/ready` - Readiness probe
 ```bash
-curl https://hpn-vouchers-backend.fly.dev/api/ready
+curl https://hpn-vouchers-backend.fly.dev/ready
 # Respuesta: {"status":"ready"} (200) o {"status":"not_ready"} (503)
 # Valida que la DB esté accesible
 ```
 
 #### `/health` - Health detallado
 ```bash
-curl https://hpn-vouchers-backend.fly.dev/api/health
+curl https://hpn-vouchers-backend.fly.dev/health
 # Respuesta:
 {
   "status": "ok",
@@ -169,7 +169,7 @@ curl https://hpn-vouchers-backend.fly.dev/api/health
 
 #### `/metrics` - Métricas Prometheus
 ```bash
-curl https://hpn-vouchers-backend.fly.dev/api/metrics
+curl https://hpn-vouchers-backend.fly.dev/metrics
 # Métricas expuestas:
 # - http_requests_total{method,route,status_code}
 # - http_request_duration_seconds{method,route,status_code}
@@ -289,10 +289,10 @@ curl -X POST https://hpn-vouchers-backend.fly.dev/api/auth/login \
   -d '{"email":"admin@hotel.com","password":"admin123"}'
 
 # Health check
-curl https://hpn-vouchers-backend.fly.dev/api/health
+curl https://hpn-vouchers-backend.fly.dev/health
 
 # Métricas
-curl https://hpn-vouchers-backend.fly.dev/api/metrics | grep http_requests_total
+curl https://hpn-vouchers-backend.fly.dev/metrics | grep http_requests_total
 ```
 
 ---
