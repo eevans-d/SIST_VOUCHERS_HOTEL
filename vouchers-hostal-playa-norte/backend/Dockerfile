@@ -1,7 +1,7 @@
 ############################################
 # STAGE 1: Builder
 ############################################
-FROM node:18-alpine AS builder
+FROM node:18-bookworm-slim AS builder
 
 LABEL maintainer="Hostal Playa Norte <dev@hostalplayanorte.com>"
 LABEL description="Sistema de Vouchers Digitales - Backend"
@@ -9,7 +9,9 @@ LABEL description="Sistema de Vouchers Digitales - Backend"
 WORKDIR /app
 
 # Dependencias de compilación (por si hicieran falta en el futuro)
-RUN apk add --no-cache python3 make g++
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends python3 make g++ build-essential \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copiar manifests de dependencias
 COPY package*.json .
@@ -24,16 +26,18 @@ COPY . .
 ############################################
 # STAGE 2: Production
 ############################################
-FROM node:18-alpine
+FROM node:18-bookworm-slim
 
 WORKDIR /app
 
 # Utilidades runtime
-RUN apk add --no-cache tini curl
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends tini curl \
+    && rm -rf /var/lib/apt/lists/*
 
 # Usuario no-root
-RUN addgroup -g 1001 -S nodejs \
-    && adduser -S nodejs -u 1001
+RUN groupadd -g 1001 nodejs \
+    && useradd -u 1001 -g 1001 -m nodejs
 
 # node_modules de builder (prod only)
 COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
@@ -64,7 +68,7 @@ USER nodejs
 EXPOSE 3000
 
 # Entrypoint con tini
-ENTRYPOINT ["/sbin/tini", "--"]
+ENTRYPOINT ["/usr/bin/tini", "-s", "--"]
 
 # Start (modo normal)
 CMD ["sh", "./start.sh"]
