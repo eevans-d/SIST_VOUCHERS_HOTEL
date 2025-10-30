@@ -48,6 +48,11 @@ import {
   hstsPreloadResponder,
   secureHeaders
 } from './presentation/http/middleware/production.middleware.js';
+import {
+  corsMiddleware,
+  helmetMiddleware,
+  requireSecureHeaders
+} from './middleware/security.js';
 
 // Cargar variables de entorno
 dotenv.config();
@@ -165,16 +170,16 @@ app.use(hstsPreloadResponder);
 // 🔒 SEGURIDAD - SECURE CUSTOM HEADERS
 app.use(secureHeaders);
 
-// Middleware de seguridad
-app.use(helmet());
+// 🔒 SEGURIDAD - HELMET MEJORADO (CORS + CSP dinámico)
+app.use(helmetMiddleware());
+logger.info('✅ Helmet mejorado con CSP dinámico');
 
-// CORS
-app.use(
-  cors({
-    origin: (process.env.CORS_ORIGIN || 'http://localhost:3000').split(','),
-    credentials: true,
-  })
-);
+// 🔒 SEGURIDAD - CORS DINÁMICO POR ENTORNO
+app.use(corsMiddleware());
+logger.info('✅ CORS dinámico configurado por entorno');
+
+// 🔒 SEGURIDAD - VALIDACIÓN DE HEADERS
+app.use(requireSecureHeaders);
 
 // Body parser
 app.use(express.json({ limit: '10mb' }));
