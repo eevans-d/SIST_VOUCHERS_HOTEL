@@ -32,6 +32,11 @@ export function enforceHttps(req, res, next) {
     return next();
   }
 
+  // Permitir endpoints de salud/metrics sin redirección
+  if (req.path === '/health' || req.path === '/metrics') {
+    return next();
+  }
+
   // Verificar protocolo
   // Header x-forwarded-proto lo envía el reverse proxy (nginx, AWS LB, etc)
   const isSecure = req.header('x-forwarded-proto') === 'https' || req.protocol === 'https';
