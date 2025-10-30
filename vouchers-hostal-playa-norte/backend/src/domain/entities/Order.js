@@ -54,9 +54,23 @@ export class Order {
       id: uuidv4(),
       stayId,
       status: 'open',
-      items,
+      items: [],
       createdAt: new Date(),
       updatedAt: new Date(),
+    });
+
+    // Agregar items iniciales si hay
+    items.forEach(item => {
+      const subtotal = item.quantity * item.unitPrice;
+      order.items.push({
+        id: item.id || uuidv4(),
+        orderId: order.id,
+        productCode: item.productCode,
+        productName: item.productName,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        subtotal,
+      });
     });
 
     // Recalcular totales

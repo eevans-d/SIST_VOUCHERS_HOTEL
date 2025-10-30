@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">12.67% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/71</span>
+                <span class='fraction'>9/71</span>
             </div>
         
             
@@ -37,16 +37,16 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">12.5% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/8</span>
+                <span class='fraction'>1/8</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">13.04% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/69</span>
+                <span class='fraction'>9/69</span>
             </div>
         
             
@@ -311,14 +311,14 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -348,7 +348,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -377,7 +377,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -410,7 +410,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -446,7 +446,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -475,7 +475,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -504,7 +504,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -527,7 +527,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -539,20 +539,20 @@
 &nbsp;
 import { Router } from 'express';
 &nbsp;
-export function <span class="fstat-no" title="function not covered" >createReportsRoutes(</span>{
+export function createReportsRoutes({
   reportService,
   authenticate,
   authorize,
   logger
 }) {
-  const router = <span class="cstat-no" title="statement not covered" >Router();</span>
+  const router = Router();
 &nbsp;
   /**
    * GET /api/reports/occupancy/:hotelCode
    * Obtiene tasa de ocupación
    * RBAC: admin, staff
    */
-<span class="cstat-no" title="statement not covered" >  router.get('/occupancy/:hotelCode', </span>
+  router.get('/occupancy/:hotelCode', 
     authenticate, 
     authorize(['admin', 'staff']),
 <span class="fstat-no" title="function not covered" >    as</span>ync (req, res, next) =&gt; {
@@ -582,7 +582,7 @@ export function <span class="fstat-no" title="function not covered" >createRepor
    * Estadísticas de vouchers
    * RBAC: admin, staff
    */
-<span class="cstat-no" title="statement not covered" >  router.get('/vouchers/stats',</span>
+  router.get('/vouchers/stats',
     authenticate,
     authorize(['admin', 'staff']),
 <span class="fstat-no" title="function not covered" >    as</span>ync (req, res, next) =&gt; {
@@ -611,7 +611,7 @@ export function <span class="fstat-no" title="function not covered" >createRepor
    * Consumo de órdenes
    * RBAC: admin, staff, cafemanager
    */
-<span class="cstat-no" title="statement not covered" >  router.get('/orders/consumption',</span>
+  router.get('/orders/consumption',
     authenticate,
     authorize(['admin', 'staff', 'cafemanager']),
 <span class="fstat-no" title="function not covered" >    as</span>ync (req, res, next) =&gt; {
@@ -644,7 +644,7 @@ export function <span class="fstat-no" title="function not covered" >createRepor
    * Ingresos diarios
    * RBAC: admin, staff
    */
-<span class="cstat-no" title="statement not covered" >  router.get('/revenue/daily',</span>
+  router.get('/revenue/daily',
     authenticate,
     authorize(['admin', 'staff']),
 <span class="fstat-no" title="function not covered" >    as</span>ync (req, res, next) =&gt; {
@@ -680,7 +680,7 @@ export function <span class="fstat-no" title="function not covered" >createRepor
    * Top productos consumidos
    * RBAC: admin, staff, cafemanager
    */
-<span class="cstat-no" title="statement not covered" >  router.get('/products/top',</span>
+  router.get('/products/top',
     authenticate,
     authorize(['admin', 'staff', 'cafemanager']),
 <span class="fstat-no" title="function not covered" >    as</span>ync (req, res, next) =&gt; {
@@ -709,7 +709,7 @@ export function <span class="fstat-no" title="function not covered" >createRepor
    * Horas pico de consumo
    * RBAC: admin, staff, cafemanager
    */
-<span class="cstat-no" title="statement not covered" >  router.get('/hours/peak',</span>
+  router.get('/hours/peak',
     authenticate,
     authorize(['admin', 'staff', 'cafemanager']),
 <span class="fstat-no" title="function not covered" >    as</span>ync (req, res, next) =&gt; {
@@ -738,7 +738,7 @@ export function <span class="fstat-no" title="function not covered" >createRepor
    * Resumen general del hotel
    * RBAC: admin, staff
    */
-<span class="cstat-no" title="statement not covered" >  router.get('/dashboard/:hotelCode',</span>
+  router.get('/dashboard/:hotelCode',
     authenticate,
     authorize(['admin', 'staff']),
 <span class="fstat-no" title="function not covered" >    as</span>ync (req, res, next) =&gt; {
@@ -761,7 +761,7 @@ export function <span class="fstat-no" title="function not covered" >createRepor
     }
   );
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return router;</span>
+  return router;
 }
 &nbsp;
 export default createReportsRoutes;
@@ -772,7 +772,7 @@ export default createReportsRoutes;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-10-25T07:45:14.387Z
+                at 2025-10-30T06:41:07.115Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

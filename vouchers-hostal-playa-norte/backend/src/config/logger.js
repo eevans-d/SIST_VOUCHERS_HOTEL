@@ -1,6 +1,10 @@
-const winston = require('winston');
-const path = require('path');
-const fs = require('fs');
+import winston from 'winston';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Crear directorio de logs
 const logDir = path.join(__dirname, '../../logs');
@@ -18,7 +22,7 @@ const customFormat = winston.format.combine(
 );
 
 // Logger principal
-const logger = winston.createLogger({
+export const logger = winston.createLogger({
   level: process.env.LOG_LEVEL || 'info',
   format: customFormat,
   defaultMeta: {
@@ -54,7 +58,7 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 // Logger de auditoría (operaciones críticas)
-const auditLogger = winston.createLogger({
+export const auditLogger = winston.createLogger({
   level: 'info',
   format: customFormat,
   defaultMeta: {
@@ -70,4 +74,4 @@ const auditLogger = winston.createLogger({
   ]
 });
 
-module.exports = { logger, auditLogger };
+export default { logger, auditLogger };

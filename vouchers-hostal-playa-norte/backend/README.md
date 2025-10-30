@@ -56,6 +56,10 @@ npm run dev
 # Terminal 2: Healthcheck
 curl http://localhost:3000/health
 
+# Liveness / Readiness
+curl http://localhost:3000/live
+curl http://localhost:3000/ready
+
 # Esperado:
 # {"status":"ok","timestamp":"...","environment":"development","database":"connected"}
 ```
@@ -274,6 +278,7 @@ Exponemos métricas Prometheus en `/metrics` con:
 - `http_requests_total{method,route,status_code}`
 - `http_request_duration_seconds_bucket` (histograma)
 - `http_server_errors_total{route,status_code}`
+- `db_errors_total{operation,error_code}`
 - Métricas de proceso Node.js (GC, heap, event loop)
 
 Ejemplos:
@@ -287,6 +292,16 @@ curl -s https://hpn-vouchers-backend.fly.dev/metrics | head -40
 ```
 
 Para scrape automático, apunta tu Prometheus al endpoint `/metrics`.
+
+### Smoke check rápido
+
+```bash
+# Local
+./scripts/smoke-check.sh http://localhost:3000
+
+# Producción
+BASE_URL=https://hpn-vouchers-backend.fly.dev ./scripts/smoke-check.sh
+```
 
 ### Dockerfile
 

@@ -4,7 +4,7 @@
  * @author GitHub Copilot
  * @date 2025-10-22
  * @version 1.0.0
- * 
+ *
  * Implementa:
  * - HTTPS enforcement (redirect HTTP → HTTPS)
  * - Helmet security headers
@@ -12,7 +12,7 @@
  * - CSP (Content Security Policy)
  * - CORS mejorado
  * - Secure cookies
- * 
+ *
  * @ref PLAN_IMPLEMENTACION_ROADMAP.md - Issue P0 #2
  * @ref SECURITY_CHECKLIST.md - OWASP A02 (Cryptographic Failures)
  */
@@ -22,7 +22,7 @@ import helmet from 'helmet';
 /**
  * HTTPS ENFORCEMENT MIDDLEWARE
  * Redirige HTTP → HTTPS en producción
- * 
+ *
  * Nota: En production, el servidor debe estar detrás de un reverse proxy (nginx, AWS LB)
  * que maneje TLS. Este middleware verifica y asegura.
  */
@@ -33,7 +33,7 @@ export function enforceHttps(req, res, next) {
   }
 
   // Permitir endpoints de salud/metrics sin redirección
-  if (req.path === '/health' || req.path === '/metrics') {
+  if (req.path === '/health' || req.path === '/metrics' || req.path === '/live' || req.path === '/ready') {
     return next();
   }
 
@@ -53,7 +53,7 @@ export function enforceHttps(req, res, next) {
 
 /**
  * HELMET SECURITY HEADERS
- * 
+ *
  * Establece headers de seguridad HTTP recomendados
  */
 export const helmetConfig = () => {
@@ -110,7 +110,7 @@ export const helmetConfig = () => {
 
 /**
  * HSTS PRELOAD MIDDLEWARE
- * 
+ *
  * Responde a .well-known/security.txt
  * Permite registrarse en HSTS preload list
  */
@@ -130,7 +130,7 @@ Preferred-Languages: es,en
 
 /**
  * SECURE COOKIES MIDDLEWARE
- * 
+ *
  * Asegura que todas las cookies usen flags de seguridad
  */
 export function secureHeaders(req, res, next) {
@@ -150,7 +150,7 @@ export function secureHeaders(req, res, next) {
 
 /**
  * CERTIFICATE PINNING (opcional, avanzado)
- * 
+ *
  * Para máxima seguridad, pinear el certificado SSL
  * Requiere actualización manual cuando se renueve el cert
  */

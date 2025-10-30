@@ -43,6 +43,14 @@ const httpServerErrorsTotal = new client.Counter({
 });
 register.registerMetric(httpServerErrorsTotal);
 
+// Contador de errores de base de datos
+const dbErrorsTotal = new client.Counter({
+  name: 'db_errors_total',
+  help: 'Total de errores en operaciones de base de datos',
+  labelNames: ['operation', 'error_code'],
+});
+register.registerMetric(dbErrorsTotal);
+
 /**
  * Middleware de instrumentación de métricas HTTP
  */
@@ -95,9 +103,23 @@ export function registerDefaultMetrics() {
   return register;
 }
 
+/**
+ * Registrar un error de base de datos en métricas
+ * @param {string} operation - Operación: connect|query|insert|update|delete|transaction|health_check
+ * @param {string} [errorCode] - Código de error o nombre (p.ej. SQLITE_CONSTRAINT)
+ */
+export function recordDbError(operation, errorCode = 'unknown') {
+  try {
+    dbErrorsTotal.inc({ operation, error_code: String(errorCode) });
+  } catch (_e) {
+    // Evitar que fallas en métricas afecten al flujo principal
+  }
+}
+
 export default {
   metricsMiddleware,
   metricsHandler,
   registerDefaultMetrics,
+  recordDbError,
   register,
 };

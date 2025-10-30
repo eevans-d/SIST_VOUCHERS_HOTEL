@@ -29,14 +29,14 @@ class DatabaseManager {
       this.db.pragma('journal_mode = WAL'); // Write-Ahead Logging para concurrencia
       this.db.pragma('foreign_keys = ON');  // Integridad referencial
       this.db.pragma('synchronous = NORMAL'); // Balance performance/seguridad
-      
+
       // Configurar zona horaria
       this.db.function('current_timestamp_tz', () => {
         return new Date().toISOString();
       });
 
       this.initialized = true;
-      
+
       logger.info({
         event: 'database_initialized',
         path: dbPath,
@@ -79,8 +79,6 @@ class DatabaseManager {
   }
 }
 
-// Singleton
-const dbManager = new DatabaseManager();
-
+// Singleton exportado
 export const dbManager = new DatabaseManager();
 export const getDb = () => dbManager.getDb();

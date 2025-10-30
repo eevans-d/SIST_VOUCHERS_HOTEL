@@ -35,12 +35,12 @@ import createVouchersRoutes from './presentation/http/routes/vouchers.js';
 import { createOrdersRoutes } from './presentation/http/routes/orders.js';
 import { createReportsRoutes } from './presentation/http/routes/reports.js';
 import { authenticate, authorize } from './presentation/http/middleware/auth.middleware.js';
-import { 
+import {
   globalLimiter,
   loginLimiter,
   registerLimiter,
   refreshTokenLimiter,
-  redeemVoucherLimiter 
+  redeemVoucherLimiter
 } from './presentation/http/middleware/rateLimiter.middleware.js';
 import {
   enforceHttps,
@@ -57,6 +57,7 @@ import {
   metricsMiddleware,
   metricsHandler,
   registerDefaultMetrics,
+  recordDbError,
 } from './middleware/metrics.js';
 
 // Cargar variables de entorno
@@ -108,6 +109,8 @@ try {
   logger.info(`✅ Base de datos conectada: ${DB_PATH}`);
 } catch (error) {
   logger.error('❌ Error conectando a base de datos:', error);
+  // Registrar métrica de error de base de datos
+  recordDbError('connect', error.code || error.name || 'unknown');
   process.exit(1);
 }
 
@@ -202,6 +205,16 @@ logger.info('✅ Rate limiting global activado (100 req/15min)');
 
 // ==================== RUTAS ====================
 
+// Liveness probe
+app.get('/live', (req, res) => {
+  res.json({
+    status: 'live',
+    timestamp: new Date().toISOString(),
+    uptime_seconds: Math.round(process.uptime()),
+    version: process.env.APP_VERSION || 'unknown',
+  });
+});
+
 // Health check
 app.get('/health', (req, res) => {
   // Intentar una operación simple en DB para validar conexión
@@ -210,6 +223,8 @@ app.get('/health', (req, res) => {
     db.prepare('SELECT 1').get();
   } catch (e) {
     dbStatus = 'error';
+    // Registrar fallo en health check de DB
+    recordDbError('health_check', e.code || e.name || 'unknown');
   }
 
   res.json({
@@ -220,6 +235,33 @@ app.get('/health', (req, res) => {
     uptime_seconds: Math.round(process.uptime()),
     database: dbStatus,
   });
+});
+
+// Readiness probe
+app.get('/ready', (req, res) => {
+  // Verificar dependencias críticas (DB)
+  try {
+    db.prepare('SELECT 1').get();
+    return res.json({
+      status: 'ready',
+      timestamp: new Date().toISOString(),
+      environment: NODE_ENV,
+      version: process.env.APP_VERSION || 'unknown',
+      uptime_seconds: Math.round(process.uptime()),
+      database: 'connected',
+    });
+  } catch (e) {
+    recordDbError('health_check', e.code || e.name || 'unknown');
+    return res.status(503).json({
+      status: 'not_ready',
+      timestamp: new Date().toISOString(),
+      environment: NODE_ENV,
+      version: process.env.APP_VERSION || 'unknown',
+      uptime_seconds: Math.round(process.uptime()),
+      database: 'error',
+      error: NODE_ENV === 'production' ? undefined : e.message,
+    });
+  }
 });
 
 // Endpoint de métricas Prometheus
@@ -291,6 +333,11 @@ app.use((err, req, res, next) => {
     method: req.method,
   });
 
+  // Métrica para errores de base de datos detectables
+  if (err && (err.name === 'SqliteError' || (err.code && String(err.code).startsWith('SQLITE')))) {
+    recordDbError('query', err.code || err.name || 'unknown');
+  }
+
   // Errores de validación Zod
   if (err instanceof Error && err.message.includes('Datos inválidos')) {
     return res.status(400).json({
@@ -348,8 +395,10 @@ app.use((req, res) => {
 
 // ==================== INICIAR SERVIDOR ====================
 
-const server = app.listen(PORT, '0.0.0.0', () => {
-  logger.info(`
+let server;
+if (NODE_ENV !== 'test') {
+  server = app.listen(PORT, '0.0.0.0', () => {
+    logger.info(`
 ╔═══════════════════════════════════════════╗
 ║   🏛️  SISTEMA VOUCHERS HOTEL              ║
 ║   Backend API - Constitucional            ║
@@ -358,14 +407,16 @@ const server = app.listen(PORT, '0.0.0.0', () => {
   🌐 URL: http://localhost:${PORT}
   📡 Environment: ${NODE_ENV}
   🗄️  Database: ${DB_PATH}
-  
+
   Rutas disponibles:
+  - GET  /live               (Liveness)
   - GET  /health             (Estado de la API)
+  - GET  /ready              (Readiness)
   - POST /api/auth/register  (Registrar usuario)
   - POST /api/auth/login     (Autenticación)
   - POST /api/auth/logout    (Cerrar sesión)
   - GET  /api/auth/me        (Mi perfil)
-  
+
   - GET    /api/stays              (Listar estadías)
   - GET    /api/stays/:id          (Obtener estadía)
   - POST   /api/stays              (Crear estadía)
@@ -378,26 +429,37 @@ const server = app.listen(PORT, '0.0.0.0', () => {
 
   Documentación: docs/API.md
   `);
-});
+  });
+}
 
 // ==================== GRACEFUL SHUTDOWN ====================
 
 process.on('SIGTERM', () => {
   logger.info('SIGTERM recibido. Cerrando gracefully...');
-  server.close(() => {
+  if (server) {
+    server.close(() => {
+      db.close();
+      logger.info('✅ Servidor cerrado');
+      process.exit(0);
+    });
+  } else {
     db.close();
-    logger.info('✅ Servidor cerrado');
     process.exit(0);
-  });
+  }
 });
 
 process.on('SIGINT', () => {
   logger.info('SIGINT recibido. Cerrando gracefully...');
-  server.close(() => {
+  if (server) {
+    server.close(() => {
+      db.close();
+      logger.info('✅ Servidor cerrado');
+      process.exit(0);
+    });
+  } else {
     db.close();
-    logger.info('✅ Servidor cerrado');
     process.exit(0);
-  });
+  }
 });
 
 // Capturar excepciones no manejadas (imprimir también a consola por si el logger falla)

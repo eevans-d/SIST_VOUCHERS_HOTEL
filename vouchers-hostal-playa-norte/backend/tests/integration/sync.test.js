@@ -1,5 +1,7 @@
 import request from 'supertest';
 import app from '../../src/index.js';
+import { dbManager } from '../../src/config/database.js';
+import { generateTestToken } from '../helpers/auth.js';
 
 
 describe('Sync API Integration', () => {
@@ -165,7 +167,7 @@ describe('Sync API Integration', () => {
           ]
         });
 
-      const logs = db.prepare('SELECT * FROM sync_log WHERE device_id = ?')
+      const logs = dbManager.getDb().prepare('SELECT * FROM sync_log WHERE device_id = ?')
         .all('test-device-log');
 
       expect(logs.length).toBeGreaterThan(0);

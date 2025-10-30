@@ -6,19 +6,31 @@
 import helmet from 'helmet';
 
 /**
- * Determina los orígenes CORS permitidos según el entorno
+ * Lee orígenes desde CORS_ORIGIN (CSV) y devuelve array normalizado
+ */
+function parseEnvOrigins() {
+  const raw = process.env.CORS_ORIGIN || process.env.CORS_ORIGINS || '';
+  return raw
+    .split(',')
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
+}
+
+/**
+ * Determina los orígenes CORS permitidos según el entorno, combinando defaults + env
  */
 function getCorsOrigins() {
-  const env = process.env.NODE_ENV || 'development';
-  const nodeEnv = String(process.env.NODE_ENV).toLowerCase();
+  const nodeEnv = String(process.env.NODE_ENV || 'development').toLowerCase();
 
-  const origins = {
+  const defaults = {
     // Desarrollo local
     development: [
       'http://localhost:3000',
       'http://localhost:3001',
       'http://127.0.0.1:3000',
       'http://127.0.0.1:3001',
+      'http://localhost:5173',
+      'http://127.0.0.1:5173',
     ],
     // Staging (si aplica)
     staging: [
@@ -28,14 +40,14 @@ function getCorsOrigins() {
     // Producción
     production: [
       'https://hpn-vouchers-backend.fly.dev',
-      // Si tienes un dominio custom:
-      // 'https://vouchers.tudominio.com',
-      // Agregar orígenes del frontend cuando esté desplegado:
-      // 'https://admin.hpn-vouchers.fly.dev',
+      // Dominios de frontend se agregan vía CORS_ORIGIN
     ],
   };
 
-  return origins[nodeEnv] || origins.development;
+  const envOrigins = parseEnvOrigins();
+  const combined = [...(defaults[nodeEnv] || defaults.development), ...envOrigins];
+  // Deduplicar
+  return Array.from(new Set(combined));
 }
 
 /**
