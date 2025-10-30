@@ -10,11 +10,4 @@ echo "DATABASE_PATH: ${DATABASE_PATH}"
 echo "Node version: $(node -v)"
 ls -la
 
-node --trace-uncaught --trace-warnings src/index.js 2>&1
-code=$?
-echo "Node exited with code: $code"
-if [ "$code" -ne 0 ]; then
-	echo "Keeping container alive for debug for 1h..."
-	sleep 3600
-fi
-exit "$code"
+exec node --trace-uncaught --trace-warnings src/index.js 2>&1

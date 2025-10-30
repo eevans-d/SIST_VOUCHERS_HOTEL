@@ -12,10 +12,11 @@ WORKDIR /app
 RUN apk add --no-cache python3 make g++
 
 # Copiar manifests de dependencias
-COPY package*.json ./
+COPY package*.json .
 
-# Instalar dependencias (solo producción; no hay paso de build)
-RUN npm ci --only=production --ignore-scripts
+    # Instalar dependencias (solo producción; ejecuta scripts para addons nativos)
+    ENV npm_config_build_from_source=better-sqlite3
+    RUN npm ci --only=production
 
 # Copiar código fuente
 COPY . .
