@@ -100,14 +100,34 @@
 - ✅ **Entorno dev**: VSCode + debugging + documentación
 - ✅ **Código organizado**: 23 servicios experimentales separados
 
-## 🚀 PRÓXIMA FASE
-**FASE 2: Testing y Cobertura**
-- 🎯 Objetivo: 90% cobertura de tests
-- ⏳ Tiempo estimado: 75h (1.9 semanas)
-- 📋 5 tareas principales
-- 🏁 Checkpoint 2: Tests completos
+## 🎯 Próxima Tarea
+## Tarea 2.1: Tests unitarios básicos 🔄 EN PROGRESO
+**Status**: 🔄 EN PROGRESO  
+**Tiempo estimado**: 15h | **Tiempo invertido**: 3h
+**Progreso**: 25% █████▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 
-_Ninguna tarea completada aún_
+### Hallazgos Críticos:
+- ❌ **18 test suites fallan** - prueban servicios experimentales movidos
+- ✅ **Jest configuration**: Fixed ES modules compatibility  
+- ✅ **Coverage baseline**: 12.2% statements (target: 90%)
+- ❌ **Tests core services**: 0% cobertura en servicios principales
+- ✅ **Coverage thresholds**: Configurados (70% global, 80% services)
+
+### Sub-tareas:
+- ✅ Análisis situación actual tests
+- � Configuración Jest ES modules (90% completado)
+- ⏳ Crear tests servicios core (0% completado)
+- ⏳ Coverage reporting configurado (50% completado)
+
+**Próxima acción**: Crear tests funcionales para voucherService.js (servicio crítico)
+
+---
+
+## 🚨 BLOQUEADOR IDENTIFICADO
+**Problema**: Tests existentes prueban servicios experimentales (movidos en FASE 1.3)
+**Impacto**: 18/20 test suites fallan, cobertura core 0%
+**Solución**: Crear tests nuevos para 9 servicios core identificados
+**Estimación**: +5h adicionales para nueva suite tests
 
 ---
 
