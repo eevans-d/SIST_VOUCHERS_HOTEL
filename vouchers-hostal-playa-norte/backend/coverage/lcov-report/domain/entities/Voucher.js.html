@@ -167,7 +167,14 @@
 <a name='L102'></a><a href='#L102'>102</a>
 <a name='L103'></a><a href='#L103'>103</a>
 <a name='L104'></a><a href='#L104'>104</a>
-<a name='L105'></a><a href='#L105'>105</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L105'></a><a href='#L105'>105</a>
+<a name='L106'></a><a href='#L106'>106</a>
+<a name='L107'></a><a href='#L107'>107</a>
+<a name='L108'></a><a href='#L108'>108</a>
+<a name='L109'></a><a href='#L109'>109</a>
+<a name='L110'></a><a href='#L110'>110</a>
+<a name='L111'></a><a href='#L111'>111</a>
+<a name='L112'></a><a href='#L112'>112</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -176,7 +183,11 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">15x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -184,24 +195,26 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">15x</span>
-<span class="cline-any cline-yes">15x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">15x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">15x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">15x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">15x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">15x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">15x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -262,6 +275,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -281,15 +295,21 @@ import { z } from 'zod';
 import { v4 as uuidv4 } from 'uuid';
 &nbsp;
 const VoucherSchema = z.object({
-  id: z.string().uuid().optional().default(() =&gt; uuidv4()),
-  code: z.string().min(1, "Code is required"),
-  stayId: z.string().uuid("Invalid Stay ID"),
-  validFrom: z.date("Invalid validFrom date"),
-  validUntil: z.date("Invalid validUntil date"),
-  hmacSignature: z.string().min(1, "HMAC signature is required"),
-  status: z.enum(['active', 'redeemed', 'expired', 'cancelled']).default('active'),
+  id: z
+    .string()
+    .uuid()
+    .optional()
+    .default(() =&gt; uuidv4()),
+  code: z.string().min(1, 'Code is required'),
+  stayId: z.string().uuid('Invalid Stay ID'),
+  validFrom: z.date('Invalid validFrom date'),
+  validUntil: z.date('Invalid validUntil date'),
+  hmacSignature: z.string().min(1, 'HMAC signature is required'),
+  status: z
+    .enum(['active', 'redeemed', 'expired', 'cancelled'])
+    .default('active'),
   createdAt: z.date().default(() =&gt; new Date()),
-  updatedAt: z.date().default(() =&gt; new Date()),
+  updatedAt: z.date().default(() =&gt; new Date())
 });
 &nbsp;
 export class Voucher {
@@ -346,7 +366,7 @@ export class Voucher {
       validUntil: this.validUntil.toISOString(),
       status: this.status,
       createdAt: this.createdAt.toISOString(),
-      updatedAt: this.updatedAt.toISOString(),
+      updatedAt: this.updatedAt.toISOString()
     };
   }
 &nbsp;
@@ -360,7 +380,7 @@ export class Voucher {
       hmacSignature: this.hmacSignature,
       status: this.status,
       createdAt: this.createdAt.toISOString(),
-      updatedAt: this.updatedAt.toISOString(),
+      updatedAt: this.updatedAt.toISOString()
     };
   }
 &nbsp;
@@ -370,19 +390,20 @@ export class Voucher {
       validFrom: new Date(data.validFrom),
       validUntil: new Date(data.validUntil),
       createdAt: new Date(data.createdAt),
-      updatedAt: new Date(data.updatedAt),
+      updatedAt: new Date(data.updatedAt)
     });
   }
 }
 &nbsp;
-export default Voucher;</pre></td></tr></table></pre>
+export default Voucher;
+&nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
             </div><!-- /wrapper -->
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-11-01T03:22:51.363Z
+                at 2025-11-01T04:39:39.064Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

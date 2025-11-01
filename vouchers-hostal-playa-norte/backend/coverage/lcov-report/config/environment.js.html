@@ -122,7 +122,21 @@
 <a name='L57'></a><a href='#L57'>57</a>
 <a name='L58'></a><a href='#L58'>58</a>
 <a name='L59'></a><a href='#L59'>59</a>
-<a name='L60'></a><a href='#L60'>60</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<a name='L60'></a><a href='#L60'>60</a>
+<a name='L61'></a><a href='#L61'>61</a>
+<a name='L62'></a><a href='#L62'>62</a>
+<a name='L63'></a><a href='#L63'>63</a>
+<a name='L64'></a><a href='#L64'>64</a>
+<a name='L65'></a><a href='#L65'>65</a>
+<a name='L66'></a><a href='#L66'>66</a>
+<a name='L67'></a><a href='#L67'>67</a>
+<a name='L68'></a><a href='#L68'>68</a>
+<a name='L69'></a><a href='#L69'>69</a>
+<a name='L70'></a><a href='#L70'>70</a>
+<a name='L71'></a><a href='#L71'>71</a>
+<a name='L72'></a><a href='#L72'>72</a>
+<a name='L73'></a><a href='#L73'>73</a>
+<a name='L74'></a><a href='#L74'>74</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -141,10 +155,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -155,6 +165,23 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -181,7 +208,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">const dotenv = <span class="cstat-no" title="statement not covered" >require('dotenv');</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">const dotenv = <span class="cstat-no" title="statement not covered" >require('dotenv');</span>
 const { z } = <span class="cstat-no" title="statement not covered" >require('zod');</span>
 const { logger } = <span class="cstat-no" title="statement not covered" >require('./logger');</span>
 &nbsp;
@@ -190,30 +218,43 @@ const { logger } = <span class="cstat-no" title="statement not covered" >require
 &nbsp;
 // Schema de validación
 const envSchema = <span class="cstat-no" title="statement not covered" >z.object({</span>
-  NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
+  NODE_ENV: z
+    .enum(['development', 'production', 'test'])
+    .default('development'),
   PORT: z.string().regex(/^\d+$/).transform(Number).default('3000'),
   TZ: z.string().default('America/Argentina/Buenos_Aires'),
-  
+&nbsp;
   DATABASE_PATH: z.string().optional(),
-  
+&nbsp;
   VOUCHER_SECRET: z.string().min(32),
   JWT_SECRET: z.string().min(32),
   JWT_EXPIRATION: z.string().default('24h'),
-  
-  ALLOWED_ORIGINS: z.string().transform(<span class="fstat-no" title="function not covered" >va</span>l =&gt; <span class="cstat-no" title="statement not covered" >val.split(','))</span>,
-  
+&nbsp;
+  ALLOWED_ORIGINS: z.string().transform(<span class="fstat-no" title="function not covered" >(v</span>al) =&gt; <span class="cstat-no" title="statement not covered" >val.split(','))</span>,
+&nbsp;
   HOTEL_CODE: z.string().default('HPN'),
   HOTEL_NAME: z.string().default('Hostal Playa Norte'),
   APP_VERSION: z.string().default('3.0.0'),
-  
-  ENABLE_OFFLINE_SYNC: z.string().transform(<span class="fstat-no" title="function not covered" >va</span>l =&gt; <span class="cstat-no" title="statement not covered" >val === 'true')</span>.default('true'),
+&nbsp;
+  ENABLE_OFFLINE_SYNC: z
+    .string()
+    .transform(<span class="fstat-no" title="function not covered" >(v</span>al) =&gt; <span class="cstat-no" title="statement not covered" >val === 'true')</span>
+    .default('true'),
   MAX_SYNC_ATTEMPTS: z.string().regex(/^\d+$/).transform(Number).default('5'),
-  SYNC_RETRY_DELAY: z.string().regex(/^\d+$/).transform(Number).default('300000'),
-  
-  RATE_LIMIT_VALIDATE: z.string().regex(/^\d+$/).transform(Number).default('100'),
+  SYNC_RETRY_DELAY: z
+    .string()
+    .regex(/^\d+$/)
+    .transform(Number)
+    .default('300000'),
+&nbsp;
+  RATE_LIMIT_VALIDATE: z
+    .string()
+    .regex(/^\d+$/)
+    .transform(Number)
+    .default('100'),
   RATE_LIMIT_REDEEM: z.string().regex(/^\d+$/).transform(Number).default('50'),
   RATE_LIMIT_SYNC: z.string().regex(/^\d+$/).transform(Number).default('10'),
-  
+&nbsp;
   LOG_LEVEL: z.enum(['error', 'warn', 'info', 'debug']).default('info')
 });
 &nbsp;
@@ -221,10 +262,10 @@ const envSchema = <span class="cstat-no" title="statement not covered" >z.object
 let config;
 <span class="cstat-no" title="statement not covered" >try {</span>
 <span class="cstat-no" title="statement not covered" >  config = envSchema.parse(process.env);</span>
-  
+&nbsp;
   // Configurar zona horaria
 <span class="cstat-no" title="statement not covered" >  process.env.TZ = config.TZ;</span>
-  
+&nbsp;
 <span class="cstat-no" title="statement not covered" >  logger.info({</span>
     event: 'environment_loaded',
     environment: config.NODE_ENV,
@@ -240,14 +281,15 @@ let config;
   }
 }
 &nbsp;
-<span class="cstat-no" title="statement not covered" >module.exports = config;</span></pre></td></tr></table></pre>
+<span class="cstat-no" title="statement not covered" >module.exports = config;</span>
+&nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
             </div><!-- /wrapper -->
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-11-01T03:22:51.363Z
+                at 2025-11-01T04:39:39.064Z
             </div>
         <script src="../prettify.js"></script>
         <script>

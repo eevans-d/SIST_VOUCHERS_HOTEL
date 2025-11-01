@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">1.04% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>1/96</span>
+                <span class='fraction'>0/96</span>
             </div>
         
             
@@ -37,16 +37,16 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">5% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>1/20</span>
+                <span class='fraction'>0/20</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">1.09% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>1/91</span>
+                <span class='fraction'>0/91</span>
             </div>
         
             
@@ -436,7 +436,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -790,8 +790,8 @@ export class StayRepository {
   /**
    * @param {Database.Database} db - Instancia de SQLite
    */
-  constructor(db) {
-    this.db = db;
+<span class="fstat-no" title="function not covered" >  co</span>nstructor(db) {
+<span class="cstat-no" title="statement not covered" >    this.db = db;</span>
   }
 &nbsp;
   /**
@@ -874,7 +874,7 @@ export class StayRepository {
 &nbsp;
     const stmt = <span class="cstat-no" title="statement not covered" >this.db.prepare(query);</span>
     const rows = <span class="cstat-no" title="statement not covered" >stmt.all(...params);</span>
-<span class="cstat-no" title="statement not covered" >    return rows.map(<span class="fstat-no" title="function not covered" >ro</span>w =&gt; <span class="cstat-no" title="statement not covered" >Stay.fromPersistence(row))</span>;</span>
+<span class="cstat-no" title="statement not covered" >    return rows.map(<span class="fstat-no" title="function not covered" >(r</span>ow) =&gt; <span class="cstat-no" title="statement not covered" >Stay.fromPersistence(row))</span>;</span>
   }
 &nbsp;
   /**
@@ -888,7 +888,7 @@ export class StayRepository {
       ORDER BY checkInDate DESC
     `);
     const rows = <span class="cstat-no" title="statement not covered" >stmt.all(hotelCode);</span>
-<span class="cstat-no" title="statement not covered" >    return rows.map(<span class="fstat-no" title="function not covered" >ro</span>w =&gt; <span class="cstat-no" title="statement not covered" >Stay.fromPersistence(row))</span>;</span>
+<span class="cstat-no" title="statement not covered" >    return rows.map(<span class="fstat-no" title="function not covered" >(r</span>ow) =&gt; <span class="cstat-no" title="statement not covered" >Stay.fromPersistence(row))</span>;</span>
   }
 &nbsp;
   /**
@@ -934,7 +934,7 @@ export class StayRepository {
 &nbsp;
     const stmt = <span class="cstat-no" title="statement not covered" >this.db.prepare(query);</span>
     const rows = <span class="cstat-no" title="statement not covered" >stmt.all(...params);</span>
-<span class="cstat-no" title="statement not covered" >    return rows.map(<span class="fstat-no" title="function not covered" >ro</span>w =&gt; <span class="cstat-no" title="statement not covered" >Stay.fromPersistence(row))</span>;</span>
+<span class="cstat-no" title="statement not covered" >    return rows.map(<span class="fstat-no" title="function not covered" >(r</span>ow) =&gt; <span class="cstat-no" title="statement not covered" >Stay.fromPersistence(row))</span>;</span>
   }
 &nbsp;
   /**
@@ -955,7 +955,7 @@ export class StayRepository {
       ORDER BY checkInDate ASC
     `);
     const rows = <span class="cstat-no" title="statement not covered" >stmt.all(hotelCode, today, today);</span>
-<span class="cstat-no" title="statement not covered" >    return rows.map(<span class="fstat-no" title="function not covered" >ro</span>w =&gt; <span class="cstat-no" title="statement not covered" >Stay.fromPersistence(row))</span>;</span>
+<span class="cstat-no" title="statement not covered" >    return rows.map(<span class="fstat-no" title="function not covered" >(r</span>ow) =&gt; <span class="cstat-no" title="statement not covered" >Stay.fromPersistence(row))</span>;</span>
   }
 &nbsp;
   /**
@@ -978,7 +978,7 @@ export class StayRepository {
       startDate.toISOString(),
       endDate.toISOString()
     );
-<span class="cstat-no" title="statement not covered" >    return rows.map(<span class="fstat-no" title="function not covered" >ro</span>w =&gt; <span class="cstat-no" title="statement not covered" >Stay.fromPersistence(row))</span>;</span>
+<span class="cstat-no" title="statement not covered" >    return rows.map(<span class="fstat-no" title="function not covered" >(r</span>ow) =&gt; <span class="cstat-no" title="statement not covered" >Stay.fromPersistence(row))</span>;</span>
   }
 &nbsp;
   /**
@@ -1028,7 +1028,7 @@ export class StayRepository {
    */
 <span class="fstat-no" title="function not covered" >  de</span>lete(id) {
     const stmt = <span class="cstat-no" title="statement not covered" >this.db.prepare(</span>
-      "UPDATE stays SET status = 'cancelled' WHERE id = ?"
+      'UPDATE stays SET status = \'cancelled\' WHERE id = ?'
     );
     const result = <span class="cstat-no" title="statement not covered" >stmt.run(id);</span>
 <span class="cstat-no" title="statement not covered" >    return result.changes &gt; 0;</span>
@@ -1070,9 +1070,9 @@ export class StayRepository {
         AND DATE(checkOutDate) &gt; ?
     `);
     const rows = <span class="cstat-no" title="statement not covered" >stmt.all(hotelCode, dateStr, dateStr);</span>
-    
+&nbsp;
     const occupancy = <span class="cstat-no" title="statement not covered" >{};</span>
-<span class="cstat-no" title="statement not covered" >    rows.forEach(<span class="fstat-no" title="function not covered" >ro</span>w =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >    rows.forEach(<span class="fstat-no" title="function not covered" >(r</span>ow) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >      occupancy[row.roomNumber] = true;</span>
     });
 <span class="cstat-no" title="statement not covered" >    return occupancy;</span>
@@ -1135,7 +1135,7 @@ export default StayRepository;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-11-01T03:22:51.363Z
+                at 2025-11-01T04:39:39.064Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

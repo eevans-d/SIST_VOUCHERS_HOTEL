@@ -152,7 +152,8 @@
 <a name='L87'></a><a href='#L87'>87</a>
 <a name='L88'></a><a href='#L88'>88</a>
 <a name='L89'></a><a href='#L89'>89</a>
-<a name='L90'></a><a href='#L90'>90</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<a name='L90'></a><a href='#L90'>90</a>
+<a name='L91'></a><a href='#L91'>91</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -241,13 +242,14 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">const jwt = <span class="cstat-no" title="statement not covered" >require('jsonwebtoken');</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">const jwt = <span class="cstat-no" title="statement not covered" >require('jsonwebtoken');</span>
 const { logger } = <span class="cstat-no" title="statement not covered" >require('../config/logger');</span>
 const config = <span class="cstat-no" title="statement not covered" >require('../config/environment');</span>
 &nbsp;
 function <span class="fstat-no" title="function not covered" >authMiddleware(</span>req, res, next) {
   const authHeader = <span class="cstat-no" title="statement not covered" >req.headers.authorization;</span>
-  
+&nbsp;
 <span class="cstat-no" title="statement not covered" >  if (!authHeader || !authHeader.startsWith('Bearer ')) {</span>
 <span class="cstat-no" title="statement not covered" >    logger.warn({</span>
       event: 'auth_missing_token',
@@ -255,9 +257,9 @@ function <span class="fstat-no" title="function not covered" >authMiddleware(</s
       ip: req.ip,
       path: req.path
     });
-<span class="cstat-no" title="statement not covered" >    return res.status(401).json({ </span>
+<span class="cstat-no" title="statement not covered" >    return res.status(401).json({</span>
       error: 'NO_TOKEN',
-      message: 'Token de autenticación requerido' 
+      message: 'Token de autenticación requerido'
     });
   }
 &nbsp;
@@ -265,26 +267,26 @@ function <span class="fstat-no" title="function not covered" >authMiddleware(</s
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  try {</span>
     const decoded = <span class="cstat-no" title="statement not covered" >jwt.verify(token, config.JWT_SECRET);</span>
-    
+&nbsp;
     // Validar estructura del token
 <span class="cstat-no" title="statement not covered" >    if (!decoded.user_id || !decoded.role) {</span>
 <span class="cstat-no" title="statement not covered" >      throw new Error('INVALID_TOKEN_STRUCTURE');</span>
     }
-    
+&nbsp;
 <span class="cstat-no" title="statement not covered" >    req.user = {</span>
       id: decoded.user_id,
       username: decoded.username,
       role: decoded.role,
       cafeteria_id: decoded.cafeteria_id
     };
-    
+&nbsp;
 <span class="cstat-no" title="statement not covered" >    logger.debug({</span>
       event: 'auth_success',
       correlation_id: req.correlationId,
       user_id: req.user.id,
       role: req.user.role
     });
-    
+&nbsp;
 <span class="cstat-no" title="statement not covered" >    next();</span>
   } catch (error) {
 <span class="cstat-no" title="statement not covered" >    logger.warn({</span>
@@ -293,10 +295,10 @@ function <span class="fstat-no" title="function not covered" >authMiddleware(</s
       error: error.message,
       ip: req.ip
     });
-    
-<span class="cstat-no" title="statement not covered" >    return res.status(401).json({ </span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >    return res.status(401).json({</span>
       error: 'INVALID_TOKEN',
-      message: 'Token inválido o expirado' 
+      message: 'Token inválido o expirado'
     });
   }
 }
@@ -305,12 +307,12 @@ function <span class="fstat-no" title="function not covered" >authMiddleware(</s
 function <span class="fstat-no" title="function not covered" >requireRole(</span>...allowedRoles) {
 <span class="cstat-no" title="statement not covered" >  return <span class="fstat-no" title="function not covered" >(r</span>eq, res, next) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    if (!req.user) {</span>
-<span class="cstat-no" title="statement not covered" >      return res.status(401).json({ </span>
+<span class="cstat-no" title="statement not covered" >      return res.status(401).json({</span>
         error: 'NOT_AUTHENTICATED',
-        message: 'Autenticación requerida' 
+        message: 'Autenticación requerida'
       });
     }
-    
+&nbsp;
 <span class="cstat-no" title="statement not covered" >    if (!allowedRoles.includes(req.user.role)) {</span>
 <span class="cstat-no" title="statement not covered" >      logger.warn({</span>
         event: 'auth_insufficient_permissions',
@@ -319,25 +321,26 @@ function <span class="fstat-no" title="function not covered" >requireRole(</span
         user_role: req.user.role,
         required_roles: allowedRoles
       });
-      
-<span class="cstat-no" title="statement not covered" >      return res.status(403).json({ </span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >      return res.status(403).json({</span>
         error: 'INSUFFICIENT_PERMISSIONS',
-        message: 'Permisos insuficientes para esta operación' 
+        message: 'Permisos insuficientes para esta operación'
       });
     }
-    
+&nbsp;
 <span class="cstat-no" title="statement not covered" >    next();</span>
   };
 }
 &nbsp;
-<span class="cstat-no" title="statement not covered" >module.exports = { authMiddleware, requireRole };</span></pre></td></tr></table></pre>
+<span class="cstat-no" title="statement not covered" >module.exports = { authMiddleware, requireRole };</span>
+&nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
             </div><!-- /wrapper -->
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-11-01T03:22:51.363Z
+                at 2025-11-01T04:39:39.064Z
             </div>
         <script src="../prettify.js"></script>
         <script>

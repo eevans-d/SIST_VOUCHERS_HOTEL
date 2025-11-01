@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/75</span>
+                <span class='fraction'>0/77</span>
             </div>
         
             
@@ -266,7 +266,15 @@
 <a name='L201'></a><a href='#L201'>201</a>
 <a name='L202'></a><a href='#L202'>202</a>
 <a name='L203'></a><a href='#L203'>203</a>
-<a name='L204'></a><a href='#L204'>204</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L204'></a><a href='#L204'>204</a>
+<a name='L205'></a><a href='#L205'>205</a>
+<a name='L206'></a><a href='#L206'>206</a>
+<a name='L207'></a><a href='#L207'>207</a>
+<a name='L208'></a><a href='#L208'>208</a>
+<a name='L209'></a><a href='#L209'>209</a>
+<a name='L210'></a><a href='#L210'>210</a>
+<a name='L211'></a><a href='#L211'>211</a>
+<a name='L212'></a><a href='#L212'>212</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -298,9 +306,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -415,8 +422,13 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -448,14 +460,18 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -479,17 +495,17 @@ import redis from 'redis';
 export class CacheService {
 <span class="fstat-no" title="function not covered" >  co</span>nstructor() {
 <span class="cstat-no" title="statement not covered" >    this.client = redis.createClient({</span>
-      url: process.env.REDIS_URL || 'redis://localhost:6379',
+      url: process.env.REDIS_URL || 'redis://localhost:6379'
     });
-    
+&nbsp;
     // Default TTLs by endpoint
 <span class="cstat-no" title="statement not covered" >    this.ttls = {</span>
-      'GET:/vouchers': 300,        // 5 min
-      'GET:/orders': 300,          // 5 min
-      'GET:/stays': 300,           // 5 min
-      'GET:/dashboard': 60,        // 1 min
-      'GET:/reports': 600,         // 10 min
-      'default': 300,
+      'GET:/vouchers': 300, // 5 min
+      'GET:/orders': 300, // 5 min
+      'GET:/stays': 300, // 5 min
+      'GET:/dashboard': 60, // 1 min
+      'GET:/reports': 600, // 10 min
+      default: 300
     };
   }
 &nbsp;
@@ -501,9 +517,8 @@ export class CacheService {
    * Cache key generator
    */
 <span class="fstat-no" title="function not covered" >  ge</span>nerateKey(method, path, userId, params = <span class="branch-0 cbranch-no" title="branch not covered" >{})</span> {
-    const paramString = <span class="cstat-no" title="statement not covered" >Object.keys(params).length &gt; 0 </span>
-      ? `:${JSON.stringify(params)}` 
-      : '';
+    const paramString =
+<span class="cstat-no" title="statement not covered" >      Object.keys(params).length &gt; 0 ? `:${JSON.stringify(params)}` : '';</span>
 <span class="cstat-no" title="statement not covered" >    return `cache:${method}:${path}:${userId}${paramString}`;</span>
   }
 &nbsp;
@@ -561,10 +576,10 @@ export class CacheService {
 <span class="fstat-no" title="function not covered" >  as</span>ync clear() {
 <span class="cstat-no" title="statement not covered" >    try {</span>
 <span class="cstat-no" title="statement not covered" >      await this.client.flushDb();</span>
-<span class="cstat-no" title="statement not covered" >      console.log(`🗑️ Cache CLEARED (all)`);</span>
+<span class="cstat-no" title="statement not covered" >      console.log('🗑️ Cache CLEARED (all)');</span>
 <span class="cstat-no" title="statement not covered" >      return true;</span>
     } catch (error) {
-<span class="cstat-no" title="statement not covered" >      console.error(`❌ Cache CLEAR error`, error);</span>
+<span class="cstat-no" title="statement not covered" >      console.error('❌ Cache CLEAR error', error);</span>
 <span class="cstat-no" title="statement not covered" >      return false;</span>
     }
   }
@@ -578,10 +593,10 @@ export class CacheService {
       const info = <span class="cstat-no" title="statement not covered" >await this.client.info('memory');</span>
 <span class="cstat-no" title="statement not covered" >      return {</span>
         totalKeys: keys.length,
-        memory: info,
+        memory: info
       };
     } catch (error) {
-<span class="cstat-no" title="statement not covered" >      console.error(`❌ Cache STATS error`, error);</span>
+<span class="cstat-no" title="statement not covered" >      console.error('❌ Cache STATS error', error);</span>
 <span class="cstat-no" title="statement not covered" >      return { totalKeys: 0 };</span>
     }
   }
@@ -617,8 +632,13 @@ export const cacheMiddleware = <span class="cstat-no" title="statement not cover
     }
 &nbsp;
     const userId = <span class="cstat-no" title="statement not covered" >req.user?.id || 'anonymous';</span>
-    const key = <span class="cstat-no" title="statement not covered" >cacheService.generateKey(req.method, req.path, userId, req.query);</span>
-    
+    const key = <span class="cstat-no" title="statement not covered" >cacheService.generateKey(</span>
+      req.method,
+      req.path,
+      userId,
+      req.query
+    );
+&nbsp;
     // Try to get from cache
     const cached = <span class="cstat-no" title="statement not covered" >await cacheService.get(key);</span>
 <span class="cstat-no" title="statement not covered" >    if (cached) {</span>
@@ -627,11 +647,11 @@ export const cacheMiddleware = <span class="cstat-no" title="statement not cover
 &nbsp;
     // Store original res.json to intercept response
     const originalJson = <span class="cstat-no" title="statement not covered" >res.json.bind(res);</span>
-<span class="cstat-no" title="statement not covered" >    res.json = <span class="fstat-no" title="function not covered" >fu</span>nction(data) {</span>
+<span class="cstat-no" title="statement not covered" >    res.json = <span class="fstat-no" title="function not covered" >fu</span>nction (data) {</span>
       // Cache the response
       const ttl = <span class="cstat-no" title="statement not covered" >cacheService.getTTL(req.method, req.path);</span>
-<span class="cstat-no" title="statement not covered" >      cacheService.set(key, data, ttl).catch(<span class="fstat-no" title="function not covered" >er</span>r =&gt; <span class="cstat-no" title="statement not covered" >console.error(err))</span>;</span>
-      
+<span class="cstat-no" title="statement not covered" >      cacheService.set(key, data, ttl).catch(<span class="fstat-no" title="function not covered" >(e</span>rr) =&gt; <span class="cstat-no" title="statement not covered" >console.error(err))</span>;</span>
+&nbsp;
       // Send response
 <span class="cstat-no" title="statement not covered" >      return originalJson(data);</span>
     };
@@ -655,12 +675,16 @@ export const invalidateCacheMiddleware = <span class="cstat-no" title="statement
 &nbsp;
     // Store original res.json
     const originalJson = <span class="cstat-no" title="statement not covered" >res.json.bind(res);</span>
-<span class="cstat-no" title="statement not covered" >    res.json = <span class="fstat-no" title="function not covered" >fu</span>nction(data) {</span>
+<span class="cstat-no" title="statement not covered" >    res.json = <span class="fstat-no" title="function not covered" >fu</span>nction (data) {</span>
       // Invalidate related caches
       const resourceType = <span class="cstat-no" title="statement not covered" >req.path.split('/')[1];</span> // /vouchers → vouchers
-<span class="cstat-no" title="statement not covered" >      cacheService.invalidate(`cache:GET:/${resourceType}:*`).catch(<span class="fstat-no" title="function not covered" >er</span>r =&gt; <span class="cstat-no" title="statement not covered" >console.error(err))</span>;</span>
-<span class="cstat-no" title="statement not covered" >      cacheService.invalidate(`cache:GET:/dashboard:*`).catch(<span class="fstat-no" title="function not covered" >er</span>r =&gt; <span class="cstat-no" title="statement not covered" >console.error(err))</span>;</span>
-      
+<span class="cstat-no" title="statement not covered" >      cacheService</span>
+        .invalidate(`cache:GET:/${resourceType}:*`)
+        .catch(<span class="fstat-no" title="function not covered" >(e</span>rr) =&gt; <span class="cstat-no" title="statement not covered" >console.error(err))</span>;
+<span class="cstat-no" title="statement not covered" >      cacheService</span>
+        .invalidate('cache:GET:/dashboard:*')
+        .catch(<span class="fstat-no" title="function not covered" >(e</span>rr) =&gt; <span class="cstat-no" title="statement not covered" >console.error(err))</span>;
+&nbsp;
 <span class="cstat-no" title="statement not covered" >      return originalJson(data);</span>
     };
 &nbsp;
@@ -679,7 +703,7 @@ export default cacheService;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-11-01T03:22:51.363Z
+                at 2025-11-01T04:39:39.064Z
             </div>
         <script src="../prettify.js"></script>
         <script>

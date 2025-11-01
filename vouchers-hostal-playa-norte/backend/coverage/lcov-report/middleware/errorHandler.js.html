@@ -167,7 +167,9 @@
 <a name='L102'></a><a href='#L102'>102</a>
 <a name='L103'></a><a href='#L103'>103</a>
 <a name='L104'></a><a href='#L104'>104</a>
-<a name='L105'></a><a href='#L105'>105</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<a name='L105'></a><a href='#L105'>105</a>
+<a name='L106'></a><a href='#L106'>106</a>
+<a name='L107'></a><a href='#L107'>107</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -237,20 +239,14 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -265,6 +261,14 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -308,7 +312,7 @@ class ConflictError extends AppError {
 // Middleware de manejo de errores
 function <span class="fstat-no" title="function not covered" >errorHandler(</span>err, req, res, next) {
   const correlationId = <span class="cstat-no" title="statement not covered" >req.correlationId || 'unknown';</span>
-  
+&nbsp;
   // Error operacional esperado
 <span class="cstat-no" title="statement not covered" >  if (err.isOperational) {</span>
 <span class="cstat-no" title="statement not covered" >    logger.warn({</span>
@@ -320,7 +324,7 @@ function <span class="fstat-no" title="function not covered" >errorHandler(</spa
       path: req.path,
       method: req.method
     });
-    
+&nbsp;
 <span class="cstat-no" title="statement not covered" >    return res.status(err.statusCode).json({</span>
       error: err.errorCode,
       message: err.message,
@@ -328,7 +332,7 @@ function <span class="fstat-no" title="function not covered" >errorHandler(</spa
       correlation_id: correlationId
     });
   }
-  
+&nbsp;
   // Error no esperado
 <span class="cstat-no" title="statement not covered" >  logger.error({</span>
     event: 'unexpected_error',
@@ -339,12 +343,13 @@ function <span class="fstat-no" title="function not covered" >errorHandler(</spa
     method: req.method,
     user_id: req.user?.id
   });
-  
+&nbsp;
   // No exponer detalles en producción
-  const message = <span class="cstat-no" title="statement not covered" >process.env.NODE_ENV === 'production' </span>
-    ? 'Error interno del servidor'
-    : err.message;
-  
+  const message =
+<span class="cstat-no" title="statement not covered" >    process.env.NODE_ENV === 'production'</span>
+      ? 'Error interno del servidor'
+      : err.message;
+&nbsp;
 <span class="cstat-no" title="statement not covered" >  res.status(500).json({</span>
     error: 'INTERNAL_SERVER_ERROR',
     message,
@@ -360,7 +365,7 @@ function <span class="fstat-no" title="function not covered" >notFoundHandler(</
     path: req.path,
     method: req.method
   });
-  
+&nbsp;
 <span class="cstat-no" title="statement not covered" >  res.status(404).json({</span>
     error: 'ROUTE_NOT_FOUND',
     message: 'Ruta no encontrada',
@@ -375,14 +380,15 @@ function <span class="fstat-no" title="function not covered" >notFoundHandler(</
   ConflictError,
   errorHandler,
   notFoundHandler
-};</pre></td></tr></table></pre>
+};
+&nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
             </div><!-- /wrapper -->
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-11-01T03:22:51.363Z
+                at 2025-11-01T04:39:39.064Z
             </div>
         <script src="../prettify.js"></script>
         <script>

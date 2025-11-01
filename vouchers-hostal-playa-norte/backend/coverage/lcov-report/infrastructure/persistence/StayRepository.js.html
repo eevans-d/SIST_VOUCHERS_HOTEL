@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">14.28% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>1/7</span>
+                <span class='fraction'>0/7</span>
             </div>
         
             
@@ -37,16 +37,16 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">25% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>1/4</span>
+                <span class='fraction'>0/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">14.28% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>1/7</span>
+                <span class='fraction'>0/7</span>
             </div>
         
             
@@ -108,11 +108,14 @@
 <a name='L43'></a><a href='#L43'>43</a>
 <a name='L44'></a><a href='#L44'>44</a>
 <a name='L45'></a><a href='#L45'>45</a>
-<a name='L46'></a><a href='#L46'>46</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L46'></a><a href='#L46'>46</a>
+<a name='L47'></a><a href='#L47'>47</a>
+<a name='L48'></a><a href='#L48'>48</a>
+<a name='L49'></a><a href='#L49'>49</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -142,9 +145,12 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -156,8 +162,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { Stay } from '../../domain/entities/Stay.js';
 &nbsp;
 export class StayRepository {
-  constructor(database) {
-    this.db = database;
+<span class="fstat-no" title="function not covered" >  co</span>nstructor(database) {
+<span class="cstat-no" title="statement not covered" >    this.db = database;</span>
   }
 &nbsp;
 <span class="fstat-no" title="function not covered" >  as</span>ync findById(id) {
@@ -167,33 +173,36 @@ export class StayRepository {
 &nbsp;
 <span class="fstat-no" title="function not covered" >  as</span>ync save(stay) {
     const data = <span class="cstat-no" title="statement not covered" >stay.toPersistence();</span>
-<span class="cstat-no" title="statement not covered" >    this.db.prepare('INSERT INTO stays (id, userId, hotelCode, roomNumber, checkInDate, checkOutDate, numberOfGuests, numberOfNights, roomType, basePrice, totalPrice, status, notes, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').run(</span>
-      data.id,
-      data.userId,
-      data.hotelCode,
-      data.roomNumber,
-      data.checkInDate,
-      data.checkOutDate,
-      data.numberOfGuests,
-      data.numberOfNights,
-      data.roomType,
-      data.basePrice,
-      data.totalPrice,
-      data.status,
-      data.notes,
-      data.createdAt,
-      data.updatedAt
-    );
+<span class="cstat-no" title="statement not covered" >    this.db</span>
+      .prepare(
+        'INSERT INTO stays (id, userId, hotelCode, roomNumber, checkInDate, checkOutDate, numberOfGuests, numberOfNights, roomType, basePrice, totalPrice, status, notes, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+      )
+      .run(
+        data.id,
+        data.userId,
+        data.hotelCode,
+        data.roomNumber,
+        data.checkInDate,
+        data.checkOutDate,
+        data.numberOfGuests,
+        data.numberOfNights,
+        data.roomType,
+        data.basePrice,
+        data.totalPrice,
+        data.status,
+        data.notes,
+        data.createdAt,
+        data.updatedAt
+      );
   }
 &nbsp;
 <span class="fstat-no" title="function not covered" >  as</span>ync update(stay) {
     const data = <span class="cstat-no" title="statement not covered" >stay.toPersistence();</span>
-<span class="cstat-no" title="statement not covered" >    this.db.prepare('UPDATE stays SET status = ?, notes = ?, updatedAt = ? WHERE id = ?').run(</span>
-      data.status,
-      data.notes,
-      data.updatedAt,
-      data.id
-    );
+<span class="cstat-no" title="statement not covered" >    this.db</span>
+      .prepare(
+        'UPDATE stays SET status = ?, notes = ?, updatedAt = ? WHERE id = ?'
+      )
+      .run(data.status, data.notes, data.updatedAt, data.id);
   }
 }
 &nbsp;
@@ -205,7 +214,7 @@ export default StayRepository;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-11-01T03:22:51.363Z
+                at 2025-11-01T04:39:39.064Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

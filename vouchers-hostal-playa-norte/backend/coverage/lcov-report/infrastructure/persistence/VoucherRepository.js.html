@@ -106,7 +106,11 @@
 <a name='L41'></a><a href='#L41'>41</a>
 <a name='L42'></a><a href='#L42'>42</a>
 <a name='L43'></a><a href='#L43'>43</a>
-<a name='L44'></a><a href='#L44'>44</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L44'></a><a href='#L44'>44</a>
+<a name='L45'></a><a href='#L45'>45</a>
+<a name='L46'></a><a href='#L46'>46</a>
+<a name='L47'></a><a href='#L47'>47</a>
+<a name='L48'></a><a href='#L48'>48</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -120,22 +124,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -143,6 +134,23 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -162,32 +170,36 @@ export class VoucherRepository {
   }
 &nbsp;
 <span class="fstat-no" title="function not covered" >  as</span>ync findByCode(code) {
-    const row = <span class="cstat-no" title="statement not covered" >this.db.prepare('SELECT * FROM vouchers WHERE code = ?').get(code);</span>
+    const row = <span class="cstat-no" title="statement not covered" >this.db</span>
+      .prepare('SELECT * FROM vouchers WHERE code = ?')
+      .get(code);
 <span class="cstat-no" title="statement not covered" >    return row ? Voucher.fromPersistence(row) : null;</span>
   }
 &nbsp;
 <span class="fstat-no" title="function not covered" >  as</span>ync save(voucher) {
     const data = <span class="cstat-no" title="statement not covered" >voucher.toPersistence();</span>
-<span class="cstat-no" title="statement not covered" >    this.db.prepare('INSERT INTO vouchers (id, code, stayId, validFrom, validUntil, hmacSignature, status, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)').run(</span>
-      data.id,
-      data.code,
-      data.stayId,
-      data.validFrom,
-      data.validUntil,
-      data.hmacSignature,
-      data.status,
-      data.createdAt,
-      data.updatedAt
-    );
+<span class="cstat-no" title="statement not covered" >    this.db</span>
+      .prepare(
+        'INSERT INTO vouchers (id, code, stayId, validFrom, validUntil, hmacSignature, status, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
+      )
+      .run(
+        data.id,
+        data.code,
+        data.stayId,
+        data.validFrom,
+        data.validUntil,
+        data.hmacSignature,
+        data.status,
+        data.createdAt,
+        data.updatedAt
+      );
   }
 &nbsp;
 <span class="fstat-no" title="function not covered" >  as</span>ync update(voucher) {
     const data = <span class="cstat-no" title="statement not covered" >voucher.toPersistence();</span>
-<span class="cstat-no" title="statement not covered" >    this.db.prepare('UPDATE vouchers SET status = ?, updatedAt = ? WHERE id = ?').run(</span>
-      data.status,
-      data.updatedAt,
-      data.id
-    );
+<span class="cstat-no" title="statement not covered" >    this.db</span>
+      .prepare('UPDATE vouchers SET status = ?, updatedAt = ? WHERE id = ?')
+      .run(data.status, data.updatedAt, data.id);
   }
 }
 &nbsp;
@@ -199,7 +211,7 @@ export default VoucherRepository;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-11-01T03:22:51.363Z
+                at 2025-11-01T04:39:39.064Z
             </div>
         <script src="../../prettify.js"></script>
         <script>
