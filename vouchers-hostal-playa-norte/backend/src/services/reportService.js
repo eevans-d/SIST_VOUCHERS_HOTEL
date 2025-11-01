@@ -1,6 +1,6 @@
-const { getDb } = require('../config/database');
-const { logger } = require('../config/logger');
-const { ValidationError } = require('../middleware/errorHandler');
+import { getDb } from '../config/database.js';
+import { logger } from '../config/logger.js';
+import { ValidationError } from '../middleware/errorHandler.js';
 
 class ReportService {
   /**
@@ -31,14 +31,14 @@ class ReportService {
     }
 
     let query = `
-      SELECT 
+      SELECT
         v.code,
         s.guest_name,
         s.room_number as room,
         r.redeemed_at,
         c.name as cafeteria,
         r.device_id,
-        CASE 
+        CASE
           WHEN r.sync_status = 'synced' THEN 'online'
           ELSE 'offline'
         END as origin
@@ -108,7 +108,7 @@ class ReportService {
     const stats = db
       .prepare(
         `
-      SELECT 
+      SELECT
         DATE(v.created_at) as date,
         COUNT(DISTINCT v.id) as emitted,
         COUNT(DISTINCT r.id) as redeemed,
@@ -126,7 +126,7 @@ class ReportService {
     const summary = db
       .prepare(
         `
-      SELECT 
+      SELECT
         COUNT(DISTINCT v.id) as total_emitted,
         COUNT(DISTINCT r.id) as total_redeemed,
         COUNT(DISTINCT CASE WHEN v.status = 'expired' THEN v.id END) as total_expired,
@@ -158,7 +158,7 @@ class ReportService {
     const todayStats = db
       .prepare(
         `
-      SELECT 
+      SELECT
         COUNT(DISTINCT v.id) as vouchers_emitted,
         COUNT(DISTINCT r.id) as vouchers_redeemed,
         COUNT(DISTINCT CASE WHEN r.sync_status = 'synced' THEN r.id END) as online_redemptions,
@@ -176,7 +176,7 @@ class ReportService {
         `
       SELECT COUNT(*) as count
       FROM vouchers
-      WHERE status = 'active' 
+      WHERE status = 'active'
         AND DATE(valid_from) <= DATE('now', 'localtime')
         AND DATE(valid_until) >= DATE('now', 'localtime')
     `
@@ -216,4 +216,5 @@ class ReportService {
   }
 }
 
-module.exports = { ReportService: new ReportService() };
+export { ReportService };
+export const reportService = new ReportService();

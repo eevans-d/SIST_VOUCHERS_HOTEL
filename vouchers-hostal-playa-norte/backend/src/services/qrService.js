@@ -1,6 +1,6 @@
-const QRCode = require('qrcode');
-const { logger } = require('../config/logger');
-const { CryptoService } = require('./cryptoService');
+import QRCode from 'qrcode';
+import { logger } from '../config/logger.js';
+import { cryptoService } from './cryptoService.js';
 
 class QRService {
   /**
@@ -47,7 +47,7 @@ class QRService {
    */
   validateQRFormat(qrData) {
     try {
-      const parsed = CryptoService.parseQRData(qrData);
+      const parsed = cryptoService.parseQRData(qrData);
 
       // Validar formato de código
       const codeRegex = /^[A-Z]+-\d{4}-\d{4}$/;
@@ -74,4 +74,5 @@ class QRService {
   }
 }
 
-module.exports = { QRService: new QRService() };
+export { QRService };
+export const qrService = new QRService();

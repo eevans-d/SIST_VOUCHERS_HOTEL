@@ -1,13 +1,13 @@
-const { getDb } = require('../config/database');
-const { logger, auditLogger } = require('../config/logger');
-const { CryptoService } = require('./cryptoService');
-const { QRService } = require('./qrService');
-const {
+import { getDb } from '../config/database.js';
+import { logger, auditLogger } from '../config/logger.js';
+import { CryptoService } from './cryptoService.js';
+import { QRService } from './qrService.js';
+import {
   ValidationError,
   NotFoundError,
   ConflictError
-} = require('../middleware/errorHandler');
-const { formatInTimeZone } = require('date-fns-tz');
+} from '../middleware/errorHandler.js';
+import { formatInTimeZone } from 'date-fns-tz';
 
 class VoucherService {
   /**
@@ -475,4 +475,5 @@ class VoucherService {
   }
 }
 
-module.exports = { VoucherService: new VoucherService() };
+export { VoucherService };
+export const voucherService = new VoucherService();

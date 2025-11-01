@@ -75,5 +75,3 @@ export const auditLogger = winston.createLogger({
     })
   ]
 });
-
-export default { logger, auditLogger };

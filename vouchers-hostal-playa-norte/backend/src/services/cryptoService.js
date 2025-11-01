@@ -1,6 +1,6 @@
-const crypto = require('crypto');
-const config = require('../config/environment');
-const { logger } = require('../config/logger');
+import crypto from 'crypto';
+import config from '../config/environment.js';
+import { logger } from '../config/logger.js';
 
 class CryptoService {
   /**
@@ -92,4 +92,5 @@ class CryptoService {
   }
 }
 
-module.exports = { CryptoService: new CryptoService() };
+export { CryptoService };
+export const cryptoService = new CryptoService();

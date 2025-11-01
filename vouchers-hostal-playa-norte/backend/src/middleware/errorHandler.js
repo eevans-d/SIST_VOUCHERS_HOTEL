@@ -1,4 +1,4 @@
-const { logger } = require('../config/logger');
+import { logger } from '../config/logger.js';
 
 // Errores personalizados
 class AppError extends Error {
@@ -96,7 +96,7 @@ function notFoundHandler(req, res) {
   });
 }
 
-module.exports = {
+export {
   AppError,
   ValidationError,
   NotFoundError,

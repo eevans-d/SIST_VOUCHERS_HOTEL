@@ -1,6 +1,6 @@
-const dotenv = require('dotenv');
-const { z } = require('zod');
-const { logger } = require('./logger');
+import dotenv from 'dotenv';
+import { z } from 'zod';
+import { logger } from './logger.js';
 
 // Cargar .env
 dotenv.config();
@@ -70,4 +70,4 @@ try {
   }
 }
 
-module.exports = config;
+export default config;
