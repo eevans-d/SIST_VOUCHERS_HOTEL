@@ -12,12 +12,12 @@
 [██░░░░░░░░░░░░░░░░░░] 1/50 tareas (2%)
 ```
 
-**Tiempo estimado restante:** 376.5 horas (9.4 semanas)  
-**Tiempo invertido:** 3.5 horas
+**Tiempo estimado restante:** 374.5 horas (9.3 semanas)  
+**Tiempo invertido:** 5.5 horas
 
 ---
 
-## ✅ COMPLETADAS (2)
+## ✅ COMPLETADAS (3)
 
 ## Tarea 1.1: Fix automático ESLint ✅ COMPLETADA
 **Status**: ✅ COMPLETADA  
@@ -46,7 +46,22 @@
 
 **Resultado**: Hooks pre-commit activos - formateo y linting automático
 
-## Tarea 1.3: Limpiar código muerto 🔄 EN PROGRESO
+## Tarea 1.3: Limpiar código muerto ✅ COMPLETADA
+**Status**: ✅ COMPLETADA  
+**Tiempo estimado**: 3h | **Tiempo real**: 1h
+**Progreso**: 100% ████████████████████
+
+### Sub-tareas:
+- ✅ Identificación servicios experimentales (23 de 32)
+- ✅ Creación directorio `/services/experimental/`
+- ✅ Movimiento servicios no utilizados
+- ✅ Validación 0 errores ESLint post-movimiento
+- ✅ Creación .gitignore backend
+- ✅ Documentación README experimental
+
+**Resultado**: 23 servicios experimentales movidos | 9 servicios core | ~15,000 líneas organizadas
+
+## Tarea 1.4: Actualizar dependencias 🔄 EN PROGRESO
 
 _Ninguna tarea completada aún_
 
