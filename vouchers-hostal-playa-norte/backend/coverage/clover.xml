@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1761806467532" clover="3.2.0">
-  <project timestamp="1761806467532" name="All files">
-    <metrics statements="6298" coveredstatements="889" conditionals="3444" coveredconditionals="380" methods="1482" coveredmethods="286" elements="11224" coveredelements="1555" complexity="0" loc="6298" ncloc="6298" packages="13" files="75" classes="75"/>
+<coverage generated="1761967371756" clover="3.2.0">
+  <project timestamp="1761967371756" name="All files">
+    <metrics statements="6298" coveredstatements="891" conditionals="3444" coveredconditionals="382" methods="1482" coveredmethods="286" elements="11224" coveredelements="1559" complexity="0" loc="6298" ncloc="6298" packages="13" files="75" classes="75"/>
     <package name="application.services">
       <metrics statements="122" coveredstatements="4" conditionals="88" coveredconditionals="0" methods="33" coveredmethods="1"/>
       <file name="ReportService.js" path="/home/eevan/ProyectosIA/SIST_VOUCHERS_HOTEL/vouchers-hostal-playa-norte/backend/src/application/services/ReportService.js">
@@ -482,7 +482,7 @@
       </file>
     </package>
     <package name="domain.entities">
-      <metrics statements="179" coveredstatements="140" conditionals="93" coveredconditionals="51" methods="68" coveredmethods="54"/>
+      <metrics statements="179" coveredstatements="142" conditionals="93" coveredconditionals="51" methods="68" coveredmethods="54"/>
       <file name="Order.js" path="/home/eevan/ProyectosIA/SIST_VOUCHERS_HOTEL/vouchers-hostal-playa-norte/backend/src/domain/entities/Order.js">
         <metrics statements="73" coveredstatements="67" conditionals="48" coveredconditionals="31" methods="19" coveredmethods="19"/>
         <line num="5" count="4" type="stmt"/>
@@ -560,7 +560,7 @@
         <line num="247" count="1" type="stmt"/>
       </file>
       <file name="Stay.js" path="/home/eevan/ProyectosIA/SIST_VOUCHERS_HOTEL/vouchers-hostal-playa-norte/backend/src/domain/entities/Stay.js">
-        <metrics statements="51" coveredstatements="43" conditionals="20" coveredconditionals="14" methods="20" coveredmethods="18"/>
+        <metrics statements="51" coveredstatements="45" conditionals="20" coveredconditionals="14" methods="20" coveredmethods="18"/>
         <line num="15" count="4" type="stmt"/>
         <line num="16" count="13" type="stmt"/>
         <line num="29" count="13" type="stmt"/>
@@ -570,8 +570,8 @@
         <line num="45" count="14" type="stmt"/>
         <line num="46" count="12" type="stmt"/>
         <line num="55" count="14" type="stmt"/>
-        <line num="63" count="2" type="stmt"/>
-        <line num="64" count="2" type="stmt"/>
+        <line num="63" count="1" type="stmt"/>
+        <line num="64" count="1" type="stmt"/>
         <line num="73" count="0" type="stmt"/>
         <line num="74" count="0" type="stmt"/>
         <line num="82" count="5" type="stmt"/>
@@ -580,8 +580,8 @@
         <line num="106" count="2" type="stmt"/>
         <line num="107" count="2" type="cond" truecount="2" falsecount="0"/>
         <line num="108" count="1" type="cond" truecount="1" falsecount="1"/>
-        <line num="110" count="0" type="stmt"/>
-        <line num="111" count="0" type="stmt"/>
+        <line num="110" count="1" type="stmt"/>
+        <line num="111" count="1" type="stmt"/>
         <line num="119" count="1" type="stmt"/>
         <line num="120" count="1" type="stmt"/>
         <line num="121" count="1" type="stmt"/>
@@ -1836,7 +1836,7 @@
       </file>
     </package>
     <package name="services">
-      <metrics statements="4630" coveredstatements="517" conditionals="2691" coveredconditionals="255" methods="1101" coveredmethods="177"/>
+      <metrics statements="4630" coveredstatements="517" conditionals="2691" coveredconditionals="257" methods="1101" coveredmethods="177"/>
       <file name="anomalyDetectionService.js" path="/home/eevan/ProyectosIA/SIST_VOUCHERS_HOTEL/vouchers-hostal-playa-norte/backend/src/services/anomalyDetectionService.js">
         <metrics statements="148" coveredstatements="0" conditionals="92" coveredconditionals="0" methods="47" coveredmethods="0"/>
         <line num="17" count="0" type="stmt"/>
@@ -4582,7 +4582,7 @@
         <line num="591" count="0" type="stmt"/>
       </file>
       <file name="predictiveAnalyticsService.js" path="/home/eevan/ProyectosIA/SIST_VOUCHERS_HOTEL/vouchers-hostal-playa-norte/backend/src/services/predictiveAnalyticsService.js">
-        <metrics statements="205" coveredstatements="195" conditionals="112" coveredconditionals="82" methods="66" coveredmethods="65"/>
+        <metrics statements="205" coveredstatements="195" conditionals="112" coveredconditionals="84" methods="66" coveredmethods="65"/>
         <line num="10" count="25" type="stmt"/>
         <line num="17" count="25" type="stmt"/>
         <line num="18" count="25" type="stmt"/>
@@ -4621,7 +4621,7 @@
         <line num="123" count="3" type="stmt"/>
         <line num="128" count="3" type="stmt"/>
         <line num="129" count="15" type="stmt"/>
-        <line num="136" count="23" type="stmt"/>
+        <line num="136" count="22" type="stmt"/>
         <line num="141" count="3" type="stmt"/>
         <line num="143" count="3" type="cond" truecount="1" falsecount="1"/>
         <line num="144" count="0" type="stmt"/>
@@ -4737,13 +4737,13 @@
         <line num="433" count="23" type="stmt"/>
         <line num="436" count="23" type="stmt"/>
         <line num="439" count="23" type="cond" truecount="4" falsecount="0"/>
-        <line num="440" count="8" type="stmt"/>
+        <line num="440" count="6" type="stmt"/>
         <line num="444" count="23" type="cond" truecount="3" falsecount="1"/>
         <line num="445" count="0" type="stmt"/>
         <line num="448" count="23" type="stmt"/>
         <line num="456" count="4" type="stmt"/>
         <line num="459" count="23" type="stmt"/>
-        <line num="460" count="19" type="cond" truecount="1" falsecount="1"/>
+        <line num="460" count="19" type="cond" truecount="2" falsecount="0"/>
         <line num="467" count="2" type="stmt"/>
         <line num="468" count="2" type="stmt"/>
         <line num="470" count="2" type="cond" truecount="1" falsecount="1"/>
@@ -4753,8 +4753,8 @@
         <line num="477" count="2" type="cond" truecount="1" falsecount="1"/>
         <line num="478" count="0" type="stmt"/>
         <line num="479" count="2" type="cond" truecount="1" falsecount="1"/>
-        <line num="480" count="2" type="stmt"/>
-        <line num="481" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="480" count="0" type="stmt"/>
+        <line num="481" count="2" type="cond" truecount="1" falsecount="1"/>
         <line num="482" count="0" type="stmt"/>
         <line num="485" count="2" type="stmt"/>
         <line num="487" count="2" type="stmt"/>
@@ -4781,7 +4781,7 @@
         <line num="559" count="6" type="stmt"/>
         <line num="560" count="6" type="stmt"/>
         <line num="561" count="242" type="cond" truecount="4" falsecount="0"/>
-        <line num="562" count="214" type="stmt"/>
+        <line num="562" count="209" type="stmt"/>
         <line num="565" count="6" type="stmt"/>
         <line num="569" count="10" type="stmt"/>
         <line num="574" count="1" type="stmt"/>
