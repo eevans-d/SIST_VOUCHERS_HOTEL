@@ -4590,7 +4590,7 @@ FNDA:0,(anonymous_5)
 FNDA:0,(anonymous_6)
 FNDA:0,(anonymous_7)
 FNDA:0,(anonymous_8)
-DA:1,1
+DA:1,0
 DA:2,0
 DA:3,0
 DA:4,0
@@ -4702,7 +4702,7 @@ DA:463,0
 DA:471,0
 DA:478,0
 LF:111
-LH:1
+LH:0
 BRDA:36,0,0,0
 BRDA:36,0,1,0
 BRDA:46,1,0,0
