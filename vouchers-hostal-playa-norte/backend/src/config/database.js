@@ -12,7 +12,8 @@ class DatabaseManager {
   initialize() {
     if (this.initialized) return this.db;
 
-    const dbPath = process.env.DATABASE_PATH || path.join(__dirname, '../../vouchers.db');
+    const dbPath =
+      process.env.DATABASE_PATH || path.join(__dirname, '../../vouchers.db');
     const dbDir = path.dirname(dbPath);
 
     // Crear directorio si no existe
@@ -27,7 +28,7 @@ class DatabaseManager {
 
       // Configuraciones SQLite optimizadas
       this.db.pragma('journal_mode = WAL'); // Write-Ahead Logging para concurrencia
-      this.db.pragma('foreign_keys = ON');  // Integridad referencial
+      this.db.pragma('foreign_keys = ON'); // Integridad referencial
       this.db.pragma('synchronous = NORMAL'); // Balance performance/seguridad
 
       // Configurar zona horaria

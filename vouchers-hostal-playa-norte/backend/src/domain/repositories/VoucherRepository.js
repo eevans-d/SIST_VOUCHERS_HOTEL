@@ -13,7 +13,7 @@ export class VoucherRepository {
    * Buscar voucher por ID
    */
   findById(voucherId) {
-    const query = `SELECT * FROM vouchers WHERE id = ?`;
+    const query = 'SELECT * FROM vouchers WHERE id = ?';
     const voucher = this.db.prepare(query).get(voucherId);
     return voucher ? Voucher.fromDatabase(voucher) : null;
   }
@@ -22,7 +22,7 @@ export class VoucherRepository {
    * Buscar voucher por código
    */
   findByCode(code) {
-    const query = `SELECT * FROM vouchers WHERE code = ?`;
+    const query = 'SELECT * FROM vouchers WHERE code = ?';
     const voucher = this.db.prepare(query).get(code);
     return voucher ? Voucher.fromDatabase(voucher) : null;
   }
@@ -38,7 +38,7 @@ export class VoucherRepository {
       LIMIT ? OFFSET ?
     `;
     const vouchers = this.db.prepare(query).all(stayId, limit, offset);
-    return vouchers.map(v => Voucher.fromDatabase(v));
+    return vouchers.map((v) => Voucher.fromDatabase(v));
   }
 
   /**
@@ -52,7 +52,7 @@ export class VoucherRepository {
       LIMIT ? OFFSET ?
     `;
     const vouchers = this.db.prepare(query).all(status, limit, offset);
-    return vouchers.map(v => Voucher.fromDatabase(v));
+    return vouchers.map((v) => Voucher.fromDatabase(v));
   }
 
   /**
@@ -69,7 +69,7 @@ export class VoucherRepository {
       ORDER BY expiryDate ASC
     `;
     const vouchers = this.db.prepare(query).all(futureDate);
-    return vouchers.map(v => Voucher.fromDatabase(v));
+    return vouchers.map((v) => Voucher.fromDatabase(v));
   }
 
   /**
@@ -82,8 +82,10 @@ export class VoucherRepository {
       ORDER BY createdAt DESC 
       LIMIT ? OFFSET ?
     `;
-    const vouchers = this.db.prepare(query).all(startDate, endDate, limit, offset);
-    return vouchers.map(v => Voucher.fromDatabase(v));
+    const vouchers = this.db
+      .prepare(query)
+      .all(startDate, endDate, limit, offset);
+    return vouchers.map((v) => Voucher.fromDatabase(v));
   }
 
   /**
@@ -97,7 +99,7 @@ export class VoucherRepository {
       ORDER BY redemptionDate DESC
     `;
     const vouchers = this.db.prepare(query).all(startDate, endDate);
-    return vouchers.map(v => Voucher.fromDatabase(v));
+    return vouchers.map((v) => Voucher.fromDatabase(v));
   }
 
   /**
@@ -119,18 +121,20 @@ export class VoucherRepository {
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
-    this.db.prepare(query).run(
-      data.id,
-      data.stayId,
-      data.code,
-      data.qrCode,
-      data.status,
-      data.redemptionDate,
-      data.expiryDate,
-      data.redemptionNotes,
-      data.createdAt,
-      data.updatedAt
-    );
+    this.db
+      .prepare(query)
+      .run(
+        data.id,
+        data.stayId,
+        data.code,
+        data.qrCode,
+        data.status,
+        data.redemptionDate,
+        data.expiryDate,
+        data.redemptionNotes,
+        data.createdAt,
+        data.updatedAt
+      );
 
     return data.id;
   }
@@ -149,17 +153,19 @@ export class VoucherRepository {
       WHERE id = ?
     `;
 
-    this.db.prepare(query).run(
-      data.stayId,
-      data.code,
-      data.qrCode,
-      data.status,
-      data.redemptionDate,
-      data.expiryDate,
-      data.redemptionNotes,
-      data.updatedAt,
-      data.id
-    );
+    this.db
+      .prepare(query)
+      .run(
+        data.stayId,
+        data.code,
+        data.qrCode,
+        data.status,
+        data.redemptionDate,
+        data.expiryDate,
+        data.redemptionNotes,
+        data.updatedAt,
+        data.id
+      );
 
     return data.id;
   }
@@ -194,7 +200,7 @@ export class VoucherRepository {
       return {
         success: true,
         voucherId: voucher.id,
-        status: 'redeemed',
+        status: 'redeemed'
       };
     })();
   }
@@ -205,7 +211,7 @@ export class VoucherRepository {
   validateAndRedeemBatch(voucherCodes, notes = '') {
     const results = {
       successful: [],
-      failed: [],
+      failed: []
     };
 
     for (const code of voucherCodes) {
@@ -215,7 +221,7 @@ export class VoucherRepository {
       } catch (error) {
         results.failed.push({
           code,
-          error: error.message,
+          error: error.message
         });
       }
     }
@@ -282,11 +288,12 @@ export class VoucherRepository {
     `;
 
     const stats = this.db.prepare(query).get();
-    const redemptionRate = stats.total > 0 ? (stats.redeemed / stats.total * 100).toFixed(2) : 0;
+    const redemptionRate =
+      stats.total > 0 ? ((stats.redeemed / stats.total) * 100).toFixed(2) : 0;
 
     return {
       ...stats,
-      redemptionRate: `${redemptionRate}%`,
+      redemptionRate: `${redemptionRate}%`
     };
   }
 
@@ -294,7 +301,7 @@ export class VoucherRepository {
    * Eliminar voucher
    */
   delete(voucherId) {
-    const query = `DELETE FROM vouchers WHERE id = ?`;
+    const query = 'DELETE FROM vouchers WHERE id = ?';
     this.db.prepare(query).run(voucherId);
   }
 }

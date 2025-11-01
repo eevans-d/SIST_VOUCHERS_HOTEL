@@ -99,7 +99,7 @@ export class StayRepository {
 
     const stmt = this.db.prepare(query);
     const rows = stmt.all(...params);
-    return rows.map(row => Stay.fromPersistence(row));
+    return rows.map((row) => Stay.fromPersistence(row));
   }
 
   /**
@@ -113,7 +113,7 @@ export class StayRepository {
       ORDER BY checkInDate DESC
     `);
     const rows = stmt.all(hotelCode);
-    return rows.map(row => Stay.fromPersistence(row));
+    return rows.map((row) => Stay.fromPersistence(row));
   }
 
   /**
@@ -159,7 +159,7 @@ export class StayRepository {
 
     const stmt = this.db.prepare(query);
     const rows = stmt.all(...params);
-    return rows.map(row => Stay.fromPersistence(row));
+    return rows.map((row) => Stay.fromPersistence(row));
   }
 
   /**
@@ -180,7 +180,7 @@ export class StayRepository {
       ORDER BY checkInDate ASC
     `);
     const rows = stmt.all(hotelCode, today, today);
-    return rows.map(row => Stay.fromPersistence(row));
+    return rows.map((row) => Stay.fromPersistence(row));
   }
 
   /**
@@ -203,7 +203,7 @@ export class StayRepository {
       startDate.toISOString(),
       endDate.toISOString()
     );
-    return rows.map(row => Stay.fromPersistence(row));
+    return rows.map((row) => Stay.fromPersistence(row));
   }
 
   /**
@@ -253,7 +253,7 @@ export class StayRepository {
    */
   delete(id) {
     const stmt = this.db.prepare(
-      "UPDATE stays SET status = 'cancelled' WHERE id = ?"
+      'UPDATE stays SET status = \'cancelled\' WHERE id = ?'
     );
     const result = stmt.run(id);
     return result.changes > 0;
@@ -295,9 +295,9 @@ export class StayRepository {
         AND DATE(checkOutDate) > ?
     `);
     const rows = stmt.all(hotelCode, dateStr, dateStr);
-    
+
     const occupancy = {};
-    rows.forEach(row => {
+    rows.forEach((row) => {
       occupancy[row.roomNumber] = true;
     });
     return occupancy;

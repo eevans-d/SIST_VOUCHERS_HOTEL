@@ -8,17 +8,17 @@ import redis from 'redis';
 export class CacheService {
   constructor() {
     this.client = redis.createClient({
-      url: process.env.REDIS_URL || 'redis://localhost:6379',
+      url: process.env.REDIS_URL || 'redis://localhost:6379'
     });
-    
+
     // Default TTLs by endpoint
     this.ttls = {
-      'GET:/vouchers': 300,        // 5 min
-      'GET:/orders': 300,          // 5 min
-      'GET:/stays': 300,           // 5 min
-      'GET:/dashboard': 60,        // 1 min
-      'GET:/reports': 600,         // 10 min
-      'default': 300,
+      'GET:/vouchers': 300, // 5 min
+      'GET:/orders': 300, // 5 min
+      'GET:/stays': 300, // 5 min
+      'GET:/dashboard': 60, // 1 min
+      'GET:/reports': 600, // 10 min
+      default: 300
     };
   }
 
@@ -30,9 +30,8 @@ export class CacheService {
    * Cache key generator
    */
   generateKey(method, path, userId, params = {}) {
-    const paramString = Object.keys(params).length > 0 
-      ? `:${JSON.stringify(params)}` 
-      : '';
+    const paramString =
+      Object.keys(params).length > 0 ? `:${JSON.stringify(params)}` : '';
     return `cache:${method}:${path}:${userId}${paramString}`;
   }
 
@@ -90,10 +89,10 @@ export class CacheService {
   async clear() {
     try {
       await this.client.flushDb();
-      console.log(`🗑️ Cache CLEARED (all)`);
+      console.log('🗑️ Cache CLEARED (all)');
       return true;
     } catch (error) {
-      console.error(`❌ Cache CLEAR error`, error);
+      console.error('❌ Cache CLEAR error', error);
       return false;
     }
   }
@@ -107,10 +106,10 @@ export class CacheService {
       const info = await this.client.info('memory');
       return {
         totalKeys: keys.length,
-        memory: info,
+        memory: info
       };
     } catch (error) {
-      console.error(`❌ Cache STATS error`, error);
+      console.error('❌ Cache STATS error', error);
       return { totalKeys: 0 };
     }
   }
@@ -146,8 +145,13 @@ export const cacheMiddleware = async (req, res, next) => {
     }
 
     const userId = req.user?.id || 'anonymous';
-    const key = cacheService.generateKey(req.method, req.path, userId, req.query);
-    
+    const key = cacheService.generateKey(
+      req.method,
+      req.path,
+      userId,
+      req.query
+    );
+
     // Try to get from cache
     const cached = await cacheService.get(key);
     if (cached) {
@@ -156,11 +160,11 @@ export const cacheMiddleware = async (req, res, next) => {
 
     // Store original res.json to intercept response
     const originalJson = res.json.bind(res);
-    res.json = function(data) {
+    res.json = function (data) {
       // Cache the response
       const ttl = cacheService.getTTL(req.method, req.path);
-      cacheService.set(key, data, ttl).catch(err => console.error(err));
-      
+      cacheService.set(key, data, ttl).catch((err) => console.error(err));
+
       // Send response
       return originalJson(data);
     };
@@ -184,12 +188,16 @@ export const invalidateCacheMiddleware = async (req, res, next) => {
 
     // Store original res.json
     const originalJson = res.json.bind(res);
-    res.json = function(data) {
+    res.json = function (data) {
       // Invalidate related caches
       const resourceType = req.path.split('/')[1]; // /vouchers → vouchers
-      cacheService.invalidate(`cache:GET:/${resourceType}:*`).catch(err => console.error(err));
-      cacheService.invalidate(`cache:GET:/dashboard:*`).catch(err => console.error(err));
-      
+      cacheService
+        .invalidate(`cache:GET:/${resourceType}:*`)
+        .catch((err) => console.error(err));
+      cacheService
+        .invalidate('cache:GET:/dashboard:*')
+        .catch((err) => console.error(err));
+
       return originalJson(data);
     };
 

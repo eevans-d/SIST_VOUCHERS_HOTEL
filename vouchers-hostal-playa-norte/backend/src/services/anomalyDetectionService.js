@@ -2,7 +2,7 @@
  * Anomaly Detection Service
  * Detects statistical anomalies in metrics data
  * Issues: #24 → #25 (Distributed Logging → Anomaly Detection)
- * 
+ *
  * Pattern: Statistical analysis + real-time alerting
  * Features:
  *  - Z-score based anomaly detection
@@ -21,7 +21,7 @@ export default class AnomalyDetectionService {
       windowSize: config.windowSize || 3600, // 1 hour in seconds
       retentionHours: config.retentionHours || 72,
       enableAutoLearning: config.enableAutoLearning !== false,
-      ...config,
+      ...config
     };
 
     // Data storage
@@ -34,7 +34,7 @@ export default class AnomalyDetectionService {
     this.thresholdMultipliers = {
       low: 1.5,
       medium: 2.5,
-      high: 3.0,
+      high: 3.0
     };
   }
 
@@ -49,7 +49,7 @@ export default class AnomalyDetectionService {
       this.metrics.set(metricName, {
         values: [],
         timestamps: [],
-        metadata: metadata,
+        metadata: metadata
       });
     }
 
@@ -66,7 +66,7 @@ export default class AnomalyDetectionService {
 
     // Check for anomalies
     const isAnomaly = this._detectAnomaly(metricName, value);
-    
+
     if (isAnomaly) {
       this._generateAlert(metricName, value, metadata);
     }
@@ -80,7 +80,7 @@ export default class AnomalyDetectionService {
       metricName,
       value,
       isAnomaly,
-      timestamp: now,
+      timestamp: now
     };
   }
 
@@ -128,23 +128,24 @@ export default class AnomalyDetectionService {
    */
   _updateBaseline(metricName) {
     const metric = this.metrics.get(metricName);
-    
+
     if (metric.values.length < this.config.minDataPoints) {
       return;
     }
 
     const values = metric.values;
     const mean = values.reduce((a, b) => a + b, 0) / values.length;
-    const variance = values.reduce((sum, val) => {
-      return sum + Math.pow(val - mean, 2);
-    }, 0) / values.length;
+    const variance =
+      values.reduce((sum, val) => {
+        return sum + Math.pow(val - mean, 2);
+      }, 0) / values.length;
     const stddev = Math.sqrt(variance);
 
     this.baselines.set(metricName, {
       mean,
       stddev,
       count: values.length,
-      lastUpdated: Date.now(),
+      lastUpdated: Date.now()
     });
   }
 
@@ -166,13 +167,13 @@ export default class AnomalyDetectionService {
       severity: this._calculateSeverity(zScore),
       metadata,
       acknowledged: false,
-      actions: [],
+      actions: []
     };
 
     this.alerts.push(alert);
     this.anomalies.push({
       ...alert,
-      type: 'anomaly_detected',
+      type: 'anomaly_detected'
     });
 
     // Keep last 1000 alerts
@@ -201,10 +202,13 @@ export default class AnomalyDetectionService {
    */
   _cleanupOldData(metricName) {
     const metric = this.metrics.get(metricName);
-    const cutoffTime = Date.now() - (this.config.retentionHours * 3600 * 1000);
+    const cutoffTime = Date.now() - this.config.retentionHours * 3600 * 1000;
 
     let index = 0;
-    while (index < metric.timestamps.length && metric.timestamps[index] < cutoffTime) {
+    while (
+      index < metric.timestamps.length &&
+      metric.timestamps[index] < cutoffTime
+    ) {
       index++;
     }
 
@@ -235,7 +239,7 @@ export default class AnomalyDetectionService {
         baselineValue: baseline.mean,
         spikeRatio: (metric.lastValue / baseline.mean).toFixed(2),
         severity: 'high',
-        timestamp: metric.lastTimestamp,
+        timestamp: metric.lastTimestamp
       };
     }
 
@@ -263,7 +267,7 @@ export default class AnomalyDetectionService {
         normalValue: baseline.mean,
         degradationFactor: (metric.lastValue / baseline.mean).toFixed(2),
         severity: 'medium',
-        timestamp: metric.lastTimestamp,
+        timestamp: metric.lastTimestamp
       };
     }
 
@@ -291,7 +295,7 @@ export default class AnomalyDetectionService {
         expectedErrorRate: baseline.mean,
         errorIncrease: errorIncrease.toFixed(2),
         severity: 'high',
-        timestamp: metric.lastTimestamp,
+        timestamp: metric.lastTimestamp
       };
     }
 
@@ -303,7 +307,7 @@ export default class AnomalyDetectionService {
    */
   getAnomalies(metricName, limit = 100) {
     return this.anomalies
-      .filter(a => a.metricName === metricName)
+      .filter((a) => a.metricName === metricName)
       .sort((a, b) => b.timestamp - a.timestamp)
       .slice(0, limit);
   }
@@ -313,7 +317,7 @@ export default class AnomalyDetectionService {
    */
   getAnomaliesBySeverity(severity) {
     return this.anomalies
-      .filter(a => a.severity === severity)
+      .filter((a) => a.severity === severity)
       .sort((a, b) => b.timestamp - a.timestamp);
   }
 
@@ -322,7 +326,7 @@ export default class AnomalyDetectionService {
    */
   getActiveAlerts() {
     return this.alerts
-      .filter(a => !a.acknowledged)
+      .filter((a) => !a.acknowledged)
       .sort((a, b) => {
         const severityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
         return severityOrder[a.severity] - severityOrder[b.severity];
@@ -333,7 +337,7 @@ export default class AnomalyDetectionService {
    * Acknowledge alert
    */
   acknowledgeAlert(alertId, comment = '') {
-    const alert = this.alerts.find(a => a.id === alertId);
+    const alert = this.alerts.find((a) => a.id === alertId);
     if (alert) {
       alert.acknowledged = true;
       alert.acknowledgedAt = Date.now();
@@ -341,7 +345,7 @@ export default class AnomalyDetectionService {
       alert.actions.push({
         type: 'acknowledged',
         timestamp: Date.now(),
-        comment,
+        comment
       });
     }
     return alert;
@@ -357,20 +361,23 @@ export default class AnomalyDetectionService {
     }
 
     const window = windowSize || this.config.windowSize;
-    const cutoffTime = Date.now() - (window * 1000);
-    
+    const cutoffTime = Date.now() - window * 1000;
+
     const recentIndices = metric.timestamps
       .map((t, i) => (t >= cutoffTime ? i : -1))
-      .filter(i => i >= 0);
+      .filter((i) => i >= 0);
 
     if (recentIndices.length < 2) {
       return null;
     }
 
-    const recentValues = recentIndices.map(i => metric.values[i]);
+    const recentValues = recentIndices.map((i) => metric.values[i]);
     const firstValue = recentValues[0];
     const lastValue = recentValues[recentValues.length - 1];
-    const changePercent = ((lastValue - firstValue) / firstValue * 100).toFixed(2);
+    const changePercent = (
+      ((lastValue - firstValue) / firstValue) *
+      100
+    ).toFixed(2);
 
     const trendDirection = lastValue > firstValue ? 'increasing' : 'decreasing';
 
@@ -381,7 +388,7 @@ export default class AnomalyDetectionService {
       changePercent: parseFloat(changePercent),
       trendDirection,
       dataPoints: recentValues.length,
-      timeWindow: window,
+      timeWindow: window
     };
   }
 
@@ -394,7 +401,7 @@ export default class AnomalyDetectionService {
       stddev,
       count: 0,
       manual: true,
-      lastUpdated: Date.now(),
+      lastUpdated: Date.now()
     });
   }
 
@@ -417,7 +424,9 @@ export default class AnomalyDetectionService {
     const values = metric.values;
     const sorted = [...values].sort((a, b) => a - b);
     const mean = values.reduce((a, b) => a + b, 0) / values.length;
-    const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length;
+    const variance =
+      values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) /
+      values.length;
     const stddev = Math.sqrt(variance);
 
     return {
@@ -429,7 +438,7 @@ export default class AnomalyDetectionService {
       median: sorted[Math.floor(sorted.length / 2)].toFixed(2),
       stddev: stddev.toFixed(2),
       p95: sorted[Math.floor(sorted.length * 0.95)].toFixed(2),
-      p99: sorted[Math.floor(sorted.length * 0.99)].toFixed(2),
+      p99: sorted[Math.floor(sorted.length * 0.99)].toFixed(2)
     };
   }
 
@@ -443,7 +452,7 @@ export default class AnomalyDetectionService {
       lastTimestamp: metric.lastTimestamp,
       dataPoints: metric.values.length,
       baseline: this.baselines.get(name) || null,
-      anomalyCount: this.anomalies.filter(a => a.metricName === name).length,
+      anomalyCount: this.anomalies.filter((a) => a.metricName === name).length
     }));
   }
 
@@ -453,7 +462,7 @@ export default class AnomalyDetectionService {
   clearMetric(metricName) {
     this.metrics.delete(metricName);
     this.baselines.delete(metricName);
-    this.anomalies = this.anomalies.filter(a => a.metricName !== metricName);
+    this.anomalies = this.anomalies.filter((a) => a.metricName !== metricName);
   }
 
   /**
@@ -470,10 +479,10 @@ export default class AnomalyDetectionService {
         critical: this.getAnomaliesBySeverity('critical').length,
         high: this.getAnomaliesBySeverity('high').length,
         medium: this.getAnomaliesBySeverity('medium').length,
-        low: this.getAnomaliesBySeverity('low').length,
+        low: this.getAnomaliesBySeverity('low').length
       },
       recentAnomalies: this.anomalies.slice(-10),
-      metrics: this.getActiveMetrics(),
+      metrics: this.getActiveMetrics()
     };
 
     if (format === 'json') {
@@ -490,17 +499,24 @@ export default class AnomalyDetectionService {
    * @private
    */
   _convertToCsv(report) {
-    const headers = ['Metric', 'Value', 'Baseline', 'Z-Score', 'Severity', 'Timestamp'];
-    const rows = this.anomalies.map(a => [
+    const headers = [
+      'Metric',
+      'Value',
+      'Baseline',
+      'Z-Score',
+      'Severity',
+      'Timestamp'
+    ];
+    const rows = this.anomalies.map((a) => [
       a.metricName,
       a.value,
       this.baselines.get(a.metricName)?.mean.toFixed(2) || 'N/A',
       a.zScore,
       a.severity,
-      new Date(a.timestamp).toISOString(),
+      new Date(a.timestamp).toISOString()
     ]);
 
-    const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const csv = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
     return csv;
   }
 
@@ -517,9 +533,9 @@ export default class AnomalyDetectionService {
       config: {
         sensitivityLevel: this.config.sensitivityLevel,
         zScoreThreshold: this.config.zScoreThreshold,
-        minDataPoints: this.config.minDataPoints,
+        minDataPoints: this.config.minDataPoints
       },
-      timestamp: Date.now(),
+      timestamp: Date.now()
     };
   }
 

@@ -7,7 +7,7 @@ import redis from 'redis';
 export class TokenBlacklist {
   constructor() {
     this.client = redis.createClient({
-      url: process.env.REDIS_URL || 'redis://localhost:6379',
+      url: process.env.REDIS_URL || 'redis://localhost:6379'
     });
     this.ttl = 7 * 24 * 60 * 60; // 7 days
   }
@@ -108,13 +108,13 @@ export const tokenBlacklist = new TokenBlacklist();
 export const checkTokenBlacklist = async (req, res, next) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
-    
+
     if (!token) {
       return next();
     }
 
     const isBlacklisted = await tokenBlacklist.isBlacklisted(token);
-    
+
     if (isBlacklisted) {
       return res.status(401).json({ message: 'Token has been revoked' });
     }

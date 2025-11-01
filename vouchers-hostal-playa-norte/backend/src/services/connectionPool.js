@@ -16,7 +16,7 @@ export class ConnectionPool {
       maxConnections: config.maxConnections || 10,
       idleTimeout: config.idleTimeout || 30000, // 30 seconds
       acquireTimeout: config.acquireTimeout || 5000, // 5 seconds
-      ...config,
+      ...config
     };
 
     this.connections = [];
@@ -28,7 +28,7 @@ export class ConnectionPool {
       acquired: 0,
       released: 0,
       reused: 0,
-      errors: 0,
+      errors: 0
     };
   }
 
@@ -52,7 +52,7 @@ export class ConnectionPool {
           createdAt: Date.now(),
           lastUsed: Date.now(),
           idleTimer: null,
-          acquiredCount: 0,
+          acquiredCount: 0
         };
 
         this.connections.push(connObj);
@@ -60,12 +60,16 @@ export class ConnectionPool {
         this.stats.created++;
       }
 
-      console.log(`✅ Connection pool initialized: ${this.config.maxConnections} connections`);
+      console.log(
+        `✅ Connection pool initialized: ${this.config.maxConnections} connections`
+      );
       return true;
     } catch (error) {
       console.error('❌ Connection pool initialization failed:', error);
       this.stats.errors++;
-      try { recordDbError('pool_initialize', error.code || error.name || 'unknown'); } catch (_) {}
+      try {
+        recordDbError('pool_initialize', error.code || error.name || 'unknown');
+      } catch (_) {}
       throw error;
     }
   }
@@ -91,7 +95,9 @@ export class ConnectionPool {
         this.stats.acquired++;
         this.stats.reused++;
 
-        console.log(`✅ Connection acquired (${this.available.length} available)`);
+        console.log(
+          `✅ Connection acquired (${this.available.length} available)`
+        );
         return conn;
       }
 
@@ -107,14 +113,16 @@ export class ConnectionPool {
           createdAt: Date.now(),
           lastUsed: Date.now(),
           idleTimer: null,
-          acquiredCount: 1,
+          acquiredCount: 1
         };
 
         this.connections.push(connObj);
         this.stats.created++;
         this.stats.acquired++;
 
-        console.log(`✅ New connection created (total: ${this.connections.length})`);
+        console.log(
+          `✅ New connection created (total: ${this.connections.length})`
+        );
         return connObj;
       }
 
@@ -125,12 +133,16 @@ export class ConnectionPool {
         }, this.config.acquireTimeout);
 
         this.waiting.push({ resolve, reject, timeout });
-        console.log(`⏳ Waiting for connection (${this.waiting.length} waiting)`);
+        console.log(
+          `⏳ Waiting for connection (${this.waiting.length} waiting)`
+        );
       });
     } catch (error) {
       console.error('❌ Connection acquire error:', error);
       this.stats.errors++;
-      try { recordDbError('pool_acquire', error.code || error.name || 'unknown'); } catch (_) {}
+      try {
+        recordDbError('pool_acquire', error.code || error.name || 'unknown');
+      } catch (_) {}
       throw error;
     }
   }
@@ -157,7 +169,7 @@ export class ConnectionPool {
 
         resolve(connObj);
         this.stats.released++;
-        console.log(`✅ Connection released to waiting request`);
+        console.log('✅ Connection released to waiting request');
         return true;
       }
 
@@ -174,7 +186,9 @@ export class ConnectionPool {
       this.available.push(connObj);
       this.stats.released++;
 
-      console.log(`✅ Connection released (${this.available.length} available)`);
+      console.log(
+        `✅ Connection released (${this.available.length} available)`
+      );
       return true;
     } catch (error) {
       console.error('❌ Connection release error:', error);
@@ -205,11 +219,15 @@ export class ConnectionPool {
         this.available.splice(availIndex, 1);
       }
 
-      console.log(`🗑️ Connection closed (${this.connections.length} remaining)`);
+      console.log(
+        `🗑️ Connection closed (${this.connections.length} remaining)`
+      );
       return true;
     } catch (error) {
       console.error('❌ Connection close error:', error);
-      try { recordDbError('pool_close', error.code || error.name || 'unknown'); } catch (_) {}
+      try {
+        recordDbError('pool_close', error.code || error.name || 'unknown');
+      } catch (_) {}
       return false;
     }
   }
@@ -224,7 +242,9 @@ export class ConnectionPool {
       const result = stmt.run(...params);
       return result;
     } catch (error) {
-      try { recordDbError('execute', error.code || error.name || 'unknown'); } catch (_) {}
+      try {
+        recordDbError('execute', error.code || error.name || 'unknown');
+      } catch (_) {}
       throw error;
     } finally {
       this.releaseConnection(connObj);
@@ -241,7 +261,9 @@ export class ConnectionPool {
       const results = stmt.all(...params);
       return results;
     } catch (error) {
-      try { recordDbError('query', error.code || error.name || 'unknown'); } catch (_) {}
+      try {
+        recordDbError('query', error.code || error.name || 'unknown');
+      } catch (_) {}
       throw error;
     } finally {
       this.releaseConnection(connObj);
@@ -258,7 +280,9 @@ export class ConnectionPool {
       const result = stmt.get(...params);
       return result;
     } catch (error) {
-      try { recordDbError('query_one', error.code || error.name || 'unknown'); } catch (_) {}
+      try {
+        recordDbError('query_one', error.code || error.name || 'unknown');
+      } catch (_) {}
       throw error;
     } finally {
       this.releaseConnection(connObj);
@@ -297,7 +321,12 @@ export class ConnectionPool {
       const currentStmt = connObj.db.prepare(sql);
       return currentStmt.run(...params);
     } catch (error) {
-      try { recordDbError('execute_statement', error.code || error.name || 'unknown'); } catch (_) {}
+      try {
+        recordDbError(
+          'execute_statement',
+          error.code || error.name || 'unknown'
+        );
+      } catch (_) {}
       throw error;
     } finally {
       this.releaseConnection(connObj);
@@ -322,11 +351,13 @@ export class ConnectionPool {
       connObj.db.exec('COMMIT');
       connObj.inTransaction = false;
       this.releaseConnection(connObj);
-      console.log(`✅ Transaction committed`);
+      console.log('✅ Transaction committed');
       return true;
     } catch (error) {
       console.error('❌ Transaction commit error:', error);
-      try { recordDbError('commit', error.code || error.name || 'unknown'); } catch (_) {}
+      try {
+        recordDbError('commit', error.code || error.name || 'unknown');
+      } catch (_) {}
       return false;
     }
   }
@@ -339,11 +370,13 @@ export class ConnectionPool {
       connObj.db.exec('ROLLBACK');
       connObj.inTransaction = false;
       this.releaseConnection(connObj);
-      console.log(`↩️ Transaction rolled back`);
+      console.log('↩️ Transaction rolled back');
       return true;
     } catch (error) {
       console.error('❌ Transaction rollback error:', error);
-      try { recordDbError('rollback', error.code || error.name || 'unknown'); } catch (_) {}
+      try {
+        recordDbError('rollback', error.code || error.name || 'unknown');
+      } catch (_) {}
       return false;
     }
   }
@@ -353,11 +386,12 @@ export class ConnectionPool {
    */
   async drain() {
     try {
-      const promises = this.connections.map(conn =>
-        new Promise(resolve => {
-          this.closeConnection(conn);
-          resolve();
-        })
+      const promises = this.connections.map(
+        (conn) =>
+          new Promise((resolve) => {
+            this.closeConnection(conn);
+            resolve();
+          })
       );
 
       await Promise.all(promises);
@@ -368,12 +402,14 @@ export class ConnectionPool {
       this.connections = [];
       this.available = [];
 
-      console.log(`🗑️ Connection pool drained`);
+      console.log('🗑️ Connection pool drained');
       return true;
     } catch (error) {
       console.error('❌ Pool drain error:', error);
       this.stats.errors++;
-      try { recordDbError('pool_drain', error.code || error.name || 'unknown'); } catch (_) {}
+      try {
+        recordDbError('pool_drain', error.code || error.name || 'unknown');
+      } catch (_) {}
       return false;
     }
   }
@@ -389,7 +425,7 @@ export class ConnectionPool {
       usedConnections: this.connections.length - this.available.length,
       waitingRequests: this.waiting.length,
       preparedStatements: this.prepared.size,
-      uptime: Date.now() - (this.startTime || Date.now()),
+      uptime: Date.now() - (this.startTime || Date.now())
     };
   }
 
@@ -417,12 +453,14 @@ export class ConnectionPool {
       }
 
       conn.db.exec('VACUUM');
-      console.log(`🧹 Database vacuumed`);
+      console.log('🧹 Database vacuumed');
       return true;
     } catch (error) {
       console.error('❌ Vacuum error:', error);
       this.stats.errors++;
-      try { recordDbError('vacuum', error.code || error.name || 'unknown'); } catch (_) {}
+      try {
+        recordDbError('vacuum', error.code || error.name || 'unknown');
+      } catch (_) {}
       return false;
     }
   }
@@ -456,7 +494,9 @@ export const initializePool = async (config) => {
 
 export const getPool = () => {
   if (!poolInstance) {
-    throw new Error('Connection pool not initialized. Call initializePool first.');
+    throw new Error(
+      'Connection pool not initialized. Call initializePool first.'
+    );
   }
   return poolInstance;
 };

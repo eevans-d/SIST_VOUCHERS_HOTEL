@@ -11,7 +11,7 @@ const rateLimitHandler = (req, res) => {
     path: req.path,
     user_id: req.user?.id
   });
-  
+
   res.status(429).json({
     error: 'RATE_LIMIT_EXCEEDED',
     message: 'Demasiadas solicitudes. Intente nuevamente en unos momentos.',

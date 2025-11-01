@@ -18,7 +18,10 @@ const emitVouchersSchema = z.object({
 // Schema para validación
 const validateVoucherSchema = z.object({
   code: z.string().regex(/^[A-Z]+-\d{4}-\d{4}$/),
-  hmac: z.string().regex(/^[a-f0-9]{64}$/).optional()
+  hmac: z
+    .string()
+    .regex(/^[a-f0-9]{64}$/)
+    .optional()
 });
 
 // Schema para canje
@@ -33,20 +36,21 @@ const redeemVoucherSchema = z.object({
  * POST /api/vouchers
  * Emitir nuevos vouchers
  */
-router.post('/', 
-  authMiddleware, 
+router.post(
+  '/',
+  authMiddleware,
   requireRole('admin', 'reception'),
   async (req, res, next) => {
     try {
       // Validar input
       const data = emitVouchersSchema.parse(req.body);
-      
+
       const result = await VoucherService.emitVouchers({
         ...data,
         correlation_id: req.correlationId,
         user_id: req.user.id
       });
-      
+
       res.status(201).json(result);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -61,68 +65,63 @@ router.post('/',
  * GET /api/vouchers/:code
  * Obtener información de un voucher
  */
-router.get('/:code', 
-  authMiddleware,
-  async (req, res, next) => {
-    try {
-      const voucher = await VoucherService.getVoucher(
-        req.params.code,
-        req.correlationId
-      );
-      
-      res.json({
-        success: true,
-        voucher
-      });
-    } catch (error) {
-      next(error);
-    }
+router.get('/:code', authMiddleware, async (req, res, next) => {
+  try {
+    const voucher = await VoucherService.getVoucher(
+      req.params.code,
+      req.correlationId
+    );
+
+    res.json({
+      success: true,
+      voucher
+    });
+  } catch (error) {
+    next(error);
   }
-);
+});
 
 /**
  * POST /api/vouchers/validate
  * Validar voucher sin canjearlo
  */
-router.post('/validate',
-  validateLimiter,
-  async (req, res, next) => {
-    try {
-      const data = validateVoucherSchema.parse(req.body);
-      
-      const result = await VoucherService.validateVoucher({
-        ...data,
-        correlation_id: req.correlationId
-      });
-      
-      res.json(result);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return next(new ValidationError('Datos inválidos', error.errors));
-      }
-      next(error);
+router.post('/validate', validateLimiter, async (req, res, next) => {
+  try {
+    const data = validateVoucherSchema.parse(req.body);
+
+    const result = await VoucherService.validateVoucher({
+      ...data,
+      correlation_id: req.correlationId
+    });
+
+    res.json(result);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return next(new ValidationError('Datos inválidos', error.errors));
     }
+    next(error);
   }
-);
+});
 
 /**
  * POST /api/vouchers/redeem
  * Canjear voucher (transacción atómica)
  */
-router.post('/redeem',
+router.post(
+  '/redeem',
   authMiddleware,
   requireRole('cafeteria'),
   redeemLimiter,
   async (req, res, next) => {
     try {
       const data = redeemVoucherSchema.parse(req.body);
-      
+
       const result = await VoucherService.redeemVoucher({
         ...data,
         correlation_id: req.correlationId,
         user_id: req.user.id
       });
-      
+
       res.json(result);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -137,20 +136,21 @@ router.post('/redeem',
  * POST /api/vouchers/:code/cancel
  * Cancelar voucher manualmente
  */
-router.post('/:code/cancel',
+router.post(
+  '/:code/cancel',
   authMiddleware,
   requireRole('admin'),
   async (req, res, next) => {
     try {
       const { reason } = req.body;
-      
+
       const result = await VoucherService.cancelVoucher({
         code: req.params.code,
         reason: reason || 'Cancelación manual',
         correlation_id: req.correlationId,
         user_id: req.user.id
       });
-      
+
       res.json(result);
     } catch (error) {
       next(error);

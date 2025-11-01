@@ -13,7 +13,7 @@ export class OrderRepository {
    * Buscar orden por ID
    */
   findById(orderId) {
-    const query = `SELECT * FROM orders WHERE id = ?`;
+    const query = 'SELECT * FROM orders WHERE id = ?';
     const orderData = this.db.prepare(query).get(orderId);
     if (!orderData) return null;
 
@@ -35,8 +35,8 @@ export class OrderRepository {
       LIMIT ? OFFSET ?
     `;
     const orders = this.db.prepare(query).all(stayId, limit, offset);
-    
-    return orders.map(data => {
+
+    return orders.map((data) => {
       const items = this.getOrderItems(data.id);
       data.items = items;
       return Order.fromDatabase(data);
@@ -55,7 +55,7 @@ export class OrderRepository {
     `;
     const orders = this.db.prepare(query).all(status, limit, offset);
 
-    return orders.map(data => {
+    return orders.map((data) => {
       const items = this.getOrderItems(data.id);
       data.items = items;
       return Order.fromDatabase(data);
@@ -72,9 +72,11 @@ export class OrderRepository {
       ORDER BY createdAt DESC 
       LIMIT ? OFFSET ?
     `;
-    const orders = this.db.prepare(query).all(startDate, endDate, limit, offset);
+    const orders = this.db
+      .prepare(query)
+      .all(startDate, endDate, limit, offset);
 
-    return orders.map(data => {
+    return orders.map((data) => {
       const items = this.getOrderItems(data.id);
       data.items = items;
       return Order.fromDatabase(data);
@@ -85,7 +87,7 @@ export class OrderRepository {
    * Obtener items de una orden
    */
   getOrderItems(orderId) {
-    const query = `SELECT * FROM order_items WHERE orderId = ?`;
+    const query = 'SELECT * FROM order_items WHERE orderId = ?';
     return this.db.prepare(query).all(orderId);
   }
 
@@ -93,9 +95,9 @@ export class OrderRepository {
    * Obtener vouchers usados en una orden
    */
   getOrderVouchers(orderId) {
-    const query = `SELECT voucherId FROM order_vouchers WHERE orderId = ?`;
+    const query = 'SELECT voucherId FROM order_vouchers WHERE orderId = ?';
     const rows = this.db.prepare(query).all(orderId);
-    return rows.map(r => r.voucherId);
+    return rows.map((r) => r.voucherId);
   }
 
   /**
@@ -118,17 +120,19 @@ export class OrderRepository {
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
 
-      this.db.prepare(query).run(
-        data.id,
-        data.stayId,
-        data.status,
-        data.total,
-        data.discountAmount,
-        data.finalTotal,
-        data.notes,
-        data.createdAt,
-        data.updatedAt
-      );
+      this.db
+        .prepare(query)
+        .run(
+          data.id,
+          data.stayId,
+          data.status,
+          data.total,
+          data.discountAmount,
+          data.finalTotal,
+          data.notes,
+          data.createdAt,
+          data.updatedAt
+        );
 
       // Insertar items
       for (const item of data.items) {
@@ -138,15 +142,17 @@ export class OrderRepository {
             quantity, unitPrice, subtotal
           ) VALUES (?, ?, ?, ?, ?, ?, ?)
         `;
-        this.db.prepare(itemQuery).run(
-          item.id,
-          data.id,
-          item.productCode,
-          item.productName,
-          item.quantity,
-          item.unitPrice,
-          item.subtotal
-        );
+        this.db
+          .prepare(itemQuery)
+          .run(
+            item.id,
+            data.id,
+            item.productCode,
+            item.productName,
+            item.quantity,
+            item.unitPrice,
+            item.subtotal
+          );
       }
 
       // Insertar vouchers
@@ -178,19 +184,21 @@ export class OrderRepository {
         WHERE id = ?
       `;
 
-      this.db.prepare(query).run(
-        data.stayId,
-        data.status,
-        data.total,
-        data.discountAmount,
-        data.finalTotal,
-        data.notes,
-        data.updatedAt,
-        data.id
-      );
+      this.db
+        .prepare(query)
+        .run(
+          data.stayId,
+          data.status,
+          data.total,
+          data.discountAmount,
+          data.finalTotal,
+          data.notes,
+          data.updatedAt,
+          data.id
+        );
 
       // Limpiar y reinsertar items
-      this.db.prepare(`DELETE FROM order_items WHERE orderId = ?`).run(data.id);
+      this.db.prepare('DELETE FROM order_items WHERE orderId = ?').run(data.id);
       for (const item of data.items) {
         const itemQuery = `
           INSERT INTO order_items (
@@ -198,19 +206,23 @@ export class OrderRepository {
             quantity, unitPrice, subtotal
           ) VALUES (?, ?, ?, ?, ?, ?, ?)
         `;
-        this.db.prepare(itemQuery).run(
-          item.id,
-          data.id,
-          item.productCode,
-          item.productName,
-          item.quantity,
-          item.unitPrice,
-          item.subtotal
-        );
+        this.db
+          .prepare(itemQuery)
+          .run(
+            item.id,
+            data.id,
+            item.productCode,
+            item.productName,
+            item.quantity,
+            item.unitPrice,
+            item.subtotal
+          );
       }
 
       // Limpiar y reinsertar vouchers
-      this.db.prepare(`DELETE FROM order_vouchers WHERE orderId = ?`).run(data.id);
+      this.db
+        .prepare('DELETE FROM order_vouchers WHERE orderId = ?')
+        .run(data.id);
       for (const voucherId of data.vouchersUsed) {
         const voucherQuery = `
           INSERT INTO order_vouchers (orderId, voucherId)
@@ -283,9 +295,11 @@ export class OrderRepository {
    */
   delete(orderId) {
     return this.db.transaction(() => {
-      this.db.prepare(`DELETE FROM order_items WHERE orderId = ?`).run(orderId);
-      this.db.prepare(`DELETE FROM order_vouchers WHERE orderId = ?`).run(orderId);
-      this.db.prepare(`DELETE FROM orders WHERE id = ?`).run(orderId);
+      this.db.prepare('DELETE FROM order_items WHERE orderId = ?').run(orderId);
+      this.db
+        .prepare('DELETE FROM order_vouchers WHERE orderId = ?')
+        .run(orderId);
+      this.db.prepare('DELETE FROM orders WHERE id = ?').run(orderId);
     })();
   }
 }

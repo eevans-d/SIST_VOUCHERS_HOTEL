@@ -33,13 +33,19 @@ export function enforceHttps(req, res, next) {
   }
 
   // Permitir endpoints de salud/metrics sin redirección
-  if (req.path === '/health' || req.path === '/metrics' || req.path === '/live' || req.path === '/ready') {
+  if (
+    req.path === '/health' ||
+    req.path === '/metrics' ||
+    req.path === '/live' ||
+    req.path === '/ready'
+  ) {
     return next();
   }
 
   // Verificar protocolo
   // Header x-forwarded-proto lo envía el reverse proxy (nginx, AWS LB, etc)
-  const isSecure = req.header('x-forwarded-proto') === 'https' || req.protocol === 'https';
+  const isSecure =
+    req.header('x-forwarded-proto') === 'https' || req.protocol === 'https';
 
   if (!isSecure) {
     // Redirigir a HTTPS
@@ -62,15 +68,15 @@ export const helmetConfig = () => {
     // Previene XSS, clickjacking, etc.
     contentSecurityPolicy: {
       directives: {
-        defaultSrc: ["'self'"],
-        styleSrc: ["'self'", "'unsafe-inline'"], // Para Tailwind CSS
-        scriptSrc: ["'self'", "'unsafe-inline'"], // Para bundlers
-        imgSrc: ["'self'", "data:", "https:"],
-        fontSrc: ["'self'"],
-        connectSrc: ["'self'", "https://api.example.com"],
-        frameSrc: ["'none'"], // Previene clickjacking
-        objectSrc: ["'none'"], // Flash/plugins
-      },
+        defaultSrc: ['\'self\''],
+        styleSrc: ['\'self\'', '\'unsafe-inline\''], // Para Tailwind CSS
+        scriptSrc: ['\'self\'', '\'unsafe-inline\''], // Para bundlers
+        imgSrc: ['\'self\'', 'data:', 'https:'],
+        fontSrc: ['\'self\''],
+        connectSrc: ['\'self\'', 'https://api.example.com'],
+        frameSrc: ['\'none\''], // Previene clickjacking
+        objectSrc: ['\'none\''] // Flash/plugins
+      }
     },
 
     // Strict Transport Security (HSTS)
@@ -78,13 +84,13 @@ export const helmetConfig = () => {
     strictTransportSecurity: {
       maxAge: 31536000, // 1 año en segundos
       includeSubDomains: true,
-      preload: true, // Agregar a HSTS preload list
+      preload: true // Agregar a HSTS preload list
     },
 
     // X-Frame-Options
     // Previene clickjacking
     frameguard: {
-      action: 'deny', // No permitir en iframe
+      action: 'deny' // No permitir en iframe
     },
 
     // X-Content-Type-Options
@@ -97,14 +103,14 @@ export const helmetConfig = () => {
 
     // Referrer-Policy
     referrerPolicy: {
-      policy: 'strict-origin-when-cross-origin',
+      policy: 'strict-origin-when-cross-origin'
     },
 
     // Permissions-Policy (heredó de Feature-Policy)
     // Controla acceso a features del navegador
     permittedCrossDomainPolicies: {
-      permittedPolicies: 'none',
-    },
+      permittedPolicies: 'none'
+    }
   });
 };
 
@@ -118,11 +124,13 @@ export function hstsPreloadResponder(req, res, next) {
   // https://tools.ietf.org/html/rfc8615
   if (req.path === '/.well-known/security.txt') {
     res.type('text/plain');
-    res.send(`
+    res.send(
+      `
 Contact: security@api.example.com
 Expires: 2026-10-22T00:00:00Z
 Preferred-Languages: es,en
-    `.trim());
+    `.trim()
+    );
     return;
   }
   next();
@@ -173,7 +181,7 @@ export function getSecurityInfo() {
     hsts_max_age: '31536000s (1 year)',
     csp_enabled: true,
     helmet_enabled: true,
-    secure_cookies: true,
+    secure_cookies: true
   };
 }
 
@@ -185,7 +193,7 @@ export const productionMiddlewares = {
   helmetConfig,
   hstsPreloadResponder,
   secureHeaders,
-  certificatePinning,
+  certificatePinning
 };
 
 export default productionMiddlewares;

@@ -9,7 +9,7 @@ export function createOrdersRoutes({
   createOrder,
   completeOrder,
   orderRepository,
-  logger,
+  logger
 }) {
   const router = express.Router();
 
@@ -32,7 +32,7 @@ export function createOrdersRoutes({
 
         const result = await createOrder.execute({
           stayId,
-          items: items || [],
+          items: items || []
         });
 
         res.status(201).json(result);
@@ -66,7 +66,7 @@ export function createOrdersRoutes({
 
         res.json({
           data: orders,
-          pagination: { limit: parseInt(limit), offset: parseInt(offset) },
+          pagination: { limit: parseInt(limit), offset: parseInt(offset) }
         });
       } catch (error) {
         next(error);
@@ -127,7 +127,7 @@ export function createOrdersRoutes({
 
         res.json({
           message: 'Item agregado',
-          order: order.getSummary(),
+          order: order.getSummary()
         });
       } catch (error) {
         next(error);
@@ -158,7 +158,7 @@ export function createOrdersRoutes({
 
         res.json({
           message: 'Item removido',
-          order: order.getSummary(),
+          order: order.getSummary()
         });
       } catch (error) {
         next(error);
@@ -182,7 +182,7 @@ export function createOrdersRoutes({
 
         const result = await completeOrder.execute({
           orderId: id,
-          voucherCodes: voucherCodes || [],
+          voucherCodes: voucherCodes || []
         });
 
         res.json(result);
@@ -208,7 +208,7 @@ export function createOrdersRoutes({
 
         const result = await completeOrder.cancel({
           orderId: id,
-          reason: reason || '',
+          reason: reason || ''
         });
 
         res.json(result);
@@ -234,7 +234,7 @@ export function createOrdersRoutes({
 
         res.json({
           overall_stats: stats,
-          top_products: topProducts,
+          top_products: topProducts
         });
       } catch (error) {
         next(error);

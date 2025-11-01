@@ -12,7 +12,7 @@ import { z } from 'zod';
  */
 const LoginUserDTO = z.object({
   email: z.string().email('Email inválido'),
-  password: z.string().min(8, 'Contraseña inválida'),
+  password: z.string().min(8, 'Contraseña inválida')
 });
 
 /**
@@ -48,7 +48,9 @@ export class LoginUser {
       const user = this.userRepository.findByEmail(validated.email);
 
       if (!user) {
-        this.logger.warn(`Login fallido: email no encontrado: ${validated.email}`);
+        this.logger.warn(
+          `Login fallido: email no encontrado: ${validated.email}`
+        );
         throw new Error('Email o contraseña incorrectos');
       }
 
@@ -65,22 +67,27 @@ export class LoginUser {
       );
 
       if (!passwordValid) {
-        this.logger.warn(`Login fallido: password incorrecta para: ${user.email}`);
+        this.logger.warn(
+          `Login fallido: password incorrecta para: ${user.email}`
+        );
         throw new Error('Email o contraseña incorrectos');
       }
 
       // 4. Generar tokens
-      const { accessToken, refreshToken } = this.jwtService.generateTokenPair(user);
+      const { accessToken, refreshToken } =
+        this.jwtService.generateTokenPair(user);
 
       // 5. Log exitoso
-      this.logger.info(`Login exitoso para usuario: ${user.email} (${user.id})`);
+      this.logger.info(
+        `Login exitoso para usuario: ${user.email} (${user.id})`
+      );
 
       // 6. Retornar resultado (sin password)
       return {
         user: user.toJSON(),
         accessToken,
         refreshToken,
-        expiresIn: this.getTokenExpiration(),
+        expiresIn: this.getTokenExpiration()
       };
     } catch (error) {
       if (error instanceof z.ZodError) {

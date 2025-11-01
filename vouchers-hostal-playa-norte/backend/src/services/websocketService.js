@@ -12,21 +12,23 @@ export class WebSocketService {
     this.httpServer = httpServer;
     this.config = {
       cors: {
-        origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'],
-        credentials: true,
+        origin: process.env.ALLOWED_ORIGINS?.split(',') || [
+          'http://localhost:3000'
+        ],
+        credentials: true
       },
-      ...config,
+      ...config
     };
 
     this.io = new Server(httpServer, this.config);
     this.clients = new Map(); // userId → Set of socket ids
-    this.rooms = new Map();   // roomId → Set of user ids
+    this.rooms = new Map(); // roomId → Set of user ids
     this.stats = {
       connections: 0,
       disconnections: 0,
       messagesPublished: 0,
       messagesReceived: 0,
-      errors: 0,
+      errors: 0
     };
   }
 
@@ -37,9 +39,9 @@ export class WebSocketService {
     try {
       // Create Redis pub/sub clients for Socket.io adapter
       const pubClient = redis.createClient({
-        url: process.env.REDIS_URL || 'redis://localhost:6379',
+        url: process.env.REDIS_URL || 'redis://localhost:6379'
       });
-      
+
       const subClient = pubClient.duplicate();
 
       await Promise.all([pubClient.connect(), subClient.connect()]);
@@ -117,10 +119,10 @@ export class WebSocketService {
     if (!this.clients.has(userId)) {
       this.clients.set(userId, new Set());
     }
-    
+
     this.clients.get(userId).add(socketId);
     console.log(`👤 User registered: ${userId} (socket: ${socketId})`);
-    
+
     // Notify user is online
     this.io.to(socketId).emit('user:authenticated', { userId, socketId });
   }
@@ -132,7 +134,7 @@ export class WebSocketService {
     for (const [userId, socketIds] of this.clients) {
       if (socketIds.has(socketId)) {
         socketIds.delete(socketId);
-        
+
         if (socketIds.size === 0) {
           this.clients.delete(userId);
           console.log(`👤 User unregistered: ${userId}`);
@@ -147,21 +149,21 @@ export class WebSocketService {
    */
   joinRoom(socket, roomId) {
     const userId = this.getUserIdFromSocket(socket.id);
-    
+
     if (!this.rooms.has(roomId)) {
       this.rooms.set(roomId, new Set());
     }
-    
+
     this.rooms.get(roomId).add(userId);
     socket.join(`room:${roomId}`);
-    
+
     console.log(`🚪 User joined room: ${userId} → ${roomId}`);
-    
+
     // Notify others
     socket.broadcast.to(`room:${roomId}`).emit('user:joined', {
       userId,
       roomId,
-      timestamp: new Date(),
+      timestamp: new Date()
     });
   }
 
@@ -170,24 +172,24 @@ export class WebSocketService {
    */
   leaveRoom(socket, roomId) {
     const userId = this.getUserIdFromSocket(socket.id);
-    
+
     if (this.rooms.has(roomId)) {
       this.rooms.get(roomId).delete(userId);
-      
+
       if (this.rooms.get(roomId).size === 0) {
         this.rooms.delete(roomId);
       }
     }
-    
+
     socket.leave(`room:${roomId}`);
-    
+
     console.log(`🚪 User left room: ${userId} ← ${roomId}`);
-    
+
     // Notify others
     socket.broadcast.to(`room:${roomId}`).emit('user:left', {
       userId,
       roomId,
-      timestamp: new Date(),
+      timestamp: new Date()
     });
   }
 
@@ -196,7 +198,7 @@ export class WebSocketService {
    */
   publishNotification(data) {
     const { userId, type, title, message, payload } = data;
-    
+
     if (!this.clients.has(userId)) {
       console.warn(`⚠️ User not connected: ${userId}`);
       return false;
@@ -207,7 +209,7 @@ export class WebSocketService {
       title,
       message,
       payload,
-      timestamp: new Date(),
+      timestamp: new Date()
     });
 
     this.stats.messagesPublished++;
@@ -220,13 +222,13 @@ export class WebSocketService {
    */
   publishUpdate(data) {
     const { roomId, type, payload, excludeUser } = data;
-    
+
     const targetRoom = `room:${roomId}`;
     const emission = this.io.to(targetRoom).emit('data:update', {
       type,
       payload,
       timestamp: new Date(),
-      roomId,
+      roomId
     });
 
     this.stats.messagesPublished++;
@@ -240,7 +242,7 @@ export class WebSocketService {
   broadcast(event, data) {
     this.io.emit(event, {
       ...data,
-      timestamp: new Date(),
+      timestamp: new Date()
     });
 
     this.stats.messagesPublished++;
@@ -259,7 +261,7 @@ export class WebSocketService {
 
     this.io.to(`user:${userId}`).emit(event, {
       ...data,
-      timestamp: new Date(),
+      timestamp: new Date()
     });
 
     this.stats.messagesPublished++;
@@ -315,7 +317,7 @@ export class WebSocketService {
     if (socketIds) {
       for (const socketId of socketIds) {
         this.io.to(socketId).emit('force:disconnect', {
-          reason: 'Disconnected by admin',
+          reason: 'Disconnected by admin'
         });
       }
     }
@@ -329,7 +331,7 @@ export class WebSocketService {
       ...this.stats,
       connectedUsers: this.clients.size,
       totalSockets: this.io.engine.clientsCount,
-      rooms: this.rooms.size,
+      rooms: this.rooms.size
     };
   }
 
@@ -341,7 +343,7 @@ export class WebSocketService {
       healthy: true,
       connectedUsers: this.clients.size,
       totalSockets: this.io.engine.clientsCount,
-      timestamp: new Date(),
+      timestamp: new Date()
     };
   }
 }
@@ -352,14 +354,14 @@ export class WebSocketService {
 export const socketAuthMiddleware = (socket, next) => {
   try {
     const token = socket.handshake.auth.token;
-    
+
     if (!token) {
       return next(new Error('No authentication token provided'));
     }
 
     // Verify JWT token (similar to HTTP auth)
     // In production, use same JWT verification as HTTP
-    
+
     socket.userId = null; // Will be set on 'authenticate' event
     next();
   } catch (error) {
@@ -382,7 +384,7 @@ export const emitToRoom = (wsService, roomId, event, data) => {
   return wsService.publishUpdate({
     roomId,
     type: event,
-    payload: data,
+    payload: data
   });
 };
 

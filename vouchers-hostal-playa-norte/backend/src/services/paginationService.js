@@ -1,6 +1,6 @@
 /**
  * paginationService.js
- * 
+ *
  * Servicio de paginación y filtrado cursor-based
  * - Cursor-based pagination (mejor que offset para datos grandes)
  * - Advanced filtering (date ranges, search, status, price)
@@ -8,7 +8,7 @@
  * - Límite/offset fallback
  * - Optimizaciones para 10k+ records
  * - Stats y health check
- * 
+ *
  * Performance:
  * - <5ms por consulta (con índices correctos)
  * - Memoria O(limit) en lugar de O(offset)
@@ -29,7 +29,7 @@ class PaginationService {
       cursorQueriesExecuted: 0,
       offsetQueriesExecuted: 0,
       averageQueryTime: 0,
-      averageRecordsPerQuery: 0,
+      averageRecordsPerQuery: 0
     };
   }
 
@@ -44,7 +44,7 @@ class PaginationService {
     const cursor = queryParams.cursor || null;
     const sortBy = queryParams.sortBy || 'id';
     const sortOrder = (queryParams.sortOrder || 'asc').toLowerCase();
-    
+
     // Validar sortOrder
     if (!['asc', 'desc'].includes(sortOrder)) {
       throw new Error('sortOrder must be "asc" or "desc"');
@@ -56,7 +56,7 @@ class PaginationService {
       cursor,
       sortBy,
       sortOrder,
-      filters: this.parseFilters(queryParams),
+      filters: this.parseFilters(queryParams)
     };
   }
 
@@ -67,15 +67,15 @@ class PaginationService {
    */
   normalizeLimit(limit) {
     let parsed = parseInt(limit, 10) || this.defaultLimit;
-    
+
     if (parsed < this.minLimit) {
       parsed = this.minLimit;
     }
-    
+
     if (parsed > this.maxLimit) {
       parsed = this.maxLimit;
     }
-    
+
     return parsed;
   }
 
@@ -86,11 +86,11 @@ class PaginationService {
    */
   normalizeOffset(offset) {
     let parsed = parseInt(offset, 10) || 0;
-    
+
     if (parsed < 0) {
       parsed = 0;
     }
-    
+
     return parsed;
   }
 
@@ -173,11 +173,11 @@ class PaginationService {
       const buffer = Buffer.from(cursor, 'base64');
       const decoded = buffer.toString('utf-8');
       const [id, value, sortOrder] = decoded.split('|');
-      
+
       return {
         id,
         value,
-        sortOrder: sortOrder || 'asc',
+        sortOrder: sortOrder || 'asc'
       };
     } catch (error) {
       throw new Error('Invalid cursor format');
@@ -211,7 +211,7 @@ class PaginationService {
         record.title,
         record.description,
         record.name,
-        record.email,
+        record.email
       ]
         .filter(Boolean)
         .join(' ')
@@ -272,7 +272,7 @@ class PaginationService {
     const startTime = Date.now();
 
     // Aplicar filtros
-    let filtered = records.filter(r => this.passesFilters(r, params.filters));
+    const filtered = records.filter((r) => this.passesFilters(r, params.filters));
     const totalRecords = filtered.length;
 
     // Ordenar
@@ -293,7 +293,7 @@ class PaginationService {
     if (params.cursor) {
       const decodedCursor = this.decodeCursor(params.cursor);
       const startIndex = filtered.findIndex(
-        r => (r.id || r._id) === decodedCursor.id
+        (r) => (r.id || r._id) === decodedCursor.id
       );
 
       if (startIndex !== -1) {
@@ -357,16 +357,18 @@ class PaginationService {
         totalRecords,
         pageCount: Math.ceil(totalRecords / params.limit),
         currentPage: Math.floor(params.offset / params.limit) + 1,
-        hasMore: params.cursor ? items.length === params.limit : params.offset + params.limit < totalRecords,
-        hasPrev: params.offset > 0 || (params.cursor && prevCursor),
+        hasMore: params.cursor
+          ? items.length === params.limit
+          : params.offset + params.limit < totalRecords,
+        hasPrev: params.offset > 0 || (params.cursor && prevCursor)
       },
       filters: params.filters,
       sortBy: params.sortBy,
       sortOrder: params.sortOrder,
       meta: {
         queryTime,
-        timestamp: new Date(),
-      },
+        timestamp: new Date()
+      }
     };
   }
 
@@ -383,7 +385,7 @@ class PaginationService {
       } catch (error) {
         res.status(400).json({
           error: 'Invalid pagination parameters',
-          message: error.message,
+          message: error.message
         });
       }
     };
@@ -401,9 +403,11 @@ class PaginationService {
     }
 
     if (filters.search) {
-      query = query.where(db => {
-        db.whereLike('title', `%${filters.search}%`)
-          .orWhereLike('description', `%${filters.search}%`);
+      query = query.where((db) => {
+        db.whereLike('title', `%${filters.search}%`).orWhereLike(
+          'description',
+          `%${filters.search}%`
+        );
       });
     }
 
@@ -449,8 +453,14 @@ class PaginationService {
    */
   applySortToQuery(query, sortBy = 'id', sortOrder = 'asc') {
     const validFields = [
-      'id', 'createdAt', 'updatedAt', 'name', 'title', 
-      'price', 'status', 'userId'
+      'id',
+      'createdAt',
+      'updatedAt',
+      'name',
+      'title',
+      'price',
+      'status',
+      'userId'
     ];
 
     if (!validFields.includes(sortBy)) {
@@ -502,7 +512,7 @@ class PaginationService {
 
     if (items.length > params.limit) {
       hasMore = true;
-      items.pop();  // Remover item extra que usamos para verificar
+      items.pop(); // Remover item extra que usamos para verificar
 
       if (items.length > 0) {
         nextCursor = this.encodeCursor(
@@ -529,15 +539,15 @@ class PaginationService {
         pageCount: Math.ceil(totalRecords / params.limit),
         currentPage: Math.floor(params.offset / params.limit) + 1,
         hasMore,
-        hasPrev: params.offset > 0,
+        hasPrev: params.offset > 0
       },
       filters: params.filters,
       sortBy: params.sortBy,
       sortOrder: params.sortOrder,
       meta: {
         queryTime,
-        timestamp: new Date(),
-      },
+        timestamp: new Date()
+      }
     };
   }
 
@@ -552,7 +562,7 @@ class PaginationService {
       cursorQueriesExecuted: this.stats.cursorQueriesExecuted,
       offsetQueriesExecuted: this.stats.offsetQueriesExecuted,
       averageQueryTime: this.stats.averageQueryTime,
-      averageRecordsPerQuery: this.stats.averageRecordsPerQuery,
+      averageRecordsPerQuery: this.stats.averageRecordsPerQuery
     };
   }
 
@@ -565,7 +575,7 @@ class PaginationService {
       healthy: true,
       serviceName: 'PaginationService',
       timestamp: new Date(),
-      stats: this.getStats(),
+      stats: this.getStats()
     };
   }
 
@@ -585,10 +595,10 @@ class PaginationService {
     }
 
     // Actualizar promedios móviles
-    const factor = 0.1;  // Exponential smoothing
-    this.stats.averageQueryTime = 
+    const factor = 0.1; // Exponential smoothing
+    this.stats.averageQueryTime =
       this.stats.averageQueryTime * (1 - factor) + queryTime * factor;
-    this.stats.averageRecordsPerQuery = 
+    this.stats.averageRecordsPerQuery =
       this.stats.averageRecordsPerQuery * (1 - factor) + pageRecords * factor;
   }
 }

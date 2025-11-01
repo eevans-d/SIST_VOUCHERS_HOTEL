@@ -2,7 +2,7 @@
  * Performance Profiling Service
  * CPU, Memory, I/O profiling and bottleneck detection
  * Issues: #24 → #25 → #26 (Logging → Anomaly → Profiling)
- * 
+ *
  * Pattern: Comprehensive performance analysis
  * Features:
  *  - CPU profiling
@@ -24,7 +24,7 @@ export default class ProfilingService {
       sampleInterval: config.sampleInterval || 100, // ms
       retentionSeconds: config.retentionSeconds || 3600, // 1 hour
       bottleneckThreshold: config.bottleneckThreshold || 100, // ms
-      ...config,
+      ...config
     };
 
     // Storage
@@ -70,7 +70,7 @@ export default class ProfilingService {
         heapUsed: memory.heapUsed,
         heapTotal: memory.heapTotal,
         external: memory.external,
-        rss: memory.rss,
+        rss: memory.rss
       });
 
       // Cleanup old samples
@@ -83,8 +83,10 @@ export default class ProfilingService {
    * @private
    */
   _cleanupMemorySamples() {
-    const cutoffTime = Date.now() - (this.config.retentionSeconds * 1000);
-    this.memorySamples = this.memorySamples.filter(s => s.timestamp > cutoffTime);
+    const cutoffTime = Date.now() - this.config.retentionSeconds * 1000;
+    this.memorySamples = this.memorySamples.filter(
+      (s) => s.timestamp > cutoffTime
+    );
   }
 
   /**
@@ -115,7 +117,7 @@ export default class ProfilingService {
         duration,
         startTime: this.marks.get(`${label}-start`),
         endTime,
-        timestamp: Date.now(),
+        timestamp: Date.now()
       };
 
       this._recordFunctionTiming(label, duration);
@@ -142,7 +144,7 @@ export default class ProfilingService {
         maxTime: 0,
         averageTime: 0,
         lastCalled: Date.now(),
-        timings: [],
+        timings: []
       });
     }
 
@@ -171,7 +173,7 @@ export default class ProfilingService {
         label,
         duration,
         timestamp: Date.now(),
-        severity: this._calculateSeverity(duration),
+        severity: this._calculateSeverity(duration)
       });
 
       // Keep last 1000 bottlenecks
@@ -239,8 +241,9 @@ export default class ProfilingService {
       return this.functionTimings.get(label) || null;
     }
 
-    return Array.from(this.functionTimings.values())
-      .sort((a, b) => b.totalTime - a.totalTime);
+    return Array.from(this.functionTimings.values()).sort(
+      (a, b) => b.totalTime - a.totalTime
+    );
   }
 
   /**
@@ -264,14 +267,16 @@ export default class ProfilingService {
     }
 
     const samples = this.memorySamples;
-    const heapUsedValues = samples.map(s => s.heapUsed);
-    const heapTotalValues = samples.map(s => s.heapTotal);
-    const rssValues = samples.map(s => s.rss);
+    const heapUsedValues = samples.map((s) => s.heapUsed);
+    const heapTotalValues = samples.map((s) => s.heapTotal);
+    const rssValues = samples.map((s) => s.rss);
 
     const calculateStats = (values) => {
       const sorted = [...values].sort((a, b) => a - b);
       const mean = values.reduce((a, b) => a + b, 0) / values.length;
-      const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length;
+      const variance =
+        values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) /
+        values.length;
       const stddev = Math.sqrt(variance);
 
       return {
@@ -280,7 +285,7 @@ export default class ProfilingService {
         max: sorted[sorted.length - 1],
         average: mean,
         stddev,
-        samples: values.length,
+        samples: values.length
       };
     };
 
@@ -289,7 +294,7 @@ export default class ProfilingService {
       heapUsed: calculateStats(heapUsedValues),
       heapTotal: calculateStats(heapTotalValues),
       rss: calculateStats(rssValues),
-      currentProcess: process.memoryUsage(),
+      currentProcess: process.memoryUsage()
     };
   }
 
@@ -305,7 +310,8 @@ export default class ProfilingService {
     const samples = this.memorySamples;
     const firstHeapUsed = samples[0].heapUsed;
     const lastHeapUsed = samples[samples.length - 1].heapUsed;
-    const changePercent = ((lastHeapUsed - firstHeapUsed) / firstHeapUsed) * 100;
+    const changePercent =
+      ((lastHeapUsed - firstHeapUsed) / firstHeapUsed) * 100;
 
     return {
       startHeap: firstHeapUsed,
@@ -314,7 +320,7 @@ export default class ProfilingService {
       changePercent: changePercent.toFixed(2),
       trend: lastHeapUsed > firstHeapUsed ? 'increasing' : 'decreasing',
       samples: samples.length,
-      timeSpan: samples[samples.length - 1].timestamp - samples[0].timestamp,
+      timeSpan: samples[samples.length - 1].timestamp - samples[0].timestamp
     };
   }
 
@@ -329,7 +335,7 @@ export default class ProfilingService {
 
     const samples = this.memorySamples;
     const trend = this.getMemoryTrend();
-    
+
     if (!trend || trend.trend !== 'increasing') {
       return null;
     }
@@ -351,7 +357,7 @@ export default class ProfilingService {
         consistencyPercent: consistencyPercent.toFixed(2),
         totalChange: trend.changeBytes,
         samples: samples.length,
-        timeSpan: trend.timeSpan,
+        timeSpan: trend.timeSpan
       };
     }
 
@@ -370,27 +376,28 @@ export default class ProfilingService {
     const operations = this.ioOperations;
     const byType = {};
 
-    operations.forEach(op => {
+    operations.forEach((op) => {
       if (!byType[op.type]) {
         byType[op.type] = {
           count: 0,
           totalTime: 0,
           avgTime: 0,
           minTime: Infinity,
-          maxTime: 0,
+          maxTime: 0
         };
       }
       byType[op.type].count++;
       byType[op.type].totalTime += op.duration;
       byType[op.type].minTime = Math.min(byType[op.type].minTime, op.duration);
       byType[op.type].maxTime = Math.max(byType[op.type].maxTime, op.duration);
-      byType[op.type].avgTime = byType[op.type].totalTime / byType[op.type].count;
+      byType[op.type].avgTime =
+        byType[op.type].totalTime / byType[op.type].count;
     });
 
     return {
       totalOperations: operations.length,
       byType,
-      timestamp: Date.now(),
+      timestamp: Date.now()
     };
   }
 
@@ -405,7 +412,7 @@ export default class ProfilingService {
       type,
       resource,
       duration,
-      timestamp: Date.now(),
+      timestamp: Date.now()
     });
 
     // Keep last 10000 operations
@@ -421,7 +428,8 @@ export default class ProfilingService {
    */
   getBottlenecks(severity = null) {
     if (severity) {
-      return this.bottlenecks.filter(b => b.severity === severity)
+      return this.bottlenecks
+        .filter((b) => b.severity === severity)
         .sort((a, b) => b.duration - a.duration);
     }
 
@@ -447,7 +455,7 @@ export default class ProfilingService {
       topFunction: timings[0] || null,
       memory: this.getMemoryStats(),
       ioStats: this.getIoStats(),
-      timestamp: Date.now(),
+      timestamp: Date.now()
     };
   }
 
@@ -465,13 +473,13 @@ export default class ProfilingService {
     return {
       name: 'root',
       value: totalTime,
-      children: timings.map(t => ({
+      children: timings.map((t) => ({
         name: t.label,
         value: t.totalTime,
         percentage: ((t.totalTime / totalTime) * 100).toFixed(2),
         callCount: t.callCount,
-        avgTime: t.averageTime,
-      })),
+        avgTime: t.averageTime
+      }))
     };
   }
 
@@ -490,18 +498,18 @@ export default class ProfilingService {
       summary: {
         totalOperations: summary.totalOperations,
         totalTime: summary.totalTime,
-        averageTime: summary.avgOperationTime,
+        averageTime: summary.avgOperationTime
       },
-      topFunctions: timings.map(t => ({
+      topFunctions: timings.map((t) => ({
         name: t.label,
         callCount: t.callCount,
         totalTime: t.totalTime.toFixed(2),
         averageTime: t.averageTime.toFixed(2),
         minTime: t.minTime.toFixed(2),
         maxTime: t.maxTime.toFixed(2),
-        percentage: ((t.totalTime / summary.totalTime) * 100).toFixed(2),
+        percentage: ((t.totalTime / summary.totalTime) * 100).toFixed(2)
       })),
-      bottlenecks: this.getBottlenecks('critical').slice(0, 10),
+      bottlenecks: this.getBottlenecks('critical').slice(0, 10)
     };
   }
 
@@ -520,11 +528,11 @@ export default class ProfilingService {
       current: {
         heapUsedMB: (process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2),
         heapTotalMB: (process.memoryUsage().heapTotal / 1024 / 1024).toFixed(2),
-        rssMB: (process.memoryUsage().rss / 1024 / 1024).toFixed(2),
+        rssMB: (process.memoryUsage().rss / 1024 / 1024).toFixed(2)
       },
       statistics: memoryStats,
       trend: memoryTrend,
-      possibleLeak: memoryLeak,
+      possibleLeak: memoryLeak
     };
   }
 
@@ -554,7 +562,7 @@ export default class ProfilingService {
       bottlenecksDetected: this.bottlenecks.length,
       memorySamplesCollected: this.memorySamples.length,
       ioOperationsRecorded: this.ioOperations.length,
-      timestamp: Date.now(),
+      timestamp: Date.now()
     };
   }
 

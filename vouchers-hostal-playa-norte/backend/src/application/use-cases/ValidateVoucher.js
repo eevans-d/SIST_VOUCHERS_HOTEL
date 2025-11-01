@@ -20,7 +20,7 @@ export class ValidateVoucher {
         return {
           valid: false,
           error: 'Voucher no encontrado',
-          code: voucherCode,
+          code: voucherCode
         };
       }
 
@@ -30,7 +30,7 @@ export class ValidateVoucher {
           valid: false,
           error: `Voucher no está activo (estado: ${voucher.status})`,
           code: voucherCode,
-          status: voucher.status,
+          status: voucher.status
         };
       }
 
@@ -40,7 +40,7 @@ export class ValidateVoucher {
           valid: false,
           error: 'Voucher expirado',
           code: voucherCode,
-          expiryDate: voucher.expiryDate,
+          expiryDate: voucher.expiryDate
         };
       }
 
@@ -50,7 +50,7 @@ export class ValidateVoucher {
         return {
           valid: false,
           error: 'Estadía asociada no encontrada',
-          code: voucherCode,
+          code: voucherCode
         };
       }
 
@@ -59,13 +59,13 @@ export class ValidateVoucher {
           valid: false,
           error: `Estadía no está activa (estado: ${stay.status})`,
           code: voucherCode,
-          stayStatus: stay.status,
+          stayStatus: stay.status
         };
       }
 
       this.logger.info(`Voucher validado: ${voucherCode}`, {
         voucherId: voucher.id,
-        stayId: voucher.stayId,
+        stayId: voucher.stayId
       });
 
       return {
@@ -76,7 +76,7 @@ export class ValidateVoucher {
         status: voucher.status,
         daysRemaining: voucher.getDaysRemaining(),
         expiryDate: voucher.expiryDate,
-        message: 'Voucher válido para canjear',
+        message: 'Voucher válido para canjear'
       };
     } catch (error) {
       this.logger.error('Error validando voucher', { error, voucherCode });

@@ -42,12 +42,12 @@ export class JWTService {
       name: user.getFullName(),
       role: user.role,
       permissions: user.getPermissions(),
-      iat: Math.floor(Date.now() / 1000),
+      iat: Math.floor(Date.now() / 1000)
     };
 
     return jwt.sign(payload, this.secret, {
       expiresIn: this.accessTokenExpiration,
-      algorithm: 'HS256',
+      algorithm: 'HS256'
     });
   }
 
@@ -60,12 +60,12 @@ export class JWTService {
     const payload = {
       sub: user.id,
       type: 'refresh',
-      iat: Math.floor(Date.now() / 1000),
+      iat: Math.floor(Date.now() / 1000)
     };
 
     return jwt.sign(payload, this.refreshSecret, {
       expiresIn: this.refreshTokenExpiration,
-      algorithm: 'HS256',
+      algorithm: 'HS256'
     });
   }
 
@@ -77,7 +77,7 @@ export class JWTService {
   generateTokenPair(user) {
     return {
       accessToken: this.generateAccessToken(user),
-      refreshToken: this.generateRefreshToken(user),
+      refreshToken: this.generateRefreshToken(user)
     };
   }
 
@@ -110,7 +110,7 @@ export class JWTService {
   verifyRefreshToken(token) {
     try {
       const payload = jwt.verify(token, this.refreshSecret, {
-        algorithms: ['HS256'],
+        algorithms: ['HS256']
       });
 
       if (payload.type !== 'refresh') {
@@ -191,12 +191,12 @@ export class JWTService {
     const payload = {
       sub: userId,
       type: 'password_reset',
-      iat: Math.floor(Date.now() / 1000),
+      iat: Math.floor(Date.now() / 1000)
     };
 
     return jwt.sign(payload, this.secret, {
       expiresIn: '15m', // 15 minutos
-      algorithm: 'HS256',
+      algorithm: 'HS256'
     });
   }
 
@@ -235,12 +235,12 @@ export class JWTService {
     const payload = {
       email,
       type: 'email_verification',
-      iat: Math.floor(Date.now() / 1000),
+      iat: Math.floor(Date.now() / 1000)
     };
 
     return jwt.sign(payload, this.secret, {
       expiresIn: '24h',
-      algorithm: 'HS256',
+      algorithm: 'HS256'
     });
   }
 

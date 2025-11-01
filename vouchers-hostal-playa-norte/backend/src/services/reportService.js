@@ -6,10 +6,15 @@ class ReportService {
   /**
    * Genera reporte de canjes en formato CSV
    */
-  async generateRedemptionsCSV({ from_date, to_date, cafeteria_id, correlation_id }) {
+  async generateRedemptionsCSV({
+    from_date,
+    to_date,
+    cafeteria_id,
+    correlation_id
+  }) {
     const db = getDb();
     const startTime = Date.now();
-    
+
     logger.info({
       event: 'generate_csv_start',
       correlation_id,
@@ -20,7 +25,9 @@ class ReportService {
 
     // Validar fechas
     if (from_date && to_date && new Date(from_date) > new Date(to_date)) {
-      throw new ValidationError('La fecha de inicio debe ser anterior a la fecha de fin');
+      throw new ValidationError(
+        'La fecha de inicio debe ser anterior a la fecha de fin'
+      );
     }
 
     let query = `
@@ -41,43 +48,47 @@ class ReportService {
       JOIN cafeterias c ON r.cafeteria_id = c.id
       WHERE 1=1
     `;
-    
+
     const params = [];
-    
+
     if (from_date) {
       query += ' AND DATE(r.redeemed_at) >= ?';
       params.push(from_date);
     }
-    
+
     if (to_date) {
       query += ' AND DATE(r.redeemed_at) <= ?';
       params.push(to_date);
     }
-    
+
     if (cafeteria_id) {
       query += ' AND r.cafeteria_id = ?';
       params.push(cafeteria_id);
     }
-    
+
     query += ' ORDER BY r.redeemed_at DESC';
-    
+
     const redemptions = db.prepare(query).all(...params);
-    
+
     // Generar CSV
-    const csvHeader = 'code,guest_name,room,redeemed_at,cafeteria,device_id,origin\n';
-    const csvRows = redemptions.map(r => 
-      `${r.code},${r.guest_name},${r.room},${r.redeemed_at},${r.cafeteria},${r.device_id},${r.origin}`
-    ).join('\n');
-    
+    const csvHeader =
+      'code,guest_name,room,redeemed_at,cafeteria,device_id,origin\n';
+    const csvRows = redemptions
+      .map(
+        (r) =>
+          `${r.code},${r.guest_name},${r.room},${r.redeemed_at},${r.cafeteria},${r.device_id},${r.origin}`
+      )
+      .join('\n');
+
     const csv = csvHeader + csvRows;
-    
+
     logger.info({
       event: 'generate_csv_complete',
       correlation_id,
       row_count: redemptions.length,
       duration_ms: Date.now() - startTime
     });
-    
+
     return {
       csv,
       metadata: {
@@ -93,8 +104,10 @@ class ReportService {
    */
   async getReconciliationReport({ from_date, to_date, correlation_id }) {
     const db = getDb();
-    
-    const stats = db.prepare(`
+
+    const stats = db
+      .prepare(
+        `
       SELECT 
         DATE(v.created_at) as date,
         COUNT(DISTINCT v.id) as emitted,
@@ -106,9 +119,13 @@ class ReportService {
       WHERE DATE(v.created_at) >= ? AND DATE(v.created_at) <= ?
       GROUP BY DATE(v.created_at)
       ORDER BY date DESC
-    `).all(from_date, to_date);
-    
-    const summary = db.prepare(`
+    `
+      )
+      .all(from_date, to_date);
+
+    const summary = db
+      .prepare(
+        `
       SELECT 
         COUNT(DISTINCT v.id) as total_emitted,
         COUNT(DISTINCT r.id) as total_redeemed,
@@ -118,8 +135,10 @@ class ReportService {
       FROM vouchers v
       LEFT JOIN redemptions r ON v.id = r.voucher_id
       WHERE DATE(v.created_at) >= ? AND DATE(v.created_at) <= ?
-    `).get(from_date, to_date);
-    
+    `
+      )
+      .get(from_date, to_date);
+
     return {
       period: { from: from_date, to: to_date },
       summary,
@@ -132,11 +151,13 @@ class ReportService {
    */
   async getOperationalMetrics({ correlation_id }) {
     const db = getDb();
-    
+
     // Métricas de hoy
     const today = new Date().toISOString().split('T')[0];
-    
-    const todayStats = db.prepare(`
+
+    const todayStats = db
+      .prepare(
+        `
       SELECT 
         COUNT(DISTINCT v.id) as vouchers_emitted,
         COUNT(DISTINCT r.id) as vouchers_redeemed,
@@ -145,32 +166,46 @@ class ReportService {
       FROM vouchers v
       LEFT JOIN redemptions r ON v.id = r.voucher_id AND DATE(r.redeemed_at) = ?
       WHERE DATE(v.created_at) = ?
-    `).get(today, today);
-    
+    `
+      )
+      .get(today, today);
+
     // Vouchers activos
-    const activeVouchers = db.prepare(`
+    const activeVouchers = db
+      .prepare(
+        `
       SELECT COUNT(*) as count
       FROM vouchers
       WHERE status = 'active' 
         AND DATE(valid_from) <= DATE('now', 'localtime')
         AND DATE(valid_until) >= DATE('now', 'localtime')
-    `).get();
-    
+    `
+      )
+      .get();
+
     // Conflictos recientes (últimos 7 días)
-    const recentConflicts = db.prepare(`
+    const recentConflicts = db
+      .prepare(
+        `
       SELECT COUNT(*) as count
       FROM sync_log
       WHERE result = 'conflict'
         AND DATE(synced_at) >= DATE('now', '-7 days')
-    `).get();
-    
+    `
+      )
+      .get();
+
     // Dispositivos activos
-    const activeDevices = db.prepare(`
+    const activeDevices = db
+      .prepare(
+        `
       SELECT COUNT(DISTINCT device_id) as count
       FROM sync_log
       WHERE DATE(synced_at) >= DATE('now', '-1 day')
-    `).get();
-    
+    `
+      )
+      .get();
+
     return {
       today: todayStats,
       active_vouchers: activeVouchers.count,

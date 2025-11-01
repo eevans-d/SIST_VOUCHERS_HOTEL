@@ -5,8 +5,15 @@
  */
 
 import express from 'express';
-import { loginLimiter, registerLimiter, refreshTokenLimiter } from '../middleware/rateLimiter.middleware.js';
-import { tokenBlacklist, checkTokenBlacklist } from '../../../services/tokenBlacklist.service.js';
+import {
+  loginLimiter,
+  registerLimiter,
+  refreshTokenLimiter
+} from '../middleware/rateLimiter.middleware.js';
+import {
+  tokenBlacklist,
+  checkTokenBlacklist
+} from '../../../services/tokenBlacklist.service.js';
 
 /**
  * Crear router de autenticación
@@ -21,7 +28,7 @@ export function createAuthRoutes(services) {
   /**
    * POST /auth/register
    * Registrar nuevo usuario
-   * 
+   *
    * RATE LIMITING: 3 intentos por IP en 15 minutos
    * @see rateLimiter.middleware.js - registerLimiter
    */
@@ -32,7 +39,7 @@ export function createAuthRoutes(services) {
       res.status(201).json({
         success: true,
         data: result.user,
-        message: result.message,
+        message: result.message
       });
     } catch (error) {
       next(error);
@@ -42,10 +49,10 @@ export function createAuthRoutes(services) {
   /**
    * POST /auth/login
    * Autenticar usuario y obtener tokens
-   * 
+   *
    * RATE LIMITING: 5 intentos FALLIDOS por email+IP en 15 minutos
    * @see rateLimiter.middleware.js - loginLimiter
-   * 
+   *
    * Nota: skipSuccessfulRequests=true significa que el contador se resetea
    * después de un login exitoso, pero se incrementa para cada intento fallido.
    */
@@ -58,7 +65,7 @@ export function createAuthRoutes(services) {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
-        maxAge: 30 * 24 * 60 * 60 * 1000, // 30 días
+        maxAge: 30 * 24 * 60 * 60 * 1000 // 30 días
       });
 
       res.json({
@@ -66,8 +73,8 @@ export function createAuthRoutes(services) {
         data: {
           user: result.user,
           accessToken: result.accessToken,
-          expiresIn: result.expiresIn,
-        },
+          expiresIn: result.expiresIn
+        }
       });
     } catch (error) {
       next(error);
@@ -77,7 +84,7 @@ export function createAuthRoutes(services) {
   /**
    * POST /auth/refresh
    * Refrescar access token usando refresh token
-   * 
+   *
    * RATE LIMITING: 10 intentos por IP en 15 minutos
    * @see rateLimiter.middleware.js - refreshTokenLimiter
    */
@@ -88,7 +95,7 @@ export function createAuthRoutes(services) {
       if (!refreshToken) {
         return res.status(401).json({
           success: false,
-          error: 'Refresh token no proporcionado',
+          error: 'Refresh token no proporcionado'
         });
       }
 
@@ -102,12 +109,12 @@ export function createAuthRoutes(services) {
           data: {
             // accessToken: newAccessToken,
             // expiresIn: 7 * 24 * 60 * 60,
-          },
+          }
         });
       } catch (tokenError) {
         return res.status(401).json({
           success: false,
-          error: tokenError.message,
+          error: tokenError.message
         });
       }
     } catch (error) {
@@ -119,23 +126,27 @@ export function createAuthRoutes(services) {
    * POST /auth/logout
    * Logout + Blacklist token
    */
-  router.post('/logout', authenticateToken(jwtService), async (req, res, next) => {
-    try {
-      const authHeader = req.headers['authorization'];
-      const token = jwtService.extractBearerToken(authHeader);
-      
-      // Add token to blacklist
-      await tokenBlacklist.blacklist(token);
-      
-      res.clearCookie('refreshToken');
-      res.json({
-        success: true,
-        message: 'Sesión cerrada correctamente',
-      });
-    } catch (error) {
-      next(error);
+  router.post(
+    '/logout',
+    authenticateToken(jwtService),
+    async (req, res, next) => {
+      try {
+        const authHeader = req.headers['authorization'];
+        const token = jwtService.extractBearerToken(authHeader);
+
+        // Add token to blacklist
+        await tokenBlacklist.blacklist(token);
+
+        res.clearCookie('refreshToken');
+        res.json({
+          success: true,
+          message: 'Sesión cerrada correctamente'
+        });
+      } catch (error) {
+        next(error);
+      }
     }
-  });
+  );
 
   /**
    * GET /auth/me
@@ -145,7 +156,7 @@ export function createAuthRoutes(services) {
   router.get('/me', authenticateToken(jwtService), (req, res) => {
     res.json({
       success: true,
-      data: req.user,
+      data: req.user
     });
   });
 
@@ -165,7 +176,7 @@ export function authenticateToken(jwtService) {
     if (!token) {
       return res.status(401).json({
         success: false,
-        error: 'Token no proporcionado',
+        error: 'Token no proporcionado'
       });
     }
 
@@ -176,7 +187,7 @@ export function authenticateToken(jwtService) {
     } catch (error) {
       return res.status(403).json({
         success: false,
-        error: error.message,
+        error: error.message
       });
     }
   };
@@ -194,14 +205,14 @@ export function authorizeRole(requiredRoles) {
     if (!req.user) {
       return res.status(401).json({
         success: false,
-        error: 'No autenticado',
+        error: 'No autenticado'
       });
     }
 
     if (!roles.includes(req.user.role)) {
       return res.status(403).json({
         success: false,
-        error: 'Acceso denegado',
+        error: 'Acceso denegado'
       });
     }
 
@@ -223,17 +234,19 @@ export function authorizePermission(requiredPermissions) {
     if (!req.user) {
       return res.status(401).json({
         success: false,
-        error: 'No autenticado',
+        error: 'No autenticado'
       });
     }
 
     const userPermissions = req.user.permissions || [];
-    const hasPermission = permissions.some(perm => userPermissions.includes(perm));
+    const hasPermission = permissions.some((perm) =>
+      userPermissions.includes(perm)
+    );
 
     if (!hasPermission) {
       return res.status(403).json({
         success: false,
-        error: 'Permisos insuficientes',
+        error: 'Permisos insuficientes'
       });
     }
 

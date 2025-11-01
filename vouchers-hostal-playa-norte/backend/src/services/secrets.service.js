@@ -1,4 +1,7 @@
-import { SecretsManagerClient, GetSecretValueCommand } from '@aws-sdk/client-secrets-manager';
+import {
+  SecretsManagerClient,
+  GetSecretValueCommand
+} from '@aws-sdk/client-secrets-manager';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -7,10 +10,10 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 /**
  * SecretsManager Service
- * 
+ *
  * Manages application secrets using AWS Secrets Manager.
  * Provides caching, fallback to .env, and rotation support.
- * 
+ *
  * Features:
  * - Fetch secrets from AWS Secrets Manager
  * - Cache in memory for performance
@@ -18,7 +21,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
  * - Retry logic with exponential backoff
  * - Error tracking and logging
  * - Support for secret rotation
- * 
+ *
  * @class
  */
 export class SecretsManager {
@@ -33,7 +36,7 @@ export class SecretsManager {
     // Initialize AWS SDK only in production
     if (process.env.NODE_ENV === 'production') {
       this.client = new SecretsManagerClient({
-        region: process.env.AWS_REGION || 'us-east-1',
+        region: process.env.AWS_REGION || 'us-east-1'
       });
     } else {
       this.client = null;
@@ -56,7 +59,7 @@ export class SecretsManager {
       return this.secrets;
     } catch (error) {
       console.error('❌ Failed to initialize Secrets Manager:', error);
-      
+
       // Fallback to .env in development
       if (process.env.NODE_ENV !== 'production') {
         console.warn('⚠️ Falling back to .env file');
@@ -97,13 +100,14 @@ export class SecretsManager {
    * @private
    */
   async _loadFromAWS() {
-    const secretName = process.env.AWS_SECRETS_NAME || 'hotel-vouchers/production';
+    const secretName =
+      process.env.AWS_SECRETS_NAME || 'hotel-vouchers/production';
     let lastError;
 
     for (let attempt = 1; attempt <= this.retryAttempts; attempt++) {
       try {
         const command = new GetSecretValueCommand({
-          SecretId: secretName,
+          SecretId: secretName
         });
 
         const response = await this.client.send(command);
@@ -126,16 +130,21 @@ export class SecretsManager {
         // Merge with environment variables (env vars take precedence)
         this.secrets = {
           ...secretData,
-          ...this._getEnvironmentSecrets(),
+          ...this._getEnvironmentSecrets()
         };
 
         this.lastLoadTime = Date.now();
 
-        console.log(`✅ Secrets loaded from AWS (attempt ${attempt}/${this.retryAttempts})`);
+        console.log(
+          `✅ Secrets loaded from AWS (attempt ${attempt}/${this.retryAttempts})`
+        );
         return this.secrets;
       } catch (error) {
         lastError = error;
-        console.error(`❌ Attempt ${attempt}/${this.retryAttempts} failed:`, error.message);
+        console.error(
+          `❌ Attempt ${attempt}/${this.retryAttempts} failed:`,
+          error.message
+        );
 
         if (attempt < this.retryAttempts) {
           // Exponential backoff
@@ -157,17 +166,17 @@ export class SecretsManager {
    */
   _loadFromEnvFile() {
     const envPath = path.join(__dirname, '../../.env');
-    
+
     try {
       const result = dotenv.config({ path: envPath });
-      
+
       if (result.error && result.error.code !== 'ENOENT') {
         console.warn('⚠️ Error loading .env file:', result.error.message);
       }
 
       this.secrets = this._getEnvironmentSecrets();
       this.lastLoadTime = Date.now();
-      
+
       console.log('✅ Secrets loaded from .env file');
     } catch (error) {
       console.error('❌ Error loading .env file:', error);
@@ -191,7 +200,7 @@ export class SecretsManager {
       'S3_BUCKET_NAME',
       'SMTP_PASSWORD',
       'STRIPE_SECRET_KEY',
-      'SENDGRID_API_KEY',
+      'SENDGRID_API_KEY'
     ];
 
     secretKeys.forEach((key) => {
@@ -247,7 +256,7 @@ export class SecretsManager {
   async rotate() {
     console.log('🔄 Rotating secrets...');
     this.lastLoadTime = null; // Invalidate cache
-    
+
     try {
       await this.loadSecrets();
       console.log('✅ Secrets rotated successfully');

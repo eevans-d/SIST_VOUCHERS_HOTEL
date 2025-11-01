@@ -5,7 +5,7 @@ const logger = pino();
 
 /**
  * Event Sourcing Service - Almacenamiento y reconstrucción de eventos
- * 
+ *
  * Características:
  * - Almacenamiento inmutable de eventos
  * - Reconstrucción de estado desde eventos
@@ -20,7 +20,7 @@ class EventSourcingService {
     this.config = {
       snapshotInterval: config.snapshotInterval || 100,
       maxEventsPerQuery: config.maxEventsPerQuery || 1000,
-      ...config,
+      ...config
     };
 
     this.eventStore = new Map(); // Map<aggregateId, Array<event>>
@@ -33,7 +33,7 @@ class EventSourcingService {
       eventsReplayed: 0,
       snapshotsCreated: 0,
       projectionsUpdated: 0,
-      aggregatesCreated: 0,
+      aggregatesCreated: 0
     };
   }
 
@@ -56,8 +56,8 @@ class EventSourcingService {
         ...metadata,
         timestamp: new Date(),
         userId: metadata.userId || 'system',
-        source: metadata.source || 'api',
-      },
+        source: metadata.source || 'api'
+      }
     };
 
     // Almacenar evento
@@ -71,19 +71,23 @@ class EventSourcingService {
 
     // Persistir en DB
     try {
-      this.db.prepare(`
+      this.db
+        .prepare(
+          `
         INSERT INTO events (id, aggregate_id, aggregate_type, event_type, version, payload, metadata, created_at)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-      `).run(
-        event.id,
-        aggregateId,
-        aggregateType,
-        eventType,
-        event.version,
-        JSON.stringify(payload),
-        JSON.stringify(event.metadata),
-        event.metadata.timestamp.toISOString()
-      );
+      `
+        )
+        .run(
+          event.id,
+          aggregateId,
+          aggregateType,
+          eventType,
+          event.version,
+          JSON.stringify(payload),
+          JSON.stringify(event.metadata),
+          event.metadata.timestamp.toISOString()
+        );
     } catch (error) {
       logger.error('Error storing event:', error);
     }
@@ -104,7 +108,7 @@ class EventSourcingService {
    */
   rebuildAggregate(aggregateId, toVersion = null) {
     const events = this.getEvents(aggregateId, toVersion);
-    
+
     if (events.length === 0) {
       return null;
     }
@@ -114,7 +118,7 @@ class EventSourcingService {
       type: events[0].aggregateType,
       version: 0,
       state: {},
-      createdAt: events[0].metadata.timestamp,
+      createdAt: events[0].metadata.timestamp
     };
 
     // Aplicar cada evento en orden
@@ -165,23 +169,23 @@ class EventSourcingService {
 
     // Aplicar cambios específicos del evento
     switch (event.eventType) {
-      case 'aggregate.created':
-        aggregate.state = event.payload;
-        aggregate.createdAt = event.metadata.timestamp;
-        break;
+    case 'aggregate.created':
+      aggregate.state = event.payload;
+      aggregate.createdAt = event.metadata.timestamp;
+      break;
 
-      case 'aggregate.updated':
-        aggregate.state = { ...aggregate.state, ...event.payload };
-        break;
+    case 'aggregate.updated':
+      aggregate.state = { ...aggregate.state, ...event.payload };
+      break;
 
-      case 'aggregate.deleted':
-        aggregate.state = null;
-        aggregate.deletedAt = event.metadata.timestamp;
-        break;
+    case 'aggregate.deleted':
+      aggregate.state = null;
+      aggregate.deletedAt = event.metadata.timestamp;
+      break;
 
-      default:
-        // Aplicar payload como delta
-        aggregate.state = { ...aggregate.state, ...event.payload };
+    default:
+      // Aplicar payload como delta
+      aggregate.state = { ...aggregate.state, ...event.payload };
     }
 
     return aggregate;
@@ -192,7 +196,7 @@ class EventSourcingService {
    */
   createSnapshot(aggregateId, aggregateType) {
     const aggregate = this.rebuildAggregate(aggregateId);
-    
+
     if (!aggregate) {
       return null;
     }
@@ -202,7 +206,7 @@ class EventSourcingService {
       aggregateType,
       version: aggregate.version,
       state: aggregate.state,
-      createdAt: new Date(),
+      createdAt: new Date()
     };
 
     this.snapshots.set(aggregateId, snapshot);
@@ -210,20 +214,24 @@ class EventSourcingService {
 
     // Persistir en DB
     try {
-      this.db.prepare(`
+      this.db
+        .prepare(
+          `
         INSERT INTO snapshots (aggregate_id, aggregate_type, version, state, created_at)
         VALUES (?, ?, ?, ?, ?)
         ON CONFLICT(aggregate_id) DO UPDATE SET
           version = excluded.version,
           state = excluded.state,
           created_at = excluded.created_at
-      `).run(
-        aggregateId,
-        aggregateType,
-        version,
-        JSON.stringify(snapshot.state),
-        snapshot.createdAt.toISOString()
-      );
+      `
+        )
+        .run(
+          aggregateId,
+          aggregateType,
+          snapshot.version,
+          JSON.stringify(snapshot.state),
+          snapshot.createdAt.toISOString()
+        );
     } catch (error) {
       logger.error('Error storing snapshot:', error);
     }
@@ -243,7 +251,7 @@ class EventSourcingService {
    */
   rebuildAggregateFromSnapshot(aggregateId) {
     const snapshot = this.getSnapshot(aggregateId);
-    
+
     if (!snapshot) {
       return this.rebuildAggregate(aggregateId);
     }
@@ -258,7 +266,7 @@ class EventSourcingService {
       type: snapshot.aggregateType,
       version: snapshot.version,
       state: snapshot.state,
-      createdAt: new Date(snapshot.createdAt),
+      createdAt: new Date(snapshot.createdAt)
     };
 
     // Aplicar eventos posteriores
@@ -290,7 +298,7 @@ class EventSourcingService {
    */
   notifySubscribers(eventType, event) {
     const callbacks = this.subscribers.get(eventType) || new Set();
-    
+
     for (const callback of callbacks) {
       try {
         callback(event);
@@ -319,7 +327,7 @@ class EventSourcingService {
       handler,
       data: new Map(),
       version: 0,
-      lastUpdate: new Date(),
+      lastUpdate: new Date()
     };
 
     this.projections.set(name, projection);
@@ -335,7 +343,7 @@ class EventSourcingService {
    */
   rebuildProjection(projectionName) {
     const projection = this.projections.get(projectionName);
-    
+
     if (!projection) {
       return;
     }
@@ -358,7 +366,7 @@ class EventSourcingService {
    */
   queryProjection(projectionName, query = {}) {
     const projection = this.projections.get(projectionName);
-    
+
     if (!projection) {
       return null;
     }
@@ -398,7 +406,7 @@ class EventSourcingService {
       userId: event.metadata.userId,
       source: event.metadata.source,
       version: event.version,
-      changes: event.payload,
+      changes: event.payload
     }));
   }
 
@@ -417,7 +425,7 @@ class EventSourcingService {
     let aggregate = {
       id: aggregateId,
       version: 0,
-      state: {},
+      state: {}
     };
 
     for (const event of eventsUntilTime) {
@@ -440,7 +448,7 @@ class EventSourcingService {
       timestamp: event.metadata.timestamp,
       eventType: event.eventType,
       version: event.version,
-      payload: event.payload,
+      payload: event.payload
     }));
   }
 
@@ -459,8 +467,8 @@ class EventSourcingService {
         version: e.version,
         type: e.eventType,
         timestamp: e.metadata.timestamp,
-        payload: e.payload,
-      })),
+        payload: e.payload
+      }))
     };
   }
 
@@ -474,7 +482,7 @@ class EventSourcingService {
       'event.corrected',
       {
         ...correction,
-        correctedAt: new Date(),
+        correctedAt: new Date()
       },
       { source: 'admin' }
     );
@@ -492,9 +500,12 @@ class EventSourcingService {
       }
     }
 
-    return allEvents.slice(-limit).sort((a, b) => 
-      new Date(a.metadata.timestamp) - new Date(b.metadata.timestamp)
-    );
+    return allEvents
+      .slice(-limit)
+      .sort(
+        (a, b) =>
+          new Date(a.metadata.timestamp) - new Date(b.metadata.timestamp)
+      );
   }
 
   /**
@@ -511,7 +522,7 @@ class EventSourcingService {
       totalSnapshots: this.snapshots.size,
       totalProjections: this.projections.size,
       subscriberCount: this.subscribers.size,
-      timestamp: new Date(),
+      timestamp: new Date()
     };
   }
 
@@ -528,7 +539,7 @@ class EventSourcingService {
       ),
       snapshots: this.snapshots.size,
       projections: this.projections.size,
-      timestamp: new Date(),
+      timestamp: new Date()
     };
   }
 
@@ -549,7 +560,9 @@ class EventSourcingService {
 
         // Opcional: guardar en archivo/DB de archivo
         if (archiveDestination) {
-          logger.info(`Archiving ${oldEvents.length} events for ${aggregateId}`);
+          logger.info(
+            `Archiving ${oldEvents.length} events for ${aggregateId}`
+          );
         }
 
         // Mantener en memoria para queries recientes
@@ -564,8 +577,21 @@ class EventSourcingService {
 /**
  * Funciones helper
  */
-export function publishDomainEvent(eventService, aggregateId, aggregateType, eventType, payload, metadata) {
-  return eventService.publishEvent(aggregateId, aggregateType, eventType, payload, metadata);
+export function publishDomainEvent(
+  eventService,
+  aggregateId,
+  aggregateType,
+  eventType,
+  payload,
+  metadata
+) {
+  return eventService.publishEvent(
+    aggregateId,
+    aggregateType,
+    eventType,
+    payload,
+    metadata
+  );
 }
 
 export function rebuildAggregateState(eventService, aggregateId) {

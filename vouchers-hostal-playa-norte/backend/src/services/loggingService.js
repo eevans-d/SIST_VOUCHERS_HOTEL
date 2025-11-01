@@ -1,6 +1,6 @@
 /**
  * loggingService.js
- * 
+ *
  * Servicio de Logging Distribuido con ELK Stack
  * - Agregación centralizada de logs
  * - Structured logging (JSON)
@@ -16,25 +16,25 @@ class LoggingService {
     this.environment = options.environment || 'production';
     this.version = options.version || '1.0.0';
     this.instance = options.instance || `instance-${Date.now()}`;
-    
+
     this.logLevels = {
       DEBUG: 0,
       INFO: 1,
       WARN: 2,
       ERROR: 3,
-      CRITICAL: 4,
+      CRITICAL: 4
     };
-    
+
     this.currentLevel = options.logLevel || this.logLevels.INFO;
     this.logs = [];
     this.transports = [];
     this.contextStack = [];
-    
+
     this.stats = {
       logsCreated: 0,
       logsByLevel: {},
       logsByCategory: {},
-      errors: 0,
+      errors: 0
     };
 
     // Inicializar contadores por nivel
@@ -80,7 +80,7 @@ class LoggingService {
       context = {
         errorType: context.name,
         errorMessage: context.message,
-        stack: context.stack,
+        stack: context.stack
       };
     }
     this.log('ERROR', message, context);
@@ -119,9 +119,9 @@ class LoggingService {
       instance: this.instance,
       context: {
         ...this.getCurrentContext(),
-        ...context,
+        ...context
       },
-      tags: this.extractTags(context),
+      tags: this.extractTags(context)
     };
 
     // Procesar error si existe
@@ -129,7 +129,7 @@ class LoggingService {
       logEntry.error = {
         type: context.error.name || 'Error',
         message: context.error.message,
-        stack: context.error.stack,
+        stack: context.error.stack
       };
     }
 
@@ -138,7 +138,7 @@ class LoggingService {
     this.stats.logsByLevel[level]++;
 
     // Enviar a transportes
-    this.transports.forEach(transport => {
+    this.transports.forEach((transport) => {
       try {
         transport.send(logEntry);
       } catch (error) {
@@ -168,12 +168,12 @@ class LoggingService {
     return {
       send: (logEntry) => {
         const colors = {
-          DEBUG: '\x1b[36m',    // Cyan
-          INFO: '\x1b[32m',     // Green
-          WARN: '\x1b[33m',     // Yellow
-          ERROR: '\x1b[31m',    // Red
+          DEBUG: '\x1b[36m', // Cyan
+          INFO: '\x1b[32m', // Green
+          WARN: '\x1b[33m', // Yellow
+          ERROR: '\x1b[31m', // Red
           CRITICAL: '\x1b[35m', // Magenta
-          RESET: '\x1b[0m',
+          RESET: '\x1b[0m'
         };
 
         const color = colors[logEntry.level] || '';
@@ -182,7 +182,7 @@ class LoggingService {
           `${color}[${timestamp}] [${logEntry.level}] ${logEntry.message}${colors.RESET}`,
           logEntry.context
         );
-      },
+      }
     };
   }
 
@@ -193,7 +193,7 @@ class LoggingService {
    */
   createFileTransport(filepath) {
     const logs = [];
-    
+
     return {
       send: (logEntry) => {
         logs.push(logEntry);
@@ -202,7 +202,7 @@ class LoggingService {
       getLogs: () => logs,
       clear: () => {
         logs.length = 0;
-      },
+      }
     };
   }
 
@@ -217,7 +217,7 @@ class LoggingService {
         const json = JSON.stringify(logEntry);
         // En producción, enviar a Elasticsearch
         // console.log(json);
-      },
+      }
     };
   }
 
@@ -239,7 +239,7 @@ class LoggingService {
         } catch (error) {
           console.error('HTTP transport error:', error);
         }
-      },
+      }
     };
   }
 
@@ -253,7 +253,7 @@ class LoggingService {
       traceId,
       spanId: Math.random().toString(16).substring(2, 18),
       timestamp: Date.now(),
-      metadata,
+      metadata
     });
   }
 
@@ -277,7 +277,7 @@ class LoggingService {
     return {
       traceId: ctx.traceId,
       spanId: ctx.spanId,
-      ...ctx.metadata,
+      ...ctx.metadata
     };
   }
 
@@ -313,7 +313,7 @@ class LoggingService {
       this.pushContext(traceId, {
         method: req.method,
         path: req.path,
-        ip: req.ip,
+        ip: req.ip
       });
 
       // Log de request
@@ -322,7 +322,7 @@ class LoggingService {
         path: req.path,
         query: req.query,
         ip: req.ip,
-        userAgent: req.get('user-agent'),
+        userAgent: req.get('user-agent')
       });
 
       // Capturar response
@@ -334,7 +334,7 @@ class LoggingService {
           path: req.path,
           status: res.statusCode,
           duration: `${duration}ms`,
-          headers: res.getHeaders(),
+          headers: res.getHeaders()
         });
 
         // Finalizar contexto
@@ -355,7 +355,7 @@ class LoggingService {
         method: req.method,
         path: req.path,
         error: err,
-        status: err.status || 500,
+        status: err.status || 500
       });
 
       next(err);
@@ -377,7 +377,7 @@ class LoggingService {
       operation,
       duration: `${duration}ms`,
       slow: duration > 100,
-      ...metadata,
+      ...metadata
     });
   }
 
@@ -394,7 +394,7 @@ class LoggingService {
       operation,
       key,
       hit,
-      ...metadata,
+      ...metadata
     });
   }
 
@@ -409,12 +409,12 @@ class LoggingService {
   logExternalApi(method, url, status, duration, metadata = {}) {
     const level = status >= 400 ? 'WARN' : 'DEBUG';
 
-    this.log(level, `External API call`, {
+    this.log(level, 'External API call', {
       method,
       url: this.maskUrl(url),
       status,
       duration: `${duration}ms`,
-      ...metadata,
+      ...metadata
     });
   }
 
@@ -426,7 +426,7 @@ class LoggingService {
   logBusinessEvent(event, data = {}) {
     this.info(`Business event: ${event}`, {
       eventType: event,
-      ...data,
+      ...data
     });
   }
 
@@ -443,7 +443,7 @@ class LoggingService {
       userId,
       resource,
       changes,
-      timestamp: new Date(),
+      timestamp: new Date()
     });
   }
 
@@ -457,42 +457,48 @@ class LoggingService {
 
     // Filtrar por nivel
     if (query.level) {
-      results = results.filter(log => log.level === query.level);
+      results = results.filter((log) => log.level === query.level);
     }
 
     // Filtrar por servicio
     if (query.service) {
-      results = results.filter(log => log.service === query.service);
+      results = results.filter((log) => log.service === query.service);
     }
 
     // Filtrar por message
     if (query.message) {
       const regex = new RegExp(query.message, 'i');
-      results = results.filter(log => regex.test(log.message));
+      results = results.filter((log) => regex.test(log.message));
     }
 
     // Filtrar por rango de tiempo
     if (query.startTime) {
-      results = results.filter(log => new Date(log['@timestamp']) >= new Date(query.startTime));
+      results = results.filter(
+        (log) => new Date(log['@timestamp']) >= new Date(query.startTime)
+      );
     }
     if (query.endTime) {
-      results = results.filter(log => new Date(log['@timestamp']) <= new Date(query.endTime));
+      results = results.filter(
+        (log) => new Date(log['@timestamp']) <= new Date(query.endTime)
+      );
     }
 
     // Filtrar por tags
     if (query.tags && Array.isArray(query.tags)) {
-      results = results.filter(log =>
-        query.tags.every(tag => log.tags.includes(tag))
+      results = results.filter((log) =>
+        query.tags.every((tag) => log.tags.includes(tag))
       );
     }
 
     // Filtrar por contexto
     if (query.traceId) {
-      results = results.filter(log => log.context.traceId === query.traceId);
+      results = results.filter((log) => log.context.traceId === query.traceId);
     }
 
     // Ordenar por timestamp descendente
-    results.sort((a, b) => new Date(b['@timestamp']) - new Date(a['@timestamp']));
+    results.sort(
+      (a, b) => new Date(b['@timestamp']) - new Date(a['@timestamp'])
+    );
 
     // Limitar resultados
     return results.slice(0, query.limit || 100);
@@ -506,7 +512,7 @@ class LoggingService {
     const result = {};
 
     for (const level of Object.keys(this.logLevels)) {
-      result[level] = this.logs.filter(log => log.level === level).length;
+      result[level] = this.logs.filter((log) => log.level === level).length;
     }
 
     return result;
@@ -519,7 +525,7 @@ class LoggingService {
   aggregateByService() {
     const result = {};
 
-    this.logs.forEach(log => {
+    this.logs.forEach((log) => {
       result[log.service] = (result[log.service] || 0) + 1;
     });
 
@@ -537,7 +543,7 @@ class LoggingService {
       byCategory: this.stats.logsByCategory,
       errors: this.stats.errors,
       logsInMemory: this.logs.length,
-      transportCount: this.transports.length,
+      transportCount: this.transports.length
     };
   }
 
@@ -551,7 +557,7 @@ class LoggingService {
       serviceName: 'LoggingService',
       timestamp: new Date(),
       stats: this.getStatistics(),
-      transportHealthy: this.transports.length > 0,
+      transportHealthy: this.transports.length > 0
     };
   }
 
@@ -564,12 +570,17 @@ class LoggingService {
   }
 
   maskUrl(url) {
-    return url.replace(/([?&])([^=]+)=([^&]*)/g, (match, prefix, key, value) => {
-      if (['password', 'token', 'secret', 'api_key'].includes(key.toLowerCase())) {
-        return `${prefix}${key}=***`;
+    return url.replace(
+      /([?&])([^=]+)=([^&]*)/g,
+      (match, prefix, key, value) => {
+        if (
+          ['password', 'token', 'secret', 'api_key'].includes(key.toLowerCase())
+        ) {
+          return `${prefix}${key}=***`;
+        }
+        return match;
       }
-      return match;
-    });
+    );
   }
 
   /**
@@ -577,21 +588,21 @@ class LoggingService {
    * @returns {array} Logs formateados
    */
   exportForKibana() {
-    return this.logs.map(log => ({
+    return this.logs.map((log) => ({
       '@timestamp': log['@timestamp'],
       'service.name': log.service,
       'service.version': log.version,
       'service.environment': log.environment,
       'service.instance': log.instance,
       'log.level': log.level,
-      'message': log.message,
+      message: log.message,
       'trace.id': log.context.traceId,
       'span.id': log.context.spanId,
-      'tags': log.tags,
-      'metadata': log.context,
+      tags: log.tags,
+      metadata: log.context,
       'error.type': log.error?.type,
       'error.message': log.error?.message,
-      'error.stacktrace': log.error?.stack,
+      'error.stacktrace': log.error?.stack
     }));
   }
 
@@ -600,11 +611,11 @@ class LoggingService {
    * @param {number} hoursOld - Horas antiguas
    */
   clearOldLogs(hoursOld = 24) {
-    const cutoff = Date.now() - (hoursOld * 3600000);
+    const cutoff = Date.now() - hoursOld * 3600000;
     const before = this.logs.length;
 
-    this.logs = this.logs.filter(log =>
-      new Date(log.timestamp).getTime() > cutoff
+    this.logs = this.logs.filter(
+      (log) => new Date(log.timestamp).getTime() > cutoff
     );
 
     const removed = before - this.logs.length;

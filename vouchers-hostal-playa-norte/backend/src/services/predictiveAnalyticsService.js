@@ -23,13 +23,19 @@ class PredictiveAnalyticsService {
   // Train churn prediction model
   async trainChurnModel(historicalData) {
     const features = this.extractChurnFeatures(historicalData);
-    const labels = historicalData.map(d => d.churned ? 1 : 0);
+    const labels = historicalData.map((d) => (d.churned ? 1 : 0));
 
     const model = {
       id: this.generateId(),
       type: 'churn',
       algorithm: 'logistic_regression',
-      features: ['bookingFrequency', 'avgStayDuration', 'totalSpent', 'lastBookingDays', 'cancellationRate'],
+      features: [
+        'bookingFrequency',
+        'avgStayDuration',
+        'totalSpent',
+        'lastBookingDays',
+        'cancellationRate'
+      ],
       weights: this.trainLogisticRegression(features, labels),
       accuracy: 0,
       trainedAt: new Date(),
@@ -37,7 +43,9 @@ class PredictiveAnalyticsService {
     };
 
     // Calculate accuracy
-    const predictions = features.map(f => this.predictWithLogistic(f, model.weights));
+    const predictions = features.map((f) =>
+      this.predictWithLogistic(f, model.weights)
+    );
     model.accuracy = this.calculateAccuracy(predictions, labels);
 
     this.models.set('churn', model);
@@ -46,7 +54,7 @@ class PredictiveAnalyticsService {
 
   // Extract churn features
   extractChurnFeatures(data) {
-    return data.map(customer => [
+    return data.map((customer) => [
       customer.bookingFrequency || 0,
       customer.avgStayDuration || 0,
       customer.totalSpent || 0,
@@ -61,8 +69,10 @@ class PredictiveAnalyticsService {
     const m = X.length;
 
     for (let iter = 0; iter < iterations; iter++) {
-      const predictions = X.map(x => this.sigmoid(this.dotProduct(x, weights)));
-      
+      const predictions = X.map((x) =>
+        this.sigmoid(this.dotProduct(x, weights))
+      );
+
       for (let j = 0; j < weights.length; j++) {
         let gradient = 0;
         for (let i = 0; i < m; i++) {
@@ -107,7 +117,8 @@ class PredictiveAnalyticsService {
     ];
 
     const probability = this.predictWithLogistic(features, model.weights);
-    const risk = probability > 0.7 ? 'high' : probability > 0.4 ? 'medium' : 'low';
+    const risk =
+      probability > 0.7 ? 'high' : probability > 0.4 ? 'medium' : 'low';
 
     const prediction = {
       customerId,
@@ -125,7 +136,13 @@ class PredictiveAnalyticsService {
 
   // Analyze churn factors
   analyzeChurnFactors(features, weights) {
-    const featureNames = ['bookingFrequency', 'avgStayDuration', 'totalSpent', 'lastBookingDays', 'cancellationRate'];
+    const featureNames = [
+      'bookingFrequency',
+      'avgStayDuration',
+      'totalSpent',
+      'lastBookingDays',
+      'cancellationRate'
+    ];
     const impacts = features.map((val, i) => ({
       feature: featureNames[i],
       value: val,
@@ -146,11 +163,13 @@ class PredictiveAnalyticsService {
       recommendations.push('Schedule follow-up call');
     }
 
-    if (features[3] > 90) { // lastBookingDays
+    if (features[3] > 90) {
+      // lastBookingDays
       recommendations.push('Send reminder email with special discount');
     }
 
-    if (features[4] > 0.3) { // cancellationRate
+    if (features[4] > 0.3) {
+      // cancellationRate
       recommendations.push('Offer flexible cancellation policy');
     }
 
@@ -159,8 +178,12 @@ class PredictiveAnalyticsService {
 
   // Train revenue forecasting model
   async trainRevenueModel(historicalData) {
-    const X = historicalData.map((d, i) => [i, this.getDayOfWeek(d.date), this.getMonth(d.date)]);
-    const y = historicalData.map(d => d.revenue);
+    const X = historicalData.map((d, i) => [
+      i,
+      this.getDayOfWeek(d.date),
+      this.getMonth(d.date)
+    ]);
+    const y = historicalData.map((d) => d.revenue);
 
     const model = {
       id: this.generateId(),
@@ -189,7 +212,7 @@ class PredictiveAnalyticsService {
     const iterations = 1000;
 
     for (let iter = 0; iter < iterations; iter++) {
-      const predictions = X.map(x => {
+      const predictions = X.map((x) => {
         let pred = coefficients[0];
         for (let j = 0; j < features; j++) {
           pred += coefficients[j + 1] * x[j];
@@ -229,8 +252,12 @@ class PredictiveAnalyticsService {
 
     for (let i = 1; i <= daysAhead; i++) {
       const date = new Date(today.getTime() + i * 24 * 60 * 60 * 1000);
-      const features = [model.dataPoints + i, this.getDayOfWeek(date), this.getMonth(date)];
-      
+      const features = [
+        model.dataPoints + i,
+        this.getDayOfWeek(date),
+        this.getMonth(date)
+      ];
+
       let revenue = model.coefficients[0];
       for (let j = 0; j < features.length; j++) {
         revenue += model.coefficients[j + 1] * features[j];
@@ -248,7 +275,8 @@ class PredictiveAnalyticsService {
     return {
       forecasts,
       totalRevenue: forecasts.reduce((sum, f) => sum + f.revenue, 0),
-      avgDailyRevenue: forecasts.reduce((sum, f) => sum + f.revenue, 0) / daysAhead,
+      avgDailyRevenue:
+        forecasts.reduce((sum, f) => sum + f.revenue, 0) / daysAhead,
       model: model.type,
       generatedAt: new Date()
     };
@@ -259,13 +287,15 @@ class PredictiveAnalyticsService {
     // Confidence decreases with distance
     const baseConfidence = 0.95;
     const decayRate = 0.01;
-    return Math.max(0.5, baseConfidence - (daysAhead * decayRate));
+    return Math.max(0.5, baseConfidence - daysAhead * decayRate);
   }
 
   // Calculate Customer Lifetime Value
   async calculateCLV(customerId, customerData) {
-    const avgPurchaseValue = customerData.totalSpent / customerData.bookingCount;
-    const purchaseFrequency = customerData.bookingCount / customerData.customerAgeDays * 365;
+    const avgPurchaseValue =
+      customerData.totalSpent / customerData.bookingCount;
+    const purchaseFrequency =
+      (customerData.bookingCount / customerData.customerAgeDays) * 365;
     const avgCustomerValue = avgPurchaseValue * purchaseFrequency;
     const avgCustomerLifespan = 5; // years (industry average)
 
@@ -275,7 +305,7 @@ class PredictiveAnalyticsService {
     let churnPrediction = null;
     if (this.models.has('churn')) {
       churnPrediction = await this.predictChurn(customerId, customerData);
-      const churnAdjustment = 1 - (churnPrediction.churnProbability * 0.5);
+      const churnAdjustment = 1 - churnPrediction.churnProbability * 0.5;
       return {
         customerId,
         clv: clv * churnAdjustment,
@@ -331,9 +361,9 @@ class PredictiveAnalyticsService {
   extractItemSets(transactions) {
     const itemSets = new Map();
 
-    transactions.forEach(transaction => {
+    transactions.forEach((transaction) => {
       // Single items
-      transaction.forEach(item => {
+      transaction.forEach((item) => {
         const key = JSON.stringify([item]);
         itemSets.set(key, (itemSets.get(key) || 0) + 1);
       });
@@ -350,7 +380,9 @@ class PredictiveAnalyticsService {
       for (let i = 0; i < transaction.length; i++) {
         for (let j = i + 1; j < transaction.length; j++) {
           for (let k = j + 1; k < transaction.length; k++) {
-            const key = JSON.stringify([transaction[i], transaction[j], transaction[k]].sort());
+            const key = JSON.stringify(
+              [transaction[i], transaction[j], transaction[k]].sort()
+            );
             itemSets.set(key, (itemSets.get(key) || 0) + 1);
           }
         }
@@ -372,14 +404,16 @@ class PredictiveAnalyticsService {
       });
     });
 
-    return support.filter(s => s.support >= 0.01).sort((a, b) => b.support - a.support);
+    return support
+      .filter((s) => s.support >= 0.01)
+      .sort((a, b) => b.support - a.support);
   }
 
   // Generate association rules
   generateAssociationRules(support, minSupport, minConfidence) {
     const rules = [];
 
-    support.forEach(itemSet => {
+    support.forEach((itemSet) => {
       if (itemSet.items.length < 2) return;
 
       // Generate all possible rules
@@ -387,13 +421,13 @@ class PredictiveAnalyticsService {
         const antecedent = [itemSet.items[i]];
         const consequent = itemSet.items.filter((_, j) => j !== i);
 
-        const antecedentSupport = support.find(s => 
-          s.items.length === 1 && s.items[0] === antecedent[0]
+        const antecedentSupport = support.find(
+          (s) => s.items.length === 1 && s.items[0] === antecedent[0]
         );
 
         if (antecedentSupport) {
           const confidence = itemSet.support / antecedentSupport.support;
-          const lift = confidence / (itemSet.support);
+          const lift = confidence / itemSet.support;
 
           if (confidence >= minConfidence) {
             rules.push({
@@ -413,7 +447,7 @@ class PredictiveAnalyticsService {
 
   // Get top recommendations
   getTopRecommendations(rules, limit = 10) {
-    return rules.slice(0, limit).map(rule => ({
+    return rules.slice(0, limit).map((rule) => ({
       if: rule.antecedent,
       then: rule.consequent,
       confidence: (rule.confidence * 100).toFixed(1) + '%',
@@ -434,7 +468,7 @@ class PredictiveAnalyticsService {
 
       // Simple heuristic-based forecast
       let demand = 50; // base demand
-      
+
       // Weekend boost
       if (dayOfWeek === 5 || dayOfWeek === 6) {
         demand += 20;
@@ -456,8 +490,11 @@ class PredictiveAnalyticsService {
     return {
       roomType,
       forecasts,
-      avgDailyDemand: forecasts.reduce((sum, f) => sum + f.demand, 0) / daysAhead,
-      peakDemandDate: forecasts.reduce((max, f) => f.demand > max.demand ? f : max),
+      avgDailyDemand:
+        forecasts.reduce((sum, f) => sum + f.demand, 0) / daysAhead,
+      peakDemandDate: forecasts.reduce((max, f) =>
+        f.demand > max.demand ? f : max
+      ),
       generatedAt: new Date()
     };
   }
@@ -489,7 +526,8 @@ class PredictiveAnalyticsService {
       date,
       optimalPrice: Math.round(optimalPrice),
       basePrice,
-      priceChange: ((optimalPrice - basePrice) / basePrice * 100).toFixed(1) + '%',
+      priceChange:
+        (((optimalPrice - basePrice) / basePrice) * 100).toFixed(1) + '%',
       demand: currentDemand,
       strategy: currentDemand > 70 ? 'maximize_revenue' : 'maximize_occupancy',
       calculatedAt: new Date()
@@ -498,18 +536,34 @@ class PredictiveAnalyticsService {
 
   // Sentiment analysis
   analyzeSentiment(reviews) {
-    const positive = ['excellent', 'great', 'amazing', 'wonderful', 'perfect', 'love', 'best'];
-    const negative = ['bad', 'poor', 'terrible', 'worst', 'hate', 'awful', 'disappointing'];
+    const positive = [
+      'excellent',
+      'great',
+      'amazing',
+      'wonderful',
+      'perfect',
+      'love',
+      'best'
+    ];
+    const negative = [
+      'bad',
+      'poor',
+      'terrible',
+      'worst',
+      'hate',
+      'awful',
+      'disappointing'
+    ];
 
-    const scores = reviews.map(review => {
+    const scores = reviews.map((review) => {
       const text = review.text.toLowerCase();
       let score = 0;
 
-      positive.forEach(word => {
+      positive.forEach((word) => {
         score += (text.match(new RegExp(word, 'g')) || []).length;
       });
 
-      negative.forEach(word => {
+      negative.forEach((word) => {
         score -= (text.match(new RegExp(word, 'g')) || []).length;
       });
 
@@ -521,16 +575,24 @@ class PredictiveAnalyticsService {
       };
     });
 
-    const avgScore = scores.reduce((sum, s) => sum + s.score, 0) / scores.length;
-    const positiveCount = scores.filter(s => s.sentiment === 'positive').length;
-    const negativeCount = scores.filter(s => s.sentiment === 'negative').length;
+    const avgScore =
+      scores.reduce((sum, s) => sum + s.score, 0) / scores.length;
+    const positiveCount = scores.filter(
+      (s) => s.sentiment === 'positive'
+    ).length;
+    const negativeCount = scores.filter(
+      (s) => s.sentiment === 'negative'
+    ).length;
 
     return {
       totalReviews: reviews.length,
       avgScore,
-      overallSentiment: avgScore > 0 ? 'positive' : avgScore < 0 ? 'negative' : 'neutral',
-      positivePercentage: (positiveCount / reviews.length * 100).toFixed(1) + '%',
-      negativePercentage: (negativeCount / reviews.length * 100).toFixed(1) + '%',
+      overallSentiment:
+        avgScore > 0 ? 'positive' : avgScore < 0 ? 'negative' : 'neutral',
+      positivePercentage:
+        ((positiveCount / reviews.length) * 100).toFixed(1) + '%',
+      negativePercentage:
+        ((negativeCount / reviews.length) * 100).toFixed(1) + '%',
       scores,
       analyzedAt: new Date()
     };
@@ -551,7 +613,7 @@ class PredictiveAnalyticsService {
 
   std(arr) {
     const avg = this.mean(arr);
-    const squareDiffs = arr.map(val => Math.pow(val - avg, 2));
+    const squareDiffs = arr.map((val) => Math.pow(val - avg, 2));
     return Math.sqrt(this.mean(squareDiffs));
   }
 

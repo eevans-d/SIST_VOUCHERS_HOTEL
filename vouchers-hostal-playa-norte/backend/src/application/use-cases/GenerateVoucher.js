@@ -3,7 +3,7 @@ import { Voucher } from '../../domain/entities/Voucher.js';
 
 const GenerateVoucherDTO = z.object({
   stayId: z.string().uuid(),
-  numberOfVouchers: z.number().int().positive(),
+  numberOfVouchers: z.number().int().positive()
 });
 
 export class GenerateVoucher {
@@ -34,21 +34,23 @@ export class GenerateVoucher {
         stayId: stay.id,
         validFrom: stay.checkInDate,
         validUntil: stay.checkOutDate,
-        hmacSignature,
+        hmacSignature
       });
 
       await this.voucherRepository.save(voucher);
       vouchers.push(voucher);
     }
 
-    this.logger.info(`${numberOfVouchers} vouchers generated for stay ${stayId}`);
-    return vouchers.map(v => v.toJSON());
+    this.logger.info(
+      `${numberOfVouchers} vouchers generated for stay ${stayId}`
+    );
+    return vouchers.map((v) => v.toJSON());
   }
 }
 
 const ValidateVoucherDTO = z.object({
   code: z.string(),
-  hmac: z.string(),
+  hmac: z.string()
 });
 
 export class ValidateVoucher {
@@ -84,7 +86,7 @@ export class ValidateVoucher {
 }
 
 const RedeemVoucherDTO = z.object({
-  code: z.string(),
+  code: z.string()
 });
 
 export class RedeemVoucher {

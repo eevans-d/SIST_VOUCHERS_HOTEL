@@ -6,7 +6,7 @@ const logger = pino();
 
 /**
  * API Versioning Service - Gestión de múltiples versiones
- * 
+ *
  * Características:
  * - Versionado semantic (v1, v2, v3)
  * - Deprecation warnings
@@ -21,7 +21,7 @@ class APIVersioningService {
       supportedVersions: config.supportedVersions || ['1.0.0', '2.0.0'],
       deprecationWarningDays: config.deprecationWarningDays || 90,
       retirementDate: config.retirementDate || {},
-      ...config,
+      ...config
     };
 
     this.versionRegistry = new Map(); // Map<version, handlers>
@@ -32,7 +32,7 @@ class APIVersioningService {
       requestsV1: 0,
       requestsV2: 0,
       deprecationWarningsSent: 0,
-      migrationsPerformed: 0,
+      migrationsPerformed: 0
     };
   }
 
@@ -47,7 +47,7 @@ class APIVersioningService {
     this.versionRegistry.set(version, {
       version,
       endpoints: handlers || {},
-      createdAt: new Date(),
+      createdAt: new Date()
     });
 
     return this;
@@ -61,7 +61,7 @@ class APIVersioningService {
       version,
       retirementDate: new Date(retirementDate),
       reason,
-      deprecatedAt: new Date(),
+      deprecatedAt: new Date()
     });
 
     logger.info(`Version ${version} deprecated: ${reason}`);
@@ -83,7 +83,9 @@ class APIVersioningService {
       return false;
     }
 
-    return this.config.supportedVersions.some((v) => semver.satisfies(version, v));
+    return this.config.supportedVersions.some((v) =>
+      semver.satisfies(version, v)
+    );
   }
 
   /**
@@ -102,7 +104,7 @@ class APIVersioningService {
     }
 
     // Limpiar prefix 'v' si existe
-    let cleanVersion = versionString.toLowerCase().replace(/^v/, '');
+    const cleanVersion = versionString.toLowerCase().replace(/^v/, '');
 
     // Si es range semver (^1.0 o ~1.0), resolver a última
     if (semver.validRange(cleanVersion)) {
@@ -168,8 +170,8 @@ class APIVersioningService {
         res.setHeader(
           'Warning',
           `299 - "API version ${req.apiVersion} is deprecated. ` +
-          `Will be retired on ${deprecation.retirementDate.toDateString()}. ` +
-          `Reason: ${deprecation.reason}"`
+            `Will be retired on ${deprecation.retirementDate.toDateString()}. ` +
+            `Reason: ${deprecation.reason}"`
         );
 
         this.stats.deprecationWarningsSent++;
@@ -197,7 +199,7 @@ class APIVersioningService {
             logger.error('Migration error:', error);
             return res.status(400).json({
               error: 'Invalid request for version migration',
-              details: error.message,
+              details: error.message
             });
           }
         }
@@ -292,7 +294,7 @@ class APIVersioningService {
       if (!handler) {
         return res.status(501).json({
           error: 'Not implemented for this API version',
-          version,
+          version
         });
       }
 
@@ -323,7 +325,7 @@ class APIVersioningService {
     if (migrated.price_usd) {
       migrated.price = {
         amount: migrated.price_usd,
-        currency: 'USD',
+        currency: 'USD'
       };
       delete migrated.price_usd;
     }
@@ -369,14 +371,14 @@ class APIVersioningService {
         version: d.version,
         reason: d.reason,
         retirementDate: d.retirementDate,
-        deprecatedAt: d.deprecatedAt,
+        deprecatedAt: d.deprecatedAt
       })),
       versions: Array.from(this.versionRegistry.values()).map((v) => ({
         version: v.version,
         createdAt: v.createdAt,
         status: this.isVersionDeprecated(v.version) ? 'deprecated' : 'active',
-        deprecation: this.deprecations.get(v.version),
-      })),
+        deprecation: this.deprecations.get(v.version)
+      }))
     };
   }
 
@@ -389,7 +391,7 @@ class APIVersioningService {
       registeredVersions: this.versionRegistry.size,
       deprecatedVersions: this.deprecations.size,
       migrationsRegistered: this.migrations.size,
-      currentVersion: this.config.currentVersion,
+      currentVersion: this.config.currentVersion
     };
   }
 
@@ -401,7 +403,7 @@ class APIVersioningService {
       healthy: true,
       currentVersion: this.config.currentVersion,
       supportedVersions: this.config.supportedVersions,
-      timestamp: new Date(),
+      timestamp: new Date()
     };
   }
 }
@@ -413,7 +415,12 @@ export function createVersionedEndpoint(versioningService, versions = {}) {
   return versioningService.versionedHandler(versions);
 }
 
-export function migrateRequest(versioningService, fromVersion, toVersion, body) {
+export function migrateRequest(
+  versioningService,
+  fromVersion,
+  toVersion,
+  body
+) {
   const key = `${fromVersion}->${toVersion}`;
   const migration = versioningService.migrations.get(key);
 

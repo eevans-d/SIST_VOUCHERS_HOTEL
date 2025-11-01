@@ -166,7 +166,6 @@ class APIGatewayService {
       this._recordMetric(routeKey, 'success', startTime);
 
       return response;
-
     } catch (error) {
       this._recordMetric(routeKey, 'error', startTime, error.message);
       this._recordCircuitBreakerFailure(routeKey);
@@ -197,7 +196,7 @@ class APIGatewayService {
       // Check roles
       if (route.roles.length > 0) {
         const userRoles = decoded.roles || [];
-        const hasRole = route.roles.some(r => userRoles.includes(r));
+        const hasRole = route.roles.some((r) => userRoles.includes(r));
 
         if (!hasRole) {
           return { valid: false, error: 'Insufficient permissions' };
@@ -205,7 +204,6 @@ class APIGatewayService {
       }
 
       return { valid: true, user: decoded };
-
     } catch (error) {
       return { valid: false, error: 'Invalid token' };
     }
@@ -271,7 +269,7 @@ class APIGatewayService {
     const route = this.routes.get(routeKey);
     const { requests: limit, window } = route.rateLimit;
 
-    bucket.requests = bucket.requests.filter(t => now - t < window);
+    bucket.requests = bucket.requests.filter((t) => now - t < window);
 
     if (bucket.requests.length >= limit) {
       const oldestRequest = Math.min(...bucket.requests);
@@ -309,7 +307,8 @@ class APIGatewayService {
         breaker.successes = 0;
       } else {
         const retryAfter = Math.ceil(
-          (breaker.openedAt + this.config.circuitBreakerTimeout - Date.now()) / 1000
+          (breaker.openedAt + this.config.circuitBreakerTimeout - Date.now()) /
+            1000
         );
         return { isOpen: true, retryAfter };
       }
@@ -375,7 +374,9 @@ class APIGatewayService {
 
     if (type === 'success') {
       metrics.success += 1;
-      metrics.avgLatency = (metrics.avgLatency * (metrics.success - 1) + latency) / metrics.success;
+      metrics.avgLatency =
+        (metrics.avgLatency * (metrics.success - 1) + latency) /
+        metrics.success;
     } else if (type === 'error') {
       metrics.errors += 1;
       metrics.lastError = error;
@@ -398,11 +399,22 @@ class APIGatewayService {
     for (const [key, metrics] of this.requestMetrics) {
       allMetrics[key] = {
         ...metrics,
-        successRate: metrics.requests > 0 ? (metrics.success / metrics.requests * 100).toFixed(1) : 0,
-        errorRate: metrics.requests > 0 ? (metrics.errors / metrics.requests * 100).toFixed(1) : 0,
-        cacheHitRate: (metrics.cacheHits + metrics.cacheMisses) > 0
-          ? (metrics.cacheHits / (metrics.cacheHits + metrics.cacheMisses) * 100).toFixed(1)
-          : 0
+        successRate:
+          metrics.requests > 0
+            ? ((metrics.success / metrics.requests) * 100).toFixed(1)
+            : 0,
+        errorRate:
+          metrics.requests > 0
+            ? ((metrics.errors / metrics.requests) * 100).toFixed(1)
+            : 0,
+        cacheHitRate:
+          metrics.cacheHits + metrics.cacheMisses > 0
+            ? (
+              (metrics.cacheHits /
+                  (metrics.cacheHits + metrics.cacheMisses)) *
+                100
+            ).toFixed(1)
+            : 0
       };
     }
 
@@ -463,7 +475,8 @@ class APIGatewayService {
       totalCacheHits += metrics[key].cacheHits;
     }
 
-    const avgErrorRate = totalRequests > 0 ? (totalErrors / totalRequests * 100).toFixed(1) : 0;
+    const avgErrorRate =
+      totalRequests > 0 ? ((totalErrors / totalRequests) * 100).toFixed(1) : 0;
 
     return {
       status: avgErrorRate > 10 ? 'degraded' : 'healthy',
@@ -499,7 +512,9 @@ class APIGatewayService {
     }
 
     if (transformConfig.enrichFields) {
-      for (const [field, value] of Object.entries(transformConfig.enrichFields)) {
+      for (const [field, value] of Object.entries(
+        transformConfig.enrichFields
+      )) {
         transformed[field] = typeof value === 'function' ? value(req) : value;
       }
     }

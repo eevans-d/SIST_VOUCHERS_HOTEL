@@ -30,22 +30,25 @@ function getCorsOrigins() {
       'http://127.0.0.1:3000',
       'http://127.0.0.1:3001',
       'http://localhost:5173',
-      'http://127.0.0.1:5173',
+      'http://127.0.0.1:5173'
     ],
     // Staging (si aplica)
     staging: [
       'https://staging-admin.hpn-vouchers.fly.dev',
-      'https://hpn-vouchers-backend.fly.dev',
+      'https://hpn-vouchers-backend.fly.dev'
     ],
     // Producción
     production: [
-      'https://hpn-vouchers-backend.fly.dev',
+      'https://hpn-vouchers-backend.fly.dev'
       // Dominios de frontend se agregan vía CORS_ORIGIN
-    ],
+    ]
   };
 
   const envOrigins = parseEnvOrigins();
-  const combined = [...(defaults[nodeEnv] || defaults.development), ...envOrigins];
+  const combined = [
+    ...(defaults[nodeEnv] || defaults.development),
+    ...envOrigins
+  ];
   // Deduplicar
   return Array.from(new Set(combined));
 }
@@ -96,30 +99,30 @@ export function helmetMiddleware() {
   const cspConfig = {
     development: {
       directives: {
-        defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'"], // Permite inline en dev (para debugging)
-        styleSrc: ["'self'", "'unsafe-inline'"],
-        imgSrc: ["'self'", 'data:', 'https:'],
-        fontSrc: ["'self'"],
-        connectSrc: ["'self'", 'http://localhost:*', 'ws://localhost:*'],
-        upgradeInsecureRequests: [],
-      },
+        defaultSrc: ['\'self\''],
+        scriptSrc: ['\'self\'', '\'unsafe-inline\''], // Permite inline en dev (para debugging)
+        styleSrc: ['\'self\'', '\'unsafe-inline\''],
+        imgSrc: ['\'self\'', 'data:', 'https:'],
+        fontSrc: ['\'self\''],
+        connectSrc: ['\'self\'', 'http://localhost:*', 'ws://localhost:*'],
+        upgradeInsecureRequests: []
+      }
     },
     production: {
       directives: {
-        defaultSrc: ["'self'"],
-        scriptSrc: ["'self'"], // No inline en producción
-        styleSrc: ["'self'"],
-        imgSrc: ["'self'", 'data:', 'https:'],
-        fontSrc: ["'self'"],
-        connectSrc: ["'self'", 'https://hpn-vouchers-backend.fly.dev'],
+        defaultSrc: ['\'self\''],
+        scriptSrc: ['\'self\''], // No inline en producción
+        styleSrc: ['\'self\''],
+        imgSrc: ['\'self\'', 'data:', 'https:'],
+        fontSrc: ['\'self\''],
+        connectSrc: ['\'self\'', 'https://hpn-vouchers-backend.fly.dev'],
         upgradeInsecureRequests: [''], // Fuerza HTTPS
-        frameSrc: ["'none'"], // No permitir iframes
-        formAction: ["'self'"],
-        baseUri: ["'self'"],
+        frameSrc: ['\'none\''], // No permitir iframes
+        formAction: ['\'self\''],
+        baseUri: ['\'self\'']
       },
-      reportOnly: false,
-    },
+      reportOnly: false
+    }
   };
 
   const selectedCsp = cspConfig[env] || cspConfig.development;
@@ -135,14 +138,14 @@ export function helmetMiddleware() {
     hsts: {
       maxAge: 31536000, // 1 año
       includeSubDomains: true,
-      preload: true,
+      preload: true
     },
     ieNoOpen: true,
     noSniff: true,
     originAgentCluster: true,
     permittedCrossDomainPolicies: false,
     referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
-    xssFilter: true,
+    xssFilter: true
   });
 }
 
@@ -168,5 +171,5 @@ export function requireSecureHeaders(req, res, next) {
 export default {
   corsMiddleware,
   helmetMiddleware,
-  requireSecureHeaders,
+  requireSecureHeaders
 };

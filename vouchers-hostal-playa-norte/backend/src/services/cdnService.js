@@ -32,7 +32,7 @@ const CACHE_CONTROL_PRESETS = {
   'text/html': 'public, max-age=3600, must-revalidate',
 
   // Default
-  'default': 'public, max-age=3600',
+  default: 'public, max-age=3600'
 };
 
 const CONTENT_ENCODINGS = {
@@ -40,7 +40,7 @@ const CONTENT_ENCODINGS = {
   '.css': ['gzip', 'br'],
   '.json': ['gzip', 'br'],
   '.svg': ['gzip', 'br'],
-  '.html': ['gzip', 'br'],
+  '.html': ['gzip', 'br']
 };
 
 export class CDNService {
@@ -48,17 +48,18 @@ export class CDNService {
     this.s3Client = new AWS.S3({
       accessKeyId: process.env.AWS_ACCESS_KEY_ID,
       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-      region: process.env.AWS_REGION || 'us-east-1',
+      region: process.env.AWS_REGION || 'us-east-1'
     });
 
     this.cloudfront = new AWS.CloudFront({
       accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
     });
 
     this.bucket = process.env.AWS_S3_BUCKET_CDN || 'cdn-bucket';
     this.cloudfrontDistribution = process.env.AWS_CLOUDFRONT_DISTRIBUTION_ID;
-    this.cdnDomain = process.env.AWS_CDN_DOMAIN || `https://${this.bucket}.s3.amazonaws.com`;
+    this.cdnDomain =
+      process.env.AWS_CDN_DOMAIN || `https://${this.bucket}.s3.amazonaws.com`;
     this.compressionThreshold = config.compressionThreshold || 1024; // 1KB
   }
 
@@ -78,7 +79,12 @@ export class CDNService {
 
       if (shouldCompress) {
         // Prefer Brotli for text content
-        if (ext === '.js' || ext === '.css' || ext === '.json' || ext === '.html') {
+        if (
+          ext === '.js' ||
+          ext === '.css' ||
+          ext === '.json' ||
+          ext === '.html'
+        ) {
           uploadContent = await brotli(fileContent);
           contentEncoding = 'br';
         } else {
@@ -96,8 +102,11 @@ export class CDNService {
         Metadata: {
           'original-size': fileContent.length.toString(),
           'compressed-size': uploadContent.length.toString(),
-          'compression-ratio': ((1 - uploadContent.length / fileContent.length) * 100).toFixed(2),
-        },
+          'compression-ratio': (
+            (1 - uploadContent.length / fileContent.length) *
+            100
+          ).toFixed(2)
+        }
       };
 
       if (contentEncoding) {
@@ -112,14 +121,16 @@ export class CDNService {
       const result = await this.s3Client.upload(params).promise();
 
       console.log(`✅ Asset uploaded: ${filePath}`);
-      console.log(`   Size: ${fileContent.length}b → ${uploadContent.length}b (${((1 - uploadContent.length / fileContent.length) * 100).toFixed(2)}% reduction)`);
+      console.log(
+        `   Size: ${fileContent.length}b → ${uploadContent.length}b (${((1 - uploadContent.length / fileContent.length) * 100).toFixed(2)}% reduction)`
+      );
 
       return {
         url: `${this.cdnDomain}/${result.Key}`,
         key: result.Key,
         etag: result.ETag,
         size: uploadContent.length,
-        compression: contentEncoding,
+        compression: contentEncoding
       };
     } catch (error) {
       console.error(`❌ Upload asset error: ${filePath}`, error);
@@ -134,10 +145,18 @@ export class CDNService {
     const results = [];
     for (const asset of assets) {
       try {
-        const result = await this.uploadAsset(asset.path, asset.content, asset.options);
+        const result = await this.uploadAsset(
+          asset.path,
+          asset.content,
+          asset.options
+        );
         results.push({ success: true, ...result });
       } catch (error) {
-        results.push({ success: false, path: asset.path, error: error.message });
+        results.push({
+          success: false,
+          path: asset.path,
+          error: error.message
+        });
       }
     }
     return results;
@@ -158,10 +177,10 @@ export class CDNService {
         InvalidationBatch: {
           Paths: {
             Quantity: paths.length,
-            Items: paths,
+            Items: paths
           },
-          CallerReference: `inv-${Date.now()}`,
-        },
+          CallerReference: `inv-${Date.now()}`
+        }
       };
 
       const result = await this.cloudfront.createInvalidation(params).promise();
@@ -201,7 +220,7 @@ export class CDNService {
       '.ttf': 'font/ttf',
       '.eot': 'application/vnd.ms-fontobject',
       '.mp4': 'video/mp4',
-      '.webm': 'video/webm',
+      '.webm': 'video/webm'
     };
     return types[ext] || 'application/octet-stream';
   }
@@ -244,10 +263,10 @@ export class CDNService {
         InvalidationBatch: {
           Paths: {
             Quantity: 1,
-            Items: [pattern],
+            Items: [pattern]
           },
-          CallerReference: `inv-pattern-${Date.now()}`,
-        },
+          CallerReference: `inv-pattern-${Date.now()}`
+        }
       };
 
       const result = await this.cloudfront.createInvalidation(params).promise();
@@ -266,7 +285,7 @@ export class CDNService {
     try {
       const params = {
         Bucket: this.bucket,
-        Key: path.startsWith('/') ? path.substring(1) : path,
+        Key: path.startsWith('/') ? path.substring(1) : path
       };
 
       const result = await this.s3Client.headObject(params).promise();
@@ -277,7 +296,7 @@ export class CDNService {
         contentType: result.ContentType,
         cacheControl: result.CacheControl,
         contentEncoding: result.ContentEncoding,
-        metadata: result.Metadata,
+        metadata: result.Metadata
       };
     } catch (error) {
       console.error(`❌ Get metadata error: ${path}`, error);
@@ -292,7 +311,7 @@ export class CDNService {
     try {
       const params = {
         Bucket: this.bucket,
-        Key: path.startsWith('/') ? path.substring(1) : path,
+        Key: path.startsWith('/') ? path.substring(1) : path
       };
 
       await this.s3Client.deleteObject(params).promise();
@@ -317,7 +336,7 @@ export class CDNService {
     try {
       const params = {
         Bucket: this.bucket,
-        MaxKeys: 1000,
+        MaxKeys: 1000
       };
 
       const result = await this.s3Client.listObjects(params).promise();
@@ -327,7 +346,9 @@ export class CDNService {
       let totalCompressed = 0;
 
       for (const obj of objects) {
-        const metadata = await this.getAssetMetadata(`/${obj.Key}`).catch(() => null);
+        const metadata = await this.getAssetMetadata(`/${obj.Key}`).catch(
+          () => null
+        );
         if (metadata) {
           totalSize += metadata.size;
           totalCompressed += metadata.size; // Actual compressed size
@@ -338,8 +359,11 @@ export class CDNService {
         totalAssets: objects.length,
         totalSize,
         totalCompressed,
-        compressionRatio: ((1 - totalCompressed / (totalSize || 1)) * 100).toFixed(2),
-        cdnDomain: this.cdnDomain,
+        compressionRatio: (
+          (1 - totalCompressed / (totalSize || 1)) *
+          100
+        ).toFixed(2),
+        cdnDomain: this.cdnDomain
       };
     } catch (error) {
       console.error('❌ Get stats error:', error);
@@ -356,13 +380,17 @@ export const cdnService = new CDNService();
 export const cdnMiddleware = (req, res, next) => {
   try {
     // Only process static assets
-    if (!req.path.match(/\.(js|css|json|png|jpg|jpeg|gif|webp|svg|woff|woff2|ttf)$/i)) {
+    if (
+      !req.path.match(
+        /\.(js|css|json|png|jpg|jpeg|gif|webp|svg|woff|woff2|ttf)$/i
+      )
+    ) {
       return next();
     }
 
     // Get asset URL from CDN
     const assetUrl = cdnService.getAssetUrl(req.path);
-    
+
     // Set response header to direct to CDN
     res.set('X-CDN-URL', assetUrl);
 

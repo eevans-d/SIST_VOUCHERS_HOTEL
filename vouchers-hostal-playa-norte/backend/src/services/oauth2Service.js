@@ -4,7 +4,7 @@ import fetch from 'node-fetch';
 
 /**
  * OAuth2/OpenID Connect Service
- * 
+ *
  * Implements OAuth 2.0 Authorization Code Flow with PKCE
  * and OpenID Connect (OIDC) support for third-party authentication
  */
@@ -14,7 +14,9 @@ class OAuth2Service {
       clientId: config.clientId || process.env.OAUTH_CLIENT_ID,
       clientSecret: config.clientSecret || process.env.OAUTH_CLIENT_SECRET,
       redirectUri: config.redirectUri || process.env.OAUTH_REDIRECT_URI,
-      discoveryUrl: config.discoveryUrl || 'https://accounts.google.com/.well-known/openid-configuration',
+      discoveryUrl:
+        config.discoveryUrl ||
+        'https://accounts.google.com/.well-known/openid-configuration',
       scopes: config.scopes || ['openid', 'profile', 'email'],
       responseType: config.responseType || 'code',
       authorizationEndpoint: config.authorizationEndpoint,
@@ -58,7 +60,8 @@ class OAuth2Service {
         const response = await fetch(this.config.discoveryUrl);
         this.openidConfig = await response.json();
 
-        this.config.authorizationEndpoint = this.openidConfig.authorization_endpoint;
+        this.config.authorizationEndpoint =
+          this.openidConfig.authorization_endpoint;
         this.config.tokenEndpoint = this.openidConfig.token_endpoint;
         this.config.userInfoEndpoint = this.openidConfig.userinfo_endpoint;
         this.config.jwksUri = this.openidConfig.jwks_uri;
@@ -175,7 +178,10 @@ class OAuth2Service {
         const pkceState = this.pkceStates.get(state);
         if (!pkceState || pkceState.used) {
           this.metrics.pkceFailures++;
-          return { error: 'PKCE validation failed', errorCode: 'PKCE_VALIDATION_FAILED' };
+          return {
+            error: 'PKCE validation failed',
+            errorCode: 'PKCE_VALIDATION_FAILED'
+          };
         }
         tokenRequest.code_verifier = pkceState.codeVerifier;
         pkceState.used = true;
@@ -193,14 +199,17 @@ class OAuth2Service {
 
       if (!response.ok) {
         this.metrics.failures++;
-        return { error: tokenResponse.error, errorCode: 'TOKEN_REQUEST_FAILED' };
+        return {
+          error: tokenResponse.error,
+          errorCode: 'TOKEN_REQUEST_FAILED'
+        };
       }
 
       // Store tokens
       const tokenId = crypto.randomUUID();
       this.accessTokens.set(tokenId, {
         accessToken: tokenResponse.access_token,
-        expiresAt: Date.now() + (tokenResponse.expires_in * 1000),
+        expiresAt: Date.now() + tokenResponse.expires_in * 1000,
         scope: tokenResponse.scope
       });
 
@@ -248,7 +257,10 @@ class OAuth2Service {
       const refreshTokenData = this.refreshTokens.get(tokenId);
       if (!refreshTokenData) {
         this.metrics.failures++;
-        return { error: 'Refresh token not found', errorCode: 'REFRESH_TOKEN_NOT_FOUND' };
+        return {
+          error: 'Refresh token not found',
+          errorCode: 'REFRESH_TOKEN_NOT_FOUND'
+        };
       }
 
       const refreshRequest = {
@@ -274,7 +286,7 @@ class OAuth2Service {
       // Update access token
       this.accessTokens.set(tokenId, {
         accessToken: tokenResponse.access_token,
-        expiresAt: Date.now() + (tokenResponse.expires_in * 1000),
+        expiresAt: Date.now() + tokenResponse.expires_in * 1000,
         scope: tokenResponse.scope
       });
 
@@ -308,14 +320,17 @@ class OAuth2Service {
     try {
       const response = await fetch(this.config.userInfoEndpoint, {
         headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Accept': 'application/json'
+          Authorization: `Bearer ${accessToken}`,
+          Accept: 'application/json'
         }
       });
 
       if (!response.ok) {
         this.metrics.failures++;
-        return { error: 'User info request failed', errorCode: 'USER_INFO_FAILED' };
+        return {
+          error: 'User info request failed',
+          errorCode: 'USER_INFO_FAILED'
+        };
       }
 
       const userInfo = await response.json();
@@ -375,7 +390,7 @@ class OAuth2Service {
   _getPublicKeyForToken(kid) {
     if (!this.jwks) return this.config.jwtSecret;
 
-    const key = this.jwks.keys.find(k => k.kid === kid);
+    const key = this.jwks.keys.find((k) => k.kid === kid);
     if (!key) return this.config.jwtSecret;
 
     // This is a simplified version. In production, use jwk-to-pem or similar
@@ -475,7 +490,7 @@ class OAuth2Service {
    */
   generateAuthorizationCode(userId, scopes = [], expiresIn = 600) {
     const code = this._generateSecureString(48);
-    const expiresAt = Date.now() + (expiresIn * 1000);
+    const expiresAt = Date.now() + expiresIn * 1000;
 
     this.authorizationCodes.set(code, {
       userId,
@@ -544,7 +559,8 @@ class OAuth2Service {
 
     // Clean expired PKCE states (should be used quickly)
     for (const [state, data] of this.pkceStates.entries()) {
-      if (Date.now() - data.timestamp > 600000) { // 10 min timeout
+      if (Date.now() - data.timestamp > 600000) {
+        // 10 min timeout
         this.pkceStates.delete(state);
         cleaned++;
       }
@@ -564,7 +580,7 @@ class OAuth2Service {
    * Reset service metrics
    */
   resetMetrics() {
-    Object.keys(this.metrics).forEach(key => {
+    Object.keys(this.metrics).forEach((key) => {
       this.metrics[key] = 0;
     });
     return true;
@@ -593,7 +609,9 @@ class OAuth2Service {
 
   _generateCodeVerifier() {
     const length = Math.floor(Math.random() * 74) + 43;
-    return crypto.randomBytes(Math.ceil(length * 3 / 4)).toString('base64url');
+    return crypto
+      .randomBytes(Math.ceil((length * 3) / 4))
+      .toString('base64url');
   }
 
   _generateCodeChallenge(codeVerifier) {

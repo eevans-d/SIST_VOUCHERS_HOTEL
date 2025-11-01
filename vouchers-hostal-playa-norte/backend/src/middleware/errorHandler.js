@@ -35,7 +35,7 @@ class ConflictError extends AppError {
 // Middleware de manejo de errores
 function errorHandler(err, req, res, next) {
   const correlationId = req.correlationId || 'unknown';
-  
+
   // Error operacional esperado
   if (err.isOperational) {
     logger.warn({
@@ -47,7 +47,7 @@ function errorHandler(err, req, res, next) {
       path: req.path,
       method: req.method
     });
-    
+
     return res.status(err.statusCode).json({
       error: err.errorCode,
       message: err.message,
@@ -55,7 +55,7 @@ function errorHandler(err, req, res, next) {
       correlation_id: correlationId
     });
   }
-  
+
   // Error no esperado
   logger.error({
     event: 'unexpected_error',
@@ -66,12 +66,13 @@ function errorHandler(err, req, res, next) {
     method: req.method,
     user_id: req.user?.id
   });
-  
+
   // No exponer detalles en producción
-  const message = process.env.NODE_ENV === 'production' 
-    ? 'Error interno del servidor'
-    : err.message;
-  
+  const message =
+    process.env.NODE_ENV === 'production'
+      ? 'Error interno del servidor'
+      : err.message;
+
   res.status(500).json({
     error: 'INTERNAL_SERVER_ERROR',
     message,
@@ -87,7 +88,7 @@ function notFoundHandler(req, res) {
     path: req.path,
     method: req.method
   });
-  
+
   res.status(404).json({
     error: 'ROUTE_NOT_FOUND',
     message: 'Ruta no encontrada',

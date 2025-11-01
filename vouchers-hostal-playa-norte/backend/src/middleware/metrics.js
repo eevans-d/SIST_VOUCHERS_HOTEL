@@ -11,7 +11,7 @@ const register = new client.Registry();
 const defaultLabels = {
   app: process.env.APP_NAME || 'voucher-system',
   env: process.env.NODE_ENV || 'development',
-  version: process.env.APP_VERSION || 'unknown',
+  version: process.env.APP_VERSION || 'unknown'
 };
 register.setDefaultLabels(defaultLabels);
 
@@ -22,7 +22,7 @@ client.collectDefaultMetrics({ register });
 const httpRequestsTotal = new client.Counter({
   name: 'http_requests_total',
   help: 'Total de requests HTTP',
-  labelNames: ['method', 'route', 'status_code'],
+  labelNames: ['method', 'route', 'status_code']
 });
 register.registerMetric(httpRequestsTotal);
 
@@ -31,7 +31,7 @@ const httpRequestDurationSeconds = new client.Histogram({
   name: 'http_request_duration_seconds',
   help: 'Duración de requests HTTP en segundos',
   labelNames: ['method', 'route', 'status_code'],
-  buckets: [0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2, 3, 5],
+  buckets: [0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2, 3, 5]
 });
 register.registerMetric(httpRequestDurationSeconds);
 
@@ -39,7 +39,7 @@ register.registerMetric(httpRequestDurationSeconds);
 const httpServerErrorsTotal = new client.Counter({
   name: 'http_server_errors_total',
   help: 'Total de errores 5xx en el servidor',
-  labelNames: ['route', 'status_code'],
+  labelNames: ['route', 'status_code']
 });
 register.registerMetric(httpServerErrorsTotal);
 
@@ -47,7 +47,7 @@ register.registerMetric(httpServerErrorsTotal);
 const dbErrorsTotal = new client.Counter({
   name: 'db_errors_total',
   help: 'Total de errores en operaciones de base de datos',
-  labelNames: ['operation', 'error_code'],
+  labelNames: ['operation', 'error_code']
 });
 register.registerMetric(dbErrorsTotal);
 
@@ -67,14 +67,17 @@ export function metricsMiddleware() {
       const labels = {
         method: req.method,
         route: routeLabel,
-        status_code: String(res.statusCode),
+        status_code: String(res.statusCode)
       };
 
       httpRequestsTotal.inc(labels);
       httpRequestDurationSeconds.observe(labels, durationSeconds);
 
       if (res.statusCode >= 500) {
-        httpServerErrorsTotal.inc({ route: routeLabel, status_code: String(res.statusCode) });
+        httpServerErrorsTotal.inc({
+          route: routeLabel,
+          status_code: String(res.statusCode)
+        });
       }
     });
 
@@ -121,5 +124,5 @@ export default {
   metricsHandler,
   registerDefaultMetrics,
   recordDbError,
-  register,
+  register
 };

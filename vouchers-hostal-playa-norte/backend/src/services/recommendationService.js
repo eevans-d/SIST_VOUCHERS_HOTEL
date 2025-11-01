@@ -35,7 +35,7 @@ class RecommendationService {
     };
 
     this.roomProfiles.set(roomId, profile);
-    
+
     // Actualizar matriz de contenido
     this._updateContentSimilarities();
 
@@ -101,12 +101,19 @@ class RecommendationService {
       if (maxPrice && compRoom.price > maxPrice) continue; // Filtrar por precio
 
       // Calcular similaridad de contenido
-      const similarity = this._calculateContentSimilarity(referenceRoom, compRoom);
+      const similarity = this._calculateContentSimilarity(
+        referenceRoom,
+        compRoom
+      );
 
       recommendations.push({
         roomId: compRoomId,
         similarity: similarity.toFixed(3),
-        reason: this._generateRecommendationReason(referenceRoom, compRoom, similarity),
+        reason: this._generateRecommendationReason(
+          referenceRoom,
+          compRoom,
+          similarity
+        ),
         room: compRoom
       });
     }
@@ -140,22 +147,25 @@ class RecommendationService {
     const recommendations = new Map();
 
     for (const { userId: similarUserId, similarity } of similarUsers) {
-      const similarUserHistory = this.interactionHistory.get(similarUserId) || [];
+      const similarUserHistory =
+        this.interactionHistory.get(similarUserId) || [];
 
       for (const interaction of similarUserHistory) {
-        if (interaction.action === 'book' || 
-            (interaction.action === 'rate' && interaction.data.rating >= 4)) {
-          
+        if (
+          interaction.action === 'book' ||
+          (interaction.action === 'rate' && interaction.data.rating >= 4)
+        ) {
           // No recomendar lo que ya vio/bookeo el usuario
-          if (!userHistory.some(h => h.roomId === interaction.roomId)) {
+          if (!userHistory.some((h) => h.roomId === interaction.roomId)) {
             const key = interaction.roomId;
-            const current = recommendations.get(key) || { 
-              roomId: key, 
-              score: 0, 
-              supporters: 0 
+            const current = recommendations.get(key) || {
+              roomId: key,
+              score: 0,
+              supporters: 0
             };
-            
-            current.score += similarity * (interaction.action === 'book' ? 1.5 : 1.0);
+
+            current.score +=
+              similarity * (interaction.action === 'book' ? 1.5 : 1.0);
             current.supporters += 1;
             recommendations.set(key, current);
           }
@@ -165,7 +175,7 @@ class RecommendationService {
 
     // Ordenar por score
     return Array.from(recommendations.values())
-      .map(rec => ({
+      .map((rec) => ({
         ...rec,
         score: rec.score.toFixed(3),
         room: this.roomProfiles.get(rec.roomId),
@@ -183,11 +193,14 @@ class RecommendationService {
    * @returns {array} Recomendaciones híbridas combinadas
    */
   getHybridRecommendations(userId, roomId = null, count = 5) {
-    const contentRecs = roomId 
+    const contentRecs = roomId
       ? this.getContentBasedRecommendations(roomId, count * 2)
       : [];
 
-    const collaborativeRecs = this.getCollaborativeRecommendations(userId, count * 2);
+    const collaborativeRecs = this.getCollaborativeRecommendations(
+      userId,
+      count * 2
+    );
 
     // Combinar puntajes
     const combined = new Map();
@@ -196,7 +209,7 @@ class RecommendationService {
     for (let i = 0; i < contentRecs.length; i++) {
       const rec = contentRecs[i];
       const score = (contentRecs.length - i) / contentRecs.length; // Ranking to score
-      
+
       if (!combined.has(rec.roomId)) {
         combined.set(rec.roomId, {
           roomId: rec.roomId,
@@ -206,7 +219,7 @@ class RecommendationService {
           reasons: []
         });
       }
-      
+
       combined.get(rec.roomId).contentScore = score;
       combined.get(rec.roomId).reasons.push(rec.reason);
     }
@@ -215,7 +228,7 @@ class RecommendationService {
     for (let i = 0; i < collaborativeRecs.length; i++) {
       const rec = collaborativeRecs[i];
       const score = (collaborativeRecs.length - i) / collaborativeRecs.length;
-      
+
       if (!combined.has(rec.roomId)) {
         combined.set(rec.roomId, {
           roomId: rec.roomId,
@@ -231,9 +244,12 @@ class RecommendationService {
 
     // Calcular puntuación híbrida (ponderada)
     const hybridRecs = Array.from(combined.values())
-      .map(rec => ({
+      .map((rec) => ({
         ...rec,
-        hybridScore: (0.4 * rec.contentScore + 0.6 * rec.collaborativeScore).toFixed(3),
+        hybridScore: (
+          0.4 * rec.contentScore +
+          0.6 * rec.collaborativeScore
+        ).toFixed(3),
         contentWeight: '40%',
         collaborativeWeight: '60%'
       }))
@@ -259,15 +275,23 @@ class RecommendationService {
     for (const [roomId, room] of this.roomProfiles) {
       // Excluir habitaciones vistas recientemente
       const userHistory = this.interactionHistory.get(userId) || [];
-      if (userHistory.some(h => h.roomId === roomId && 
-          Date.now() - h.timestamp < 7 * 24 * 60 * 60 * 1000)) {
+      if (
+        userHistory.some(
+          (h) =>
+            h.roomId === roomId &&
+            Date.now() - h.timestamp < 7 * 24 * 60 * 60 * 1000
+        )
+      ) {
         continue;
       }
 
       let score = 0;
 
       // Preferencia de tipo
-      if (mergedPrefs.preferredType && room.type === mergedPrefs.preferredType) {
+      if (
+        mergedPrefs.preferredType &&
+        room.type === mergedPrefs.preferredType
+      ) {
         score += 25;
       }
 
@@ -281,8 +305,8 @@ class RecommendationService {
 
       // Amenities deseados
       if (mergedPrefs.desiredAmenities) {
-        const matchCount = mergedPrefs.desiredAmenities.filter(
-          a => room.amenities.includes(a)
+        const matchCount = mergedPrefs.desiredAmenities.filter((a) =>
+          room.amenities.includes(a)
         ).length;
         score += matchCount * 5;
       }
@@ -303,7 +327,10 @@ class RecommendationService {
       }
 
       // Vista preferida
-      if (mergedPrefs.preferredView && room.views === mergedPrefs.preferredView) {
+      if (
+        mergedPrefs.preferredView &&
+        room.views === mergedPrefs.preferredView
+      ) {
         score += 10;
       }
 
@@ -346,9 +373,10 @@ class RecommendationService {
     // Amenities: Jaccard similarity
     const amenSet1 = new Set(room1.amenities);
     const amenSet2 = new Set(room2.amenities);
-    const intersection = new Set([...amenSet1].filter(a => amenSet2.has(a)));
+    const intersection = new Set([...amenSet1].filter((a) => amenSet2.has(a)));
     const union = new Set([...amenSet1, ...amenSet2]);
-    const amenScore = union.size > 0 ? (intersection.size / union.size) * 20 : 0;
+    const amenScore =
+      union.size > 0 ? (intersection.size / union.size) * 20 : 0;
     similarity += amenScore;
     factors += 20;
 
@@ -383,16 +411,18 @@ class RecommendationService {
       return [];
     }
 
-    const userRooms = new Set(userHistory.map(h => h.roomId));
+    const userRooms = new Set(userHistory.map((h) => h.roomId));
     const similarUsers = [];
 
     for (const [otherUserId, otherHistory] of this.interactionHistory) {
       if (otherUserId === userId) continue;
 
-      const otherRooms = new Set(otherHistory.map(h => h.roomId));
+      const otherRooms = new Set(otherHistory.map((h) => h.roomId));
 
       // Jaccard similarity
-      const intersection = new Set([...userRooms].filter(r => otherRooms.has(r)));
+      const intersection = new Set(
+        [...userRooms].filter((r) => otherRooms.has(r))
+      );
       const union = new Set([...userRooms, ...otherRooms]);
 
       const similarity = union.size > 0 ? intersection.size / union.size : 0;
@@ -450,7 +480,7 @@ class RecommendationService {
     }
 
     return scored
-      .filter(s => parseFloat(s.score) > 0)
+      .filter((s) => parseFloat(s.score) > 0)
       .sort((a, b) => parseFloat(b.score) - parseFloat(a.score))
       .slice(0, count);
   }
@@ -464,9 +494,9 @@ class RecommendationService {
     if (history.length === 0) return;
 
     const bookedRooms = history
-      .filter(h => h.action === 'book')
-      .map(h => this.roomProfiles.get(h.roomId))
-      .filter(r => r);
+      .filter((h) => h.action === 'book')
+      .map((h) => this.roomProfiles.get(h.roomId))
+      .filter((r) => r);
 
     if (bookedRooms.length === 0) {
       this.userPreferences.set(userId, {});
@@ -474,10 +504,10 @@ class RecommendationService {
     }
 
     // Calcular preferencias basadas en bookings
-    const types = bookedRooms.map(r => r.type);
-    const prices = bookedRooms.map(r => r.price);
-    const capacities = bookedRooms.map(r => r.capacity);
-    const views = bookedRooms.map(r => r.views);
+    const types = bookedRooms.map((r) => r.type);
+    const prices = bookedRooms.map((r) => r.price);
+    const capacities = bookedRooms.map((r) => r.capacity);
+    const views = bookedRooms.map((r) => r.views);
 
     const preferences = {
       preferredType: this._mostFrequent(types),
@@ -486,10 +516,12 @@ class RecommendationService {
         min: Math.min(...prices),
         max: Math.max(...prices)
       },
-      preferredCapacity: Math.round(capacities.reduce((a, b) => a + b, 0) / capacities.length),
+      preferredCapacity: Math.round(
+        capacities.reduce((a, b) => a + b, 0) / capacities.length
+      ),
       preferredView: this._mostFrequent(views),
       desiredAmenities: this._getMostCommonAmenities(bookedRooms, 3),
-      totalBookings: history.filter(h => h.action === 'book').length
+      totalBookings: history.filter((h) => h.action === 'book').length
     };
 
     this.userPreferences.set(userId, preferences);
@@ -511,9 +543,13 @@ class RecommendationService {
       reasons.push(`Comparable price ($${compRoom.price})`);
     }
 
-    const commonAmenities = refRoom.amenities.filter(a => compRoom.amenities.includes(a));
+    const commonAmenities = refRoom.amenities.filter((a) =>
+      compRoom.amenities.includes(a)
+    );
     if (commonAmenities.length > 0) {
-      reasons.push(`Shared amenities: ${commonAmenities.slice(0, 2).join(', ')}`);
+      reasons.push(
+        `Shared amenities: ${commonAmenities.slice(0, 2).join(', ')}`
+      );
     }
 
     if (compRoom.rating > 4.5) {
@@ -542,8 +578,8 @@ class RecommendationService {
     }
 
     if (preferences.desiredAmenities) {
-      const matchCount = preferences.desiredAmenities.filter(
-        a => room.amenities.includes(a)
+      const matchCount = preferences.desiredAmenities.filter((a) =>
+        room.amenities.includes(a)
       ).length;
       if (matchCount > 0) {
         matched.push(`Has ${matchCount} desired amenities`);
@@ -555,7 +591,7 @@ class RecommendationService {
     }
 
     if (preferences.minRating && room.rating >= preferences.minRating) {
-      matched.push(`Meets rating requirement`);
+      matched.push('Meets rating requirement');
     }
 
     return matched;
@@ -571,7 +607,7 @@ class RecommendationService {
     for (const val of arr) {
       freq[val] = (freq[val] || 0) + 1;
     }
-    return Object.keys(freq).reduce((a, b) => freq[a] > freq[b] ? a : b);
+    return Object.keys(freq).reduce((a, b) => (freq[a] > freq[b] ? a : b));
   }
 
   /**
@@ -602,7 +638,10 @@ class RecommendationService {
       const similarities = {};
       for (const [roomId2, room2] of this.roomProfiles) {
         if (roomId1 !== roomId2) {
-          similarities[roomId2] = this._calculateContentSimilarity(room1, room2);
+          similarities[roomId2] = this._calculateContentSimilarity(
+            room1,
+            room2
+          );
         }
       }
       this.contentMatrix.set(roomId1, similarities);
@@ -628,8 +667,10 @@ class RecommendationService {
     return {
       totalRooms: this.roomProfiles.size,
       totalUsers: this.interactionHistory.size,
-      totalInteractions: Array.from(this.interactionHistory.values())
-        .reduce((sum, arr) => sum + arr.length, 0),
+      totalInteractions: Array.from(this.interactionHistory.values()).reduce(
+        (sum, arr) => sum + arr.length,
+        0
+      ),
       interactionTypes: this._countInteractionTypes(),
       avgRoomRating: this._calculateAvgRating(),
       topRatedRooms: this._getTopRatedRooms(5)
@@ -651,7 +692,7 @@ class RecommendationService {
     for (const [, room] of this.roomProfiles) {
       ratings.push(room.rating);
     }
-    return ratings.length > 0 
+    return ratings.length > 0
       ? (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1)
       : 0;
   }
@@ -660,7 +701,7 @@ class RecommendationService {
     return Array.from(this.roomProfiles.values())
       .sort((a, b) => b.rating - a.rating)
       .slice(0, count)
-      .map(r => ({ roomId: r.roomId, rating: r.rating, type: r.type }));
+      .map((r) => ({ roomId: r.roomId, rating: r.rating, type: r.type }));
   }
 
   /**

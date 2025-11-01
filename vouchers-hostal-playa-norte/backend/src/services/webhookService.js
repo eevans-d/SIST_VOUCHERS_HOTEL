@@ -6,7 +6,7 @@ const logger = pino();
 
 /**
  * Webhook Service - Gestión de suscripciones y entregas de eventos
- * 
+ *
  * Características:
  * - Suscripciones a eventos
  * - Reintento exponencial
@@ -23,7 +23,7 @@ class WebhookService {
       maxBackoff: config.maxBackoff || 60000,
       timeout: config.timeout || 5000,
       batchSize: config.batchSize || 100,
-      ...config,
+      ...config
     };
 
     this.subscriptions = new Map(); // Map<subscriptionId, subscription>
@@ -35,7 +35,7 @@ class WebhookService {
       deliveriesSuccessful: 0,
       deliveriesFailed: 0,
       deliveriesRetried: 0,
-      totalRetries: 0,
+      totalRetries: 0
     };
   }
 
@@ -49,7 +49,7 @@ class WebhookService {
       events = ['*'],
       secret,
       active = true,
-      headers = {},
+      headers = {}
     } = data;
 
     if (!userId || !url) {
@@ -82,7 +82,7 @@ class WebhookService {
       createdAt: new Date(),
       updatedAt: new Date(),
       lastTriggeredAt: null,
-      failureCount: 0,
+      failureCount: 0
     };
 
     this.subscriptions.set(subscriptionId, subscription);
@@ -90,26 +90,30 @@ class WebhookService {
 
     // Persistir en DB
     try {
-      this.db.prepare(`
+      this.db
+        .prepare(
+          `
         INSERT INTO webhooks (id, user_id, url, events, secret, active, headers, created_at)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-      `).run(
-        subscriptionId,
-        userId,
-        url,
-        JSON.stringify(events),
-        generatedSecret,
-        active ? 1 : 0,
-        JSON.stringify(headers),
-        new Date().toISOString()
-      );
+      `
+        )
+        .run(
+          subscriptionId,
+          userId,
+          url,
+          JSON.stringify(events),
+          generatedSecret,
+          active ? 1 : 0,
+          JSON.stringify(headers),
+          new Date().toISOString()
+        );
     } catch (error) {
       logger.error('Error saving webhook to DB:', error);
     }
 
     return {
       ...subscription,
-      secret: generatedSecret, // Solo mostrar una vez
+      secret: generatedSecret // Solo mostrar una vez
     };
   }
 
@@ -147,25 +151,29 @@ class WebhookService {
     const updated = {
       ...subscription,
       ...updates,
-      updatedAt: new Date(),
+      updatedAt: new Date()
     };
 
     this.subscriptions.set(subscriptionId, updated);
 
     // Actualizar en DB
     try {
-      this.db.prepare(`
+      this.db
+        .prepare(
+          `
         UPDATE webhooks
         SET url = ?, events = ?, active = ?, headers = ?, updated_at = ?
         WHERE id = ?
-      `).run(
-        updated.url,
-        JSON.stringify(updated.events),
-        updated.active ? 1 : 0,
-        JSON.stringify(updated.headers),
-        updated.updatedAt.toISOString(),
-        subscriptionId
-      );
+      `
+        )
+        .run(
+          updated.url,
+          JSON.stringify(updated.events),
+          updated.active ? 1 : 0,
+          JSON.stringify(updated.headers),
+          updated.updatedAt.toISOString(),
+          subscriptionId
+        );
     } catch (error) {
       logger.error('Error updating webhook in DB:', error);
     }
@@ -206,8 +214,12 @@ class WebhookService {
     this.stats.eventsPublished++;
 
     // Encontrar suscripciones coincidentes
-    const matchingSubscriptions = Array.from(this.subscriptions.values()).filter(
-      (sub) => sub.active && (sub.events.includes('*') || sub.events.includes(eventType))
+    const matchingSubscriptions = Array.from(
+      this.subscriptions.values()
+    ).filter(
+      (sub) =>
+        sub.active &&
+        (sub.events.includes('*') || sub.events.includes(eventType))
     );
 
     if (matchingSubscriptions.length === 0) {
@@ -217,7 +229,7 @@ class WebhookService {
     // Crear entregas
     const deliveries = matchingSubscriptions.map((subscription) => {
       const deliveryId = crypto.randomBytes(16).toString('hex');
-      
+
       const delivery = {
         id: deliveryId,
         subscriptionId: subscription.id,
@@ -228,26 +240,34 @@ class WebhookService {
         nextRetry: new Date(),
         createdAt: new Date(),
         updatedAt: new Date(),
-        signature: this.generateSignature(eventType, payload, subscription.secret),
+        signature: this.generateSignature(
+          eventType,
+          payload,
+          subscription.secret
+        )
       };
 
       this.deliveries.set(deliveryId, delivery);
-      
+
       // Persistir en DB
       try {
-        this.db.prepare(`
+        this.db
+          .prepare(
+            `
           INSERT INTO webhook_deliveries (id, subscription_id, event_type, payload, status, attempt, next_retry, created_at)
           VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        `).run(
-          deliveryId,
-          subscription.id,
-          eventType,
-          JSON.stringify(payload),
-          'pending',
-          0,
-          new Date().toISOString(),
-          new Date().toISOString()
-        );
+        `
+          )
+          .run(
+            deliveryId,
+            subscription.id,
+            eventType,
+            JSON.stringify(payload),
+            'pending',
+            0,
+            new Date().toISOString(),
+            new Date().toISOString()
+          );
       } catch (error) {
         logger.error('Error saving delivery to DB:', error);
       }
@@ -264,7 +284,7 @@ class WebhookService {
 
     return {
       sent: deliveries.length,
-      failed: 0,
+      failed: 0
     };
   }
 
@@ -285,7 +305,7 @@ class WebhookService {
           id: delivery.id,
           eventType: delivery.eventType,
           payload: delivery.payload,
-          timestamp: delivery.createdAt,
+          timestamp: delivery.createdAt
         },
         {
           timeout: this.config.timeout,
@@ -294,8 +314,8 @@ class WebhookService {
             'X-Webhook-Signature': delivery.signature,
             'X-Webhook-Delivery-Id': delivery.id,
             'X-Webhook-Event': delivery.eventType,
-            ...subscription.headers,
-          },
+            ...subscription.headers
+          }
         }
       );
 
@@ -303,24 +323,32 @@ class WebhookService {
         delivery.status = 'success';
         delivery.response = {
           status: response.status,
-          headers: response.headers,
+          headers: response.headers
         };
         this.stats.deliveriesSuccessful++;
 
         // Actualizar en DB
         try {
-          this.db.prepare(`
+          this.db
+            .prepare(
+              `
             UPDATE webhook_deliveries
             SET status = ?, updated_at = ?
             WHERE id = ?
-          `).run('success', new Date().toISOString(), delivery.id);
+          `
+            )
+            .run('success', new Date().toISOString(), delivery.id);
 
           // Actualizar último trigger
-          this.db.prepare(`
+          this.db
+            .prepare(
+              `
             UPDATE webhooks
             SET last_triggered_at = ?, failure_count = 0
             WHERE id = ?
-          `).run(new Date().toISOString(), delivery.subscriptionId);
+          `
+            )
+            .run(new Date().toISOString(), delivery.subscriptionId);
         } catch (error) {
           logger.error('Error updating delivery in DB:', error);
         }
@@ -330,7 +358,10 @@ class WebhookService {
 
       throw new Error(`HTTP ${response.status}`);
     } catch (error) {
-      logger.warn(`Delivery failed for ${delivery.subscriptionId}:`, error.message);
+      logger.warn(
+        `Delivery failed for ${delivery.subscriptionId}:`,
+        error.message
+      );
       delivery.attempt++;
       this.stats.deliveriesRetried++;
 
@@ -348,18 +379,22 @@ class WebhookService {
 
         // Actualizar en DB
         try {
-          this.db.prepare(`
+          this.db
+            .prepare(
+              `
             UPDATE webhook_deliveries
             SET status = ?, attempt = ?, next_retry = ?, error = ?, updated_at = ?
             WHERE id = ?
-          `).run(
-            'pending',
-            delivery.attempt,
-            delivery.nextRetry.toISOString(),
-            error.message,
-            new Date().toISOString(),
-            delivery.id
-          );
+          `
+            )
+            .run(
+              'pending',
+              delivery.attempt,
+              delivery.nextRetry.toISOString(),
+              error.message,
+              new Date().toISOString(),
+              delivery.id
+            );
         } catch (error) {
           logger.error('Error updating retry in DB:', error);
         }
@@ -379,22 +414,37 @@ class WebhookService {
         subscription.failureCount++;
         if (subscription.failureCount >= 10) {
           subscription.active = false;
-          logger.warn(`Webhook ${subscription.id} disabled after ${subscription.failureCount} failures`);
+          logger.warn(
+            `Webhook ${subscription.id} disabled after ${subscription.failureCount} failures`
+          );
         }
 
         // Actualizar en DB
         try {
-          this.db.prepare(`
+          this.db
+            .prepare(
+              `
             UPDATE webhook_deliveries
             SET status = ?, error = ?, updated_at = ?
             WHERE id = ?
-          `).run('failed', error.message, new Date().toISOString(), delivery.id);
+          `
+            )
+            .run(
+              'failed',
+              error.message,
+              new Date().toISOString(),
+              delivery.id
+            );
 
-          this.db.prepare(`
+          this.db
+            .prepare(
+              `
             UPDATE webhooks
             SET failure_count = failure_count + 1, active = ?
             WHERE id = ?
-          `).run(subscription.active ? 1 : 0, subscription.id);
+          `
+            )
+            .run(subscription.active ? 1 : 0, subscription.id);
         } catch (error) {
           logger.error('Error updating failed delivery in DB:', error);
         }
@@ -443,8 +493,9 @@ class WebhookService {
       pending: deliveries.filter((d) => d.status === 'pending').length,
       averageAttempts:
         deliveries.length > 0
-          ? deliveries.reduce((sum, d) => sum + d.attempt, 0) / deliveries.length
-          : 0,
+          ? deliveries.reduce((sum, d) => sum + d.attempt, 0) /
+            deliveries.length
+          : 0
     };
   }
 
@@ -454,13 +505,10 @@ class WebhookService {
   generateSignature(eventType, payload, secret) {
     const message = JSON.stringify({
       eventType,
-      payload,
+      payload
     });
 
-    return crypto
-      .createHmac('sha256', secret)
-      .update(message)
-      .digest('hex');
+    return crypto.createHmac('sha256', secret).update(message).digest('hex');
   }
 
   /**
@@ -484,7 +532,7 @@ class WebhookService {
       'cookie',
       'x-api-key',
       'x-secret',
-      'password',
+      'password'
     ];
 
     blacklist.forEach((key) => {
@@ -507,7 +555,7 @@ class WebhookService {
       pendingDeliveries: Array.from(this.deliveries.values()).filter(
         (d) => d.status === 'pending'
       ).length,
-      timestamp: new Date(),
+      timestamp: new Date()
     };
   }
 
@@ -521,7 +569,7 @@ class WebhookService {
       pendingDeliveries: Array.from(this.deliveries.values()).filter(
         (d) => d.status === 'pending'
       ).length,
-      timestamp: new Date(),
+      timestamp: new Date()
     };
   }
 
@@ -538,11 +586,15 @@ class WebhookService {
     subscription.failureCount = 0;
 
     try {
-      this.db.prepare(`
+      this.db
+        .prepare(
+          `
         UPDATE webhooks
         SET active = 1, failure_count = 0
         WHERE id = ?
-      `).run(subscriptionId);
+      `
+        )
+        .run(subscriptionId);
     } catch (error) {
       logger.error('Error restarting webhook:', error);
     }
@@ -568,9 +620,20 @@ export function publishWebhookEvent(webhookService, eventType, payload) {
   return webhookService.publishEvent(eventType, payload);
 }
 
-export function verifyWebhookSignature(webhookService, signature, eventType, payload, secret) {
+export function verifyWebhookSignature(
+  webhookService,
+  signature,
+  eventType,
+  payload,
+  secret
+) {
   try {
-    return webhookService.verifySignature(signature, eventType, payload, secret);
+    return webhookService.verifySignature(
+      signature,
+      eventType,
+      payload,
+      secret
+    );
   } catch (error) {
     return false;
   }

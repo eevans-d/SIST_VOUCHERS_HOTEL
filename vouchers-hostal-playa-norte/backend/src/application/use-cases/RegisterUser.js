@@ -16,7 +16,7 @@ const RegisterUserDTO = z.object({
   confirmPassword: z.string(),
   firstName: z.string().min(2, 'Mínimo 2 caracteres'),
   lastName: z.string().min(2, 'Mínimo 2 caracteres'),
-  phone: z.string().optional(),
+  phone: z.string().optional()
 });
 
 /**
@@ -51,7 +51,9 @@ export class RegisterUser {
       }
 
       // 2. Validar fortaleza de contraseña
-      const strength = this.passwordService.validateStrength(validated.password);
+      const strength = this.passwordService.validateStrength(
+        validated.password
+      );
       if (strength.score < 2) {
         throw new Error(
           `Contraseña ${strength.message}. Usa mayúsculas, números y caracteres especiales.`
@@ -60,7 +62,9 @@ export class RegisterUser {
 
       // 3. Verificar si email ya existe
       if (this.userRepository.emailExists(validated.email)) {
-        this.logger.warn(`Registro fallido: email ya existe: ${validated.email}`);
+        this.logger.warn(
+          `Registro fallido: email ya existe: ${validated.email}`
+        );
         throw new Error(`Email ya registrado: ${validated.email}`);
       }
 
@@ -75,19 +79,21 @@ export class RegisterUser {
         phone: validated.phone,
         passwordHash,
         role: 'guest', // Rol por defecto
-        isActive: true,
+        isActive: true
       });
 
       // 6. Persistir en base de datos
       const savedUser = this.userRepository.create(user);
 
       // 7. Log de registro exitoso
-      this.logger.info(`Registro exitoso para usuario: ${savedUser.email} (${savedUser.id})`);
+      this.logger.info(
+        `Registro exitoso para usuario: ${savedUser.email} (${savedUser.id})`
+      );
 
       // 8. Retornar resultado
       return {
         user: savedUser.toJSON(),
-        message: `Bienvenido ${savedUser.getFullName()}! Tu cuenta ha sido creada.`,
+        message: `Bienvenido ${savedUser.getFullName()}! Tu cuenta ha sido creada.`
       };
     } catch (error) {
       if (error instanceof z.ZodError) {

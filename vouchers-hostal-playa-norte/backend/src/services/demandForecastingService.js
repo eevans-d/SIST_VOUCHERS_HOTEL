@@ -2,7 +2,7 @@
  * Demand Forecasting Service
  * Predicts occupancy, pricing, and resource needs using ML
  * Issues: #26 → #27 (Performance Profiling → Demand Forecasting)
- * 
+ *
  * Pattern: Time-series analysis + ML forecasting
  * Features:
  *  - Exponential Smoothing (Holt-Winters)
@@ -24,7 +24,7 @@ export default class DemandForecastingService {
       seasonalPeriod: config.seasonalPeriod || 7, // weekly seasonality
       confidenceLevel: config.confidenceLevel || 0.95,
       minDataPoints: config.minDataPoints || 30,
-      ...config,
+      ...config
     };
 
     // Data storage
@@ -33,7 +33,7 @@ export default class DemandForecastingService {
     this.metrics = {
       mape: 0, // Mean Absolute Percentage Error
       rmse: 0, // Root Mean Square Error
-      mae: 0,  // Mean Absolute Error
+      mae: 0 // Mean Absolute Error
     };
   }
 
@@ -48,7 +48,7 @@ export default class DemandForecastingService {
       this.historicalData.set(metricName, {
         dates: [],
         values: [],
-        lastUpdated: Date.now(),
+        lastUpdated: Date.now()
       });
     }
 
@@ -63,15 +63,18 @@ export default class DemandForecastingService {
     const indices = data.dates
       .map((d, i) => ({ date: d, index: i }))
       .sort((a, b) => a.date - b.date)
-      .map(x => x.index);
+      .map((x) => x.index);
 
-    data.dates = indices.map(i => data.dates[i]);
-    data.values = indices.map(i => data.values[i]);
+    data.dates = indices.map((i) => data.dates[i]);
+    data.values = indices.map((i) => data.values[i]);
 
     // Keep only last N days
-    const cutoffTime = Date.now() - (this.config.trainingDataDays * 86400000);
+    const cutoffTime = Date.now() - this.config.trainingDataDays * 86400000;
     let keepIndex = 0;
-    while (keepIndex < data.dates.length && data.dates[keepIndex] < cutoffTime) {
+    while (
+      keepIndex < data.dates.length &&
+      data.dates[keepIndex] < cutoffTime
+    ) {
       keepIndex++;
     }
 
@@ -122,8 +125,10 @@ export default class DemandForecastingService {
     const trend = [values[1] - values[0]];
 
     for (let i = 1; i < values.length; i++) {
-      const newLevel = alpha * values[i] + (1 - alpha) * (level[i - 1] + trend[i - 1]);
-      const newTrend = beta * (newLevel - level[i - 1]) + (1 - beta) * trend[i - 1];
+      const newLevel =
+        alpha * values[i] + (1 - alpha) * (level[i - 1] + trend[i - 1]);
+      const newTrend =
+        beta * (newLevel - level[i - 1]) + (1 - beta) * trend[i - 1];
 
       level.push(newLevel);
       trend.push(newTrend);
@@ -155,7 +160,7 @@ export default class DemandForecastingService {
 
     // Normalize
     const avgIndex = seasonalIndices.reduce((a, b) => a + b, 0) / period;
-    return seasonalIndices.map(idx => idx / avgIndex);
+    return seasonalIndices.map((idx) => idx / avgIndex);
   }
 
   /**
@@ -192,7 +197,8 @@ export default class DemandForecastingService {
     const dayMs = 86400000;
 
     for (let i = 1; i <= horizon; i++) {
-      const seasonalIndex = seasonalIndices[(values.length + i - 1) % this.config.seasonalPeriod];
+      const seasonalIndex =
+        seasonalIndices[(values.length + i - 1) % this.config.seasonalPeriod];
       const prediction = (lastLevel + lastTrend * i) * seasonalIndex;
 
       // Calculate confidence interval
@@ -204,7 +210,7 @@ export default class DemandForecastingService {
       forecastDates.push(lastDate + i * dayMs);
       intervals.push({
         lower: Math.max(0, prediction - margin),
-        upper: prediction + margin,
+        upper: prediction + margin
       });
     }
 
@@ -216,7 +222,7 @@ export default class DemandForecastingService {
       level: lastLevel,
       trend: lastTrend,
       generatedAt: Date.now(),
-      horizon,
+      horizon
     };
 
     this.forecasts.set(metricName, forecast);
@@ -229,7 +235,9 @@ export default class DemandForecastingService {
    */
   _calculateStandardError(values) {
     const mean = values.reduce((a, b) => a + b, 0) / values.length;
-    const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length;
+    const variance =
+      values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) /
+      values.length;
     const stddev = Math.sqrt(variance);
     return stddev / Math.sqrt(values.length);
   }
@@ -240,9 +248,9 @@ export default class DemandForecastingService {
    */
   _getZScore(confidenceLevel) {
     const zScores = {
-      0.90: 1.645,
+      0.9: 1.645,
       0.95: 1.96,
-      0.99: 2.576,
+      0.99: 2.576
     };
     return zScores[confidenceLevel] || 1.96;
   }
@@ -284,7 +292,7 @@ export default class DemandForecastingService {
       previousAverage: olderAvg,
       changePercent: changePercent.toFixed(2),
       direction: changePercent > 0 ? 'increasing' : 'decreasing',
-      momentum: Math.abs(changePercent),
+      momentum: Math.abs(changePercent)
     };
   }
 
@@ -298,7 +306,8 @@ export default class DemandForecastingService {
     const nextPrediction = forecast.predictions[0];
     const interval = forecast.intervals[0];
 
-    const isAnomalous = actualValue < interval.lower || actualValue > interval.upper;
+    const isAnomalous =
+      actualValue < interval.lower || actualValue > interval.upper;
     const deviation = actualValue - nextPrediction;
     const deviationPercent = (deviation / nextPrediction) * 100;
 
@@ -310,7 +319,7 @@ export default class DemandForecastingService {
       deviationPercent: deviationPercent.toFixed(2),
       expectedRange: interval,
       isAnomalous,
-      severity: this._calculateAnomalySeverity(deviationPercent),
+      severity: this._calculateAnomalySeverity(deviationPercent)
     };
   }
 
@@ -361,7 +370,7 @@ export default class DemandForecastingService {
       mape: mape.toFixed(2),
       rmse: rmse.toFixed(2),
       mae: mae.toFixed(2),
-      accuracy: Math.max(0, 100 - mape).toFixed(2),
+      accuracy: Math.max(0, 100 - mape).toFixed(2)
     };
   }
 
@@ -401,7 +410,7 @@ export default class DemandForecastingService {
       volatility: this._calculateVolatility(values).toFixed(2),
       trend,
       peakPeriodsCount: peakDays.length,
-      lowPeriodsCount: values.filter(v => v < avg * 0.7).length,
+      lowPeriodsCount: values.filter((v) => v < avg * 0.7).length
     };
   }
 
@@ -411,7 +420,9 @@ export default class DemandForecastingService {
    */
   _calculateVolatility(values) {
     const mean = values.reduce((a, b) => a + b, 0) / values.length;
-    const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length;
+    const variance =
+      values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) /
+      values.length;
     return Math.sqrt(variance);
   }
 
@@ -422,7 +433,9 @@ export default class DemandForecastingService {
     const forecast = this.forecasts.get(metricName);
     if (!forecast) return null;
 
-    const avgPrediction = forecast.predictions.reduce((a, b) => a + b, 0) / forecast.predictions.length;
+    const avgPrediction =
+      forecast.predictions.reduce((a, b) => a + b, 0) /
+      forecast.predictions.length;
     const maxPrediction = Math.max(...forecast.predictions);
     const minPrediction = Math.min(...forecast.predictions);
 
@@ -434,8 +447,8 @@ export default class DemandForecastingService {
       recommendedResources: {
         minimum: Math.ceil(minPrediction * resourcesPerUnit),
         average: Math.round(avgPrediction * resourcesPerUnit),
-        peak: Math.ceil(maxPrediction * resourcesPerUnit),
-      },
+        peak: Math.ceil(maxPrediction * resourcesPerUnit)
+      }
     };
   }
 
@@ -445,7 +458,7 @@ export default class DemandForecastingService {
   getAllForecasts() {
     return Array.from(this.forecasts.entries()).map(([name, forecast]) => ({
       metricName: name,
-      ...forecast,
+      ...forecast
     }));
   }
 
@@ -457,7 +470,9 @@ export default class DemandForecastingService {
     if (!forecast) return null;
 
     const timestamp = typeof date === 'number' ? date : date.getTime();
-    const index = forecast.forecastDates.findIndex(d => Math.abs(d - timestamp) < 86400000);
+    const index = forecast.forecastDates.findIndex(
+      (d) => Math.abs(d - timestamp) < 86400000
+    );
 
     if (index === -1) return null;
 
@@ -465,7 +480,7 @@ export default class DemandForecastingService {
       metricName,
       date: new Date(forecast.forecastDates[index]),
       prediction: forecast.predictions[index],
-      interval: forecast.intervals[index],
+      interval: forecast.intervals[index]
     };
   }
 
@@ -481,10 +496,10 @@ export default class DemandForecastingService {
       new Date(date).toISOString(),
       forecast.predictions[i].toFixed(2),
       forecast.intervals[i].lower.toFixed(2),
-      forecast.intervals[i].upper.toFixed(2),
+      forecast.intervals[i].upper.toFixed(2)
     ]);
 
-    return [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    return [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
   }
 
   /**
@@ -495,15 +510,20 @@ export default class DemandForecastingService {
       status: 'healthy',
       metricsTracked: this.historicalData.size,
       forecastsGenerated: this.forecasts.size,
-      totalDataPoints: Array.from(this.historicalData.values())
-        .reduce((sum, d) => sum + d.values.length, 0),
-      modelAccuracy: this.metrics.mape > 0 ? `${(100 - parseFloat(this.metrics.mape)).toFixed(2)}%` : 'Not calculated',
+      totalDataPoints: Array.from(this.historicalData.values()).reduce(
+        (sum, d) => sum + d.values.length,
+        0
+      ),
+      modelAccuracy:
+        this.metrics.mape > 0
+          ? `${(100 - parseFloat(this.metrics.mape)).toFixed(2)}%`
+          : 'Not calculated',
       config: {
         forecastHorizon: this.config.forecastHorizon,
         seasonalPeriod: this.config.seasonalPeriod,
-        confidenceLevel: this.config.confidenceLevel,
+        confidenceLevel: this.config.confidenceLevel
       },
-      timestamp: Date.now(),
+      timestamp: Date.now()
     };
   }
 

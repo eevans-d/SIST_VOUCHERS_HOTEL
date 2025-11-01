@@ -49,12 +49,14 @@ export const logger = winston.createLogger({
 
 // Console en desarrollo
 if (process.env.NODE_ENV !== 'production') {
-  logger.add(new winston.transports.Console({
-    format: winston.format.combine(
-      winston.format.colorize(),
-      winston.format.simple()
-    )
-  }));
+  logger.add(
+    new winston.transports.Console({
+      format: winston.format.combine(
+        winston.format.colorize(),
+        winston.format.simple()
+      )
+    })
+  );
 }
 
 // Logger de auditoría (operaciones críticas)

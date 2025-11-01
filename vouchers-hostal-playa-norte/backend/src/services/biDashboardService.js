@@ -38,7 +38,7 @@ class BIDashboardService {
 
     // Keep only recent data
     this._cleanOldMetrics(key);
-    
+
     // Check for alerts
     this._checkAlerts(category, name, value);
 
@@ -171,9 +171,11 @@ class BIDashboardService {
     const revenueData = this.getMetric('finance', 'revenue');
     const bookingsData = this.getMetric('bookings', 'total');
 
-    const avgOccupancy = this._average(occupancyData.map(d => d.value));
-    const totalRevenue = this._sum(revenueData.slice(-30).map(d => d.value)); // Last 30 days
-    const totalBookings = this._sum(bookingsData.slice(-30).map(d => d.value));
+    const avgOccupancy = this._average(occupancyData.map((d) => d.value));
+    const totalRevenue = this._sum(revenueData.slice(-30).map((d) => d.value)); // Last 30 days
+    const totalBookings = this._sum(
+      bookingsData.slice(-30).map((d) => d.value)
+    );
 
     return {
       avgOccupancy: avgOccupancy.toFixed(1) + '%',
@@ -201,10 +203,10 @@ class BIDashboardService {
     const result = Object.entries(grouped).map(([key, values]) => ({
       dimension: key,
       count: values.length,
-      sum: this._sum(values.map(v => v.value)),
-      avg: this._average(values.map(v => v.value)),
-      min: Math.min(...values.map(v => v.value)),
-      max: Math.max(...values.map(v => v.value))
+      sum: this._sum(values.map((v) => v.value)),
+      avg: this._average(values.map((v) => v.value)),
+      min: Math.min(...values.map((v) => v.value)),
+      max: Math.max(...values.map((v) => v.value))
     }));
 
     return result.sort((a, b) => b.sum - a.sum);
@@ -222,8 +224,8 @@ class BIDashboardService {
       period2.end
     );
 
-    const avg1 = this._average(data1.map(d => d.value));
-    const avg2 = this._average(data2.map(d => d.value));
+    const avg1 = this._average(data1.map((d) => d.value));
+    const avg2 = this._average(data2.map((d) => d.value));
     const change = ((avg1 - avg2) / avg2) * 100;
 
     return {
@@ -241,14 +243,14 @@ class BIDashboardService {
     const days = parseInt(period);
     const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
 
-    const filtered = data.filter(d => d.timestamp >= cutoff);
+    const filtered = data.filter((d) => d.timestamp >= cutoff);
     const grouped = this._groupByDay(filtered);
 
     const trend = [];
     for (const [date, values] of Object.entries(grouped)) {
       trend.push({
         date,
-        value: this._average(values.map(v => v.value)),
+        value: this._average(values.map((v) => v.value)),
         count: values.length
       });
     }
@@ -264,9 +266,9 @@ class BIDashboardService {
     for (const [period, values] of Object.entries(grouped)) {
       pattern.push({
         period,
-        avg: this._average(values.map(v => v.value)),
-        min: Math.min(...values.map(v => v.value)),
-        max: Math.max(...values.map(v => v.value)),
+        avg: this._average(values.map((v) => v.value)),
+        min: Math.min(...values.map((v) => v.value)),
+        max: Math.max(...values.map((v) => v.value)),
         count: values.length
       });
     }
@@ -295,7 +297,11 @@ class BIDashboardService {
 
   _checkAlerts(category, name, value) {
     for (const alert of this.alerts) {
-      if (alert.active && alert.category === category && alert.metric === name) {
+      if (
+        alert.active &&
+        alert.category === category &&
+        alert.metric === name
+      ) {
         if (alert.condition(value, alert.threshold)) {
           alert.triggeredAt = Date.now();
           alert.triggeredValue = value;
@@ -307,12 +313,14 @@ class BIDashboardService {
 
   getActiveAlerts() {
     return this.alerts
-      .filter(a => a.active && a.triggeredAt && Date.now() - a.triggeredAt < 3600000)
+      .filter(
+        (a) => a.active && a.triggeredAt && Date.now() - a.triggeredAt < 3600000
+      )
       .sort((a, b) => b.triggeredAt - a.triggeredAt);
   }
 
   dismissAlert(id) {
-    const alert = this.alerts.find(a => a.id === id);
+    const alert = this.alerts.find((a) => a.id === id);
     if (alert) {
       alert.active = false;
       alert.dismissedAt = Date.now();
@@ -331,9 +339,9 @@ class BIDashboardService {
 
     if (format === 'csv') {
       if (data.length === 0) return '';
-      
+
       const headers = ['timestamp', 'value', 'date'];
-      const rows = data.map(d => [d.timestamp, d.value, d.date].join(','));
+      const rows = data.map((d) => [d.timestamp, d.value, d.date].join(','));
       return [headers.join(','), ...rows].join('\n');
     }
 
@@ -350,14 +358,18 @@ class BIDashboardService {
     };
 
     for (const section of config.sections) {
-      const data = this.getMetric(section.category, section.name, config.period);
+      const data = this.getMetric(
+        section.category,
+        section.name,
+        config.period
+      );
       report.sections.push({
         title: section.title,
         data: data,
         summary: {
           count: data.length,
-          avg: this._average(data.map(d => d.value)),
-          sum: this._sum(data.map(d => d.value))
+          avg: this._average(data.map((d) => d.value)),
+          sum: this._sum(data.map((d) => d.value))
         }
       });
     }
@@ -369,14 +381,14 @@ class BIDashboardService {
 
   _formatValue(value, format) {
     switch (format) {
-      case 'percentage':
-        return value.toFixed(1) + '%';
-      case 'currency':
-        return '$' + value.toFixed(2);
-      case 'integer':
-        return Math.round(value);
-      default:
-        return value;
+    case 'percentage':
+      return value.toFixed(1) + '%';
+    case 'currency':
+      return '$' + value.toFixed(2);
+    case 'integer':
+      return Math.round(value);
+    default:
+      return value;
     }
   }
 
@@ -404,7 +416,8 @@ class BIDashboardService {
     const historical = this.metrics.get(`kpi:${id}`) || [];
     if (historical.length < 2) return 'stable';
 
-    const previousValue = historical[historical.length - 2]?.value || currentValue;
+    const previousValue =
+      historical[historical.length - 2]?.value || currentValue;
     const change = ((currentValue - previousValue) / previousValue) * 100;
 
     if (Math.abs(change) < 1) return 'stable';
@@ -415,7 +428,7 @@ class BIDashboardService {
     const start = startDate ? new Date(startDate).getTime() : 0;
     const end = endDate ? new Date(endDate).getTime() : Date.now();
 
-    return data.filter(d => d.timestamp >= start && d.timestamp <= end);
+    return data.filter((d) => d.timestamp >= start && d.timestamp <= end);
   }
 
   _groupByDay(data) {
@@ -433,7 +446,7 @@ class BIDashboardService {
     for (const item of data) {
       const date = new Date(item.timestamp);
       let key;
-      
+
       if (granularity === 'month') {
         key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
       } else if (granularity === 'week') {
@@ -453,7 +466,7 @@ class BIDashboardService {
     d.setHours(0, 0, 0, 0);
     d.setDate(d.getDate() + 4 - (d.getDay() || 7));
     const yearStart = new Date(d.getFullYear(), 0, 1);
-    return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+    return Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
   }
 
   _average(values) {
@@ -467,8 +480,12 @@ class BIDashboardService {
 
   _cleanOldMetrics(key) {
     const data = this.metrics.get(key);
-    const cutoff = Date.now() - this.config.historicalDays * 24 * 60 * 60 * 1000;
-    this.metrics.set(key, data.filter(d => d.timestamp >= cutoff));
+    const cutoff =
+      Date.now() - this.config.historicalDays * 24 * 60 * 60 * 1000;
+    this.metrics.set(
+      key,
+      data.filter((d) => d.timestamp >= cutoff)
+    );
   }
 
   _getCache(key) {
@@ -498,7 +515,10 @@ class BIDashboardService {
       widgetsCreated: this.widgets.size,
       activeAlerts: this.getActiveAlerts().length,
       cacheSize: this.cache.size,
-      dataPoints: Array.from(this.metrics.values()).reduce((sum, arr) => sum + arr.length, 0)
+      dataPoints: Array.from(this.metrics.values()).reduce(
+        (sum, arr) => sum + arr.length,
+        0
+      )
     };
   }
 

@@ -9,7 +9,7 @@ const OrderItemSchema = z.object({
   productName: z.string(),
   quantity: z.number().int().min(1),
   unitPrice: z.number().min(0),
-  subtotal: z.number().min(0),
+  subtotal: z.number().min(0)
 });
 
 // Esquema principal de Order
@@ -24,7 +24,7 @@ export const OrderSchema = z.object({
   vouchersUsed: z.array(z.string()).optional(),
   notes: z.string().optional(),
   createdAt: z.date().optional(),
-  updatedAt: z.date().optional(),
+  updatedAt: z.date().optional()
 });
 
 /**
@@ -56,11 +56,11 @@ export class Order {
       status: 'open',
       items: [],
       createdAt: new Date(),
-      updatedAt: new Date(),
+      updatedAt: new Date()
     });
 
     // Agregar items iniciales si hay
-    items.forEach(item => {
+    items.forEach((item) => {
       const subtotal = item.quantity * item.unitPrice;
       order.items.push({
         id: item.id || uuidv4(),
@@ -69,7 +69,7 @@ export class Order {
         productName: item.productName,
         quantity: item.quantity,
         unitPrice: item.unitPrice,
-        subtotal,
+        subtotal
       });
     });
 
@@ -94,7 +94,7 @@ export class Order {
       productName,
       quantity,
       unitPrice,
-      subtotal,
+      subtotal
     };
 
     OrderItemSchema.parse(newItem);
@@ -111,7 +111,7 @@ export class Order {
       throw new Error('No se pueden remover items de una orden no abierta');
     }
 
-    this.items = this.items.filter(i => i.id !== itemId);
+    this.items = this.items.filter((i) => i.id !== itemId);
     this.recalculateTotals();
     this.updatedAt = new Date();
   }
@@ -124,7 +124,7 @@ export class Order {
       throw new Error('No se puede modificar una orden no abierta');
     }
 
-    const item = this.items.find(i => i.id === itemId);
+    const item = this.items.find((i) => i.id === itemId);
     if (!item) throw new Error('Item no encontrado');
 
     item.quantity += amount;
@@ -141,7 +141,7 @@ export class Order {
       throw new Error('No se puede modificar una orden no abierta');
     }
 
-    const item = this.items.find(i => i.id === itemId);
+    const item = this.items.find((i) => i.id === itemId);
     if (!item) throw new Error('Item no encontrado');
 
     if (item.quantity - amount < 1) {
@@ -217,7 +217,7 @@ export class Order {
       discount: this.discountAmount,
       finalTotal: this.finalTotal,
       vouchersUsed: this.vouchersUsed.length,
-      status: this.status,
+      status: this.status
     };
   }
 
@@ -236,7 +236,7 @@ export class Order {
       vouchersUsed: this.vouchersUsed,
       notes: this.notes,
       createdAt: this.createdAt,
-      updatedAt: this.updatedAt,
+      updatedAt: this.updatedAt
     };
   }
 
@@ -247,7 +247,7 @@ export class Order {
     return new Order({
       ...data,
       createdAt: new Date(data.createdAt),
-      updatedAt: new Date(data.updatedAt),
+      updatedAt: new Date(data.updatedAt)
     });
   }
 }

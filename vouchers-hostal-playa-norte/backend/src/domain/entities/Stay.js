@@ -13,7 +13,11 @@ import { v4 as uuidv4 } from 'uuid';
  * Ref: Pilar 2.1 (Standards & Validation)
  */
 const StaySchema = z.object({
-  id: z.string().uuid().optional().default(() => uuidv4()),
+  id: z
+    .string()
+    .uuid()
+    .optional()
+    .default(() => uuidv4()),
   userId: z.string().uuid('User ID inválido'),
   hotelCode: z.string().min(2, 'Código de hotel inválido').max(10),
   roomNumber: z.string().min(1, 'Número de habitación inválido').max(10),
@@ -24,10 +28,12 @@ const StaySchema = z.object({
   roomType: z.enum(['single', 'double', 'triple', 'suite']).default('double'),
   basePrice: z.number().positive('Precio base debe ser positivo'),
   totalPrice: z.number().positive('Precio total debe ser positivo'),
-  status: z.enum(['pending', 'active', 'completed', 'cancelled']).default('pending'),
+  status: z
+    .enum(['pending', 'active', 'completed', 'cancelled'])
+    .default('pending'),
   notes: z.string().max(500).optional(),
   createdAt: z.date().default(() => new Date()),
-  updatedAt: z.date().default(() => new Date()),
+  updatedAt: z.date().default(() => new Date())
 });
 
 /**
@@ -106,7 +112,7 @@ export class Stay {
     const now = new Date();
     if (now >= this.checkOutDate) return 0;
     if (now < this.checkInDate) return this.calculateNights();
-    
+
     const diffTime = Math.abs(this.checkOutDate - now);
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   }
@@ -205,7 +211,7 @@ export class Stay {
       isCheckInToday: this.isCheckInToday(),
       isCheckOutToday: this.isCheckOutToday(),
       createdAt: this.createdAt.toISOString(),
-      updatedAt: this.updatedAt.toISOString(),
+      updatedAt: this.updatedAt.toISOString()
     };
   }
 
@@ -229,7 +235,7 @@ export class Stay {
       status: this.status,
       notes: this.notes || null,
       createdAt: this.createdAt.toISOString(),
-      updatedAt: this.updatedAt.toISOString(),
+      updatedAt: this.updatedAt.toISOString()
     };
   }
 
@@ -244,7 +250,7 @@ export class Stay {
       checkInDate: new Date(data.checkInDate),
       checkOutDate: new Date(data.checkOutDate),
       createdAt: new Date(data.createdAt),
-      updatedAt: new Date(data.updatedAt),
+      updatedAt: new Date(data.updatedAt)
     });
   }
 }

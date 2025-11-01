@@ -1,12 +1,12 @@
 /**
  * Compliance & Audit Logging Service
- * 
+ *
  * Implements regulatory compliance tracking:
  * - GDPR (General Data Protection Regulation)
  * - HIPAA (Health Insurance Portability and Accountability Act)
  * - SOC2 (Service Organization Control 2)
  * - CCPA (California Consumer Privacy Act)
- * 
+ *
  * Provides comprehensive audit trails, data retention policies,
  * consent tracking, and compliance reporting
  */
@@ -18,31 +18,42 @@ class ComplianceService {
       enableHIPAA: config.enableHIPAA !== false,
       enableSOC2: config.enableSOC2 !== false,
       enableCCPA: config.enableCCPA !== false,
-      
+
       // Data retention policies (in days)
       dataRetentionPeriod: config.dataRetentionPeriod || 365,
       auditLogRetentionPeriod: config.auditLogRetentionPeriod || 2555, // 7 years
       consentRecordRetentionPeriod: config.consentRecordRetentionPeriod || 1825, // 5 years
-      
+
       // GDPR
       gdprDataCategories: config.gdprDataCategories || [
-        'personal_data', 'sensitive_data', 'financial_data', 'health_data'
+        'personal_data',
+        'sensitive_data',
+        'financial_data',
+        'health_data'
       ],
       gdprRights: config.gdprRights || [
-        'access', 'rectification', 'erasure', 'restriction', 'portability'
+        'access',
+        'rectification',
+        'erasure',
+        'restriction',
+        'portability'
       ],
-      
+
       // HIPAA
-      hipaaRequiredFieldsForMedicalRecords: config.hipaaRequiredFieldsForMedicalRecords || [
-        'patient_id', 'record_date', 'provider_id', 'clinical_notes'
-      ],
-      
+      hipaaRequiredFieldsForMedicalRecords:
+        config.hipaaRequiredFieldsForMedicalRecords || [
+          'patient_id',
+          'record_date',
+          'provider_id',
+          'clinical_notes'
+        ],
+
       // Audit settings
       auditLogLevel: config.auditLogLevel || 'INFO', // DEBUG, INFO, WARN, ERROR
       logAllDataAccess: config.logAllDataAccess !== false,
       logAllModifications: config.logAllModifications !== false,
       encryptAuditLogs: config.encryptAuditLogs !== false,
-      
+
       // Cleanup
       cleanupInterval: config.cleanupInterval || 3600000 // 1 hour
     };
@@ -107,7 +118,7 @@ class ComplianceService {
       dataCategory,
       granted,
       timestamp: Date.now(),
-      expiresAt: Date.now() + (365 * 24 * 60 * 60 * 1000), // 1 year
+      expiresAt: Date.now() + 365 * 24 * 60 * 60 * 1000, // 1 year
       ipAddress: details.ipAddress,
       userAgent: details.userAgent,
       consentMethod: details.consentMethod || 'explicit', // explicit, implicit, opt-out
@@ -135,7 +146,7 @@ class ComplianceService {
       requestType, // 'full', 'specific', 'deletion_verification'
       status: 'received',
       receivedAt: Date.now(),
-      expirationDate: Date.now() + (30 * 24 * 60 * 60 * 1000), // 30 days to respond
+      expirationDate: Date.now() + 30 * 24 * 60 * 60 * 1000, // 30 days to respond
       data: null,
       metadata: {}
     };
@@ -183,13 +194,13 @@ class ComplianceService {
 
     // Data to keep for compliance
     const retentionExceptions = [
-      'audit_logs',        // Legal retention
-      'tax_records',       // Tax compliance
-      'contract_records'   // Contract completion
+      'audit_logs', // Legal retention
+      'tax_records', // Tax compliance
+      'contract_records' // Contract completion
     ];
 
     const userData = this._collectUserData(userId);
-    
+
     for (const [category, data] of Object.entries(userData)) {
       if (!retentionExceptions.includes(category)) {
         deletionRecord.deletedRecords.push({
@@ -220,7 +231,7 @@ class ComplianceService {
       userId,
       format, // json, csv, xml
       generatedAt: Date.now(),
-      expiresAt: Date.now() + (30 * 24 * 60 * 60 * 1000), // 30 days
+      expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000, // 30 days
       data: userData,
       metadata: {
         recordCount: this._countRecords(userData),
@@ -250,7 +261,10 @@ class ComplianceService {
     };
 
     for (const [field, newValue] of Object.entries(corrections)) {
-      rectificationRecord.originalData[field] = this._getOriginalValue(userId, field);
+      rectificationRecord.originalData[field] = this._getOriginalValue(
+        userId,
+        field
+      );
       rectificationRecord.correctedData[field] = newValue;
 
       // Log the modification
@@ -314,12 +328,18 @@ class ComplianceService {
     }
 
     // Check for PHI (Protected Health Information) handling
-    if (medicalRecord.patientSocialSecurityNumber && !this._isEncrypted(medicalRecord.patientSocialSecurityNumber)) {
+    if (
+      medicalRecord.patientSocialSecurityNumber &&
+      !this._isEncrypted(medicalRecord.patientSocialSecurityNumber)
+    ) {
       validation.violations.push('Unencrypted SSN');
       validation.compliant = false;
     }
 
-    if (medicalRecord.medicalHistory && !this._isEncrypted(medicalRecord.medicalHistory)) {
+    if (
+      medicalRecord.medicalHistory &&
+      !this._isEncrypted(medicalRecord.medicalHistory)
+    ) {
       validation.violations.push('Unencrypted medical history');
       validation.compliant = false;
     }
@@ -361,8 +381,13 @@ class ComplianceService {
     }
 
     // Check data minimization
-    if (processingActivity.dataCategories && processingActivity.dataCategories.length > 5) {
-      validation.issues.push('Excessive data categories (data minimization principle)');
+    if (
+      processingActivity.dataCategories &&
+      processingActivity.dataCategories.length > 5
+    ) {
+      validation.issues.push(
+        'Excessive data categories (data minimization principle)'
+      );
       validation.compliant = false;
     }
 
@@ -393,7 +418,7 @@ class ComplianceService {
       framework,
       generatedAt: Date.now(),
       period: {
-        start: Date.now() - (90 * 24 * 60 * 60 * 1000), // Last 90 days
+        start: Date.now() - 90 * 24 * 60 * 60 * 1000, // Last 90 days
         end: Date.now()
       },
       summary: {},
@@ -428,8 +453,9 @@ class ComplianceService {
       };
     }
 
-    report.violations = Array.from(this.complianceViolations.values())
-      .filter(v => v.timestamp > report.period.start);
+    report.violations = Array.from(this.complianceViolations.values()).filter(
+      (v) => v.timestamp > report.period.start
+    );
 
     report.recommendations = this._generateRecommendations(framework);
 
@@ -442,8 +468,9 @@ class ComplianceService {
   enforceRetentionPolicies() {
     const now = Date.now();
     const retentionMs = this.config.dataRetentionPeriod * 24 * 60 * 60 * 1000;
-    const auditRetentionMs = this.config.auditLogRetentionPeriod * 24 * 60 * 60 * 1000;
-    
+    const auditRetentionMs =
+      this.config.auditLogRetentionPeriod * 24 * 60 * 60 * 1000;
+
     let purged = 0;
 
     // Purge regular data
@@ -521,7 +548,7 @@ class ComplianceService {
    * Reset metrics
    */
   resetMetrics() {
-    Object.keys(this.metrics).forEach(key => {
+    Object.keys(this.metrics).forEach((key) => {
       this.metrics[key] = 0;
     });
     return true;
@@ -552,16 +579,20 @@ class ComplianceService {
   }
 
   _categorizeData(resource) {
-    if (resource.includes('medical') || resource.includes('health')) return 'health_data';
-    if (resource.includes('payment') || resource.includes('card')) return 'financial_data';
-    if (resource.includes('profile') || resource.includes('user')) return 'personal_data';
+    if (resource.includes('medical') || resource.includes('health'))
+      return 'health_data';
+    if (resource.includes('payment') || resource.includes('card'))
+      return 'financial_data';
+    if (resource.includes('profile') || resource.includes('user'))
+      return 'personal_data';
     return 'general_data';
   }
 
   _getApplicableFrameworks(resource) {
     const frameworks = [];
     if (this.config.enableGDPR) frameworks.push('GDPR');
-    if (this.config.enableHIPAA && resource.includes('medical')) frameworks.push('HIPAA');
+    if (this.config.enableHIPAA && resource.includes('medical'))
+      frameworks.push('HIPAA');
     if (this.config.enableSOC2) frameworks.push('SOC2');
     return frameworks;
   }
@@ -629,8 +660,9 @@ class ComplianceService {
   }
 
   _countPendingRequests() {
-    return Array.from(this.dataAccessRequests.values())
-      .filter(r => r.status === 'pending').length;
+    return Array.from(this.dataAccessRequests.values()).filter(
+      (r) => r.status === 'pending'
+    ).length;
   }
 
   _countHIPAAViolations() {

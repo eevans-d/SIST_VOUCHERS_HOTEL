@@ -1,6 +1,6 @@
 /**
  * CompleteOrder - Use Case para completar y cancelar órdenes
- * 
+ *
  * REFACTORIZACIÓN (Issue #5):
  * - Extraído métodos auxiliares para reducir complejidad ciclomática (8 → 3)
  * - Mejorada legibilidad y testabilidad
@@ -36,7 +36,10 @@ export class CompleteOrder {
 
       return this._formatCompletionResponse(order);
     } catch (error) {
-      this.logger.error('Error completando orden', { error: error.message, orderId });
+      this.logger.error('Error completando orden', {
+        error: error.message,
+        orderId
+      });
       throw error;
     }
   }
@@ -49,14 +52,17 @@ export class CompleteOrder {
     try {
       const order = this._findOrder(orderId);
       this._validateCancellation(order);
-      
+
       this._cancelOrder(order, reason);
       await this._saveOrder(order);
       this._logCancellation(order, reason);
 
       return this._formatCancellationResponse(order);
     } catch (error) {
-      this.logger.error('Error cancelando orden', { error: error.message, orderId });
+      this.logger.error('Error cancelando orden', {
+        error: error.message,
+        orderId
+      });
       throw error;
     }
   }
@@ -83,13 +89,13 @@ export class CompleteOrder {
    */
   _validateOrder(orderId) {
     const order = this._findOrder(orderId);
-    
+
     if (order.status !== 'open') {
       throw new Error(
         `No se puede completar orden con estado: ${order.status}. Solo 'open' permitido.`
       );
     }
-    
+
     return order;
   }
 
@@ -129,7 +135,7 @@ export class CompleteOrder {
 
     for (const code of voucherCodes) {
       const result = await this._processVoucher(code, orderId);
-      
+
       if (result.success) {
         appliedVouchers.push(result.voucherId);
       } else {
@@ -144,7 +150,10 @@ export class CompleteOrder {
 
     // Registrar fallos pero no fallar la completación
     if (failedVouchers.length > 0) {
-      this.logger.warn('Algunos vouchers fallaron', { failedVouchers, orderId });
+      this.logger.warn('Algunos vouchers fallaron', {
+        failedVouchers,
+        orderId
+      });
     }
   }
 
@@ -159,7 +168,7 @@ export class CompleteOrder {
         code,
         `Canjeado en orden: ${orderId}`
       );
-      
+
       if (!result.voucherId) {
         throw new Error('No se obtuvo ID de voucher');
       }
@@ -179,7 +188,7 @@ export class CompleteOrder {
    */
   _applyDiscounts(order, appliedVouchers) {
     const defaultDiscountPerVoucher = 10; // Monto por defecto
-    
+
     order.vouchersUsed = appliedVouchers;
     order.discountAmount = appliedVouchers.length * defaultDiscountPerVoucher;
     order.recalculateTotals();
@@ -229,7 +238,7 @@ export class CompleteOrder {
       subtotal: order.total,
       discountApplied: order.discountAmount,
       finalTotal: order.finalTotal,
-      vouchersUsed: order.vouchersUsed.length,
+      vouchersUsed: order.vouchersUsed.length
     });
   }
 
@@ -241,7 +250,7 @@ export class CompleteOrder {
     this.logger.info('Orden cancelada', {
       orderId: order.id,
       stayId: order.stayId,
-      reason: reason || '(sin motivo)',
+      reason: reason || '(sin motivo)'
     });
   }
 
@@ -257,14 +266,16 @@ export class CompleteOrder {
     return {
       id: order.id,
       status: order.status,
-      summary: order.getSummary ? order.getSummary() : {
-        itemCount: order.items.length,
-        subtotal: order.total,
-        discount: order.discountAmount,
-        finalTotal: order.finalTotal,
-      },
+      summary: order.getSummary
+        ? order.getSummary()
+        : {
+          itemCount: order.items.length,
+          subtotal: order.total,
+          discount: order.discountAmount,
+          finalTotal: order.finalTotal
+        },
       vouchersApplied: order.vouchersUsed.length,
-      message: 'Orden completada exitosamente',
+      message: 'Orden completada exitosamente'
     };
   }
 
@@ -276,7 +287,7 @@ export class CompleteOrder {
     return {
       id: order.id,
       status: order.status,
-      message: 'Orden cancelada exitosamente',
+      message: 'Orden cancelada exitosamente'
     };
   }
 }

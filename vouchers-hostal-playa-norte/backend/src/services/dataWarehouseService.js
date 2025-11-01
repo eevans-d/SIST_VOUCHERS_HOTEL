@@ -26,12 +26,12 @@ class DataWarehouseService {
   // Initialize warehouse connection
   initializeWarehouse() {
     switch (this.config.provider) {
-      case 'bigquery':
-        return this.initializeBigQuery();
-      case 'redshift':
-        return this.initializeRedshift();
-      default:
-        return this.initializeLocal();
+    case 'bigquery':
+      return this.initializeBigQuery();
+    case 'redshift':
+      return this.initializeRedshift();
+    default:
+      return this.initializeLocal();
     }
   }
 
@@ -135,7 +135,7 @@ class DataWarehouseService {
     };
 
     this.pipelines.set(pipeline.id, pipeline);
-    
+
     if (config.autoStart) {
       this.startPipeline(pipeline.id);
     }
@@ -151,24 +151,29 @@ class DataWarehouseService {
     }
 
     const startTime = Date.now();
-    
+
     try {
       // Extract
       const extractedData = await this.extract(pipeline.source);
-      
+
       // Transform
-      const transformedData = await this.transform(extractedData, pipeline.transformations);
-      
+      const transformedData = await this.transform(
+        extractedData,
+        pipeline.transformations
+      );
+
       // Load
       await this.load(transformedData, pipeline.destination);
-      
+
       // Update stats
       const duration = Date.now() - startTime;
       pipeline.stats.totalRuns++;
       pipeline.stats.successRuns++;
       pipeline.stats.totalRecords += transformedData.length;
-      pipeline.stats.avgDuration = 
-        (pipeline.stats.avgDuration * (pipeline.stats.totalRuns - 1) + duration) / pipeline.stats.totalRuns;
+      pipeline.stats.avgDuration =
+        (pipeline.stats.avgDuration * (pipeline.stats.totalRuns - 1) +
+          duration) /
+        pipeline.stats.totalRuns;
       pipeline.lastRun = new Date();
 
       return {
@@ -180,7 +185,7 @@ class DataWarehouseService {
     } catch (error) {
       pipeline.stats.totalRuns++;
       pipeline.stats.failedRuns++;
-      
+
       throw error;
     }
   }
@@ -193,16 +198,16 @@ class DataWarehouseService {
     }
 
     switch (source.type) {
-      case 'database':
-        return this.extractFromDatabase(source);
-      case 'api':
-        return this.extractFromAPI(source);
-      case 'file':
-        return this.extractFromFile(source);
-      case 'stream':
-        return this.extractFromStream(source);
-      default:
-        throw new Error(`Unsupported source type: ${source.type}`);
+    case 'database':
+      return this.extractFromDatabase(source);
+    case 'api':
+      return this.extractFromAPI(source);
+    case 'file':
+      return this.extractFromFile(source);
+    case 'stream':
+      return this.extractFromStream(source);
+    default:
+      throw new Error(`Unsupported source type: ${source.type}`);
     }
   }
 
@@ -210,11 +215,11 @@ class DataWarehouseService {
   async extractFromDatabase(source) {
     // Simulated database extraction
     const data = [];
-    
+
     for (const table of source.tables) {
       const query = source.extractQuery || `SELECT * FROM ${table}`;
       const rows = await this.executeQuery(source.connection, query);
-      data.push(...rows.map(row => ({ ...row, __table: table })));
+      data.push(...rows.map((row) => ({ ...row, __table: table })));
     }
 
     return data;
@@ -252,29 +257,37 @@ class DataWarehouseService {
   // Apply single transformation
   async applyTransformation(data, transformation) {
     switch (transformation.type) {
-      case 'map':
-        return data.map(transformation.function);
-      
-      case 'filter':
-        return data.filter(transformation.function);
-      
-      case 'aggregate':
-        return this.aggregateData(data, transformation.groupBy, transformation.aggregations);
-      
-      case 'join':
-        return this.joinData(data, transformation.joinData, transformation.joinKey);
-      
-      case 'deduplicate':
-        return this.deduplicateData(data, transformation.key);
-      
-      case 'validate':
-        return data.filter(item => transformation.function(item));
-      
-      case 'enrich':
-        return this.enrichData(data, transformation.enrichFunction);
-      
-      default:
-        return data;
+    case 'map':
+      return data.map(transformation.function);
+
+    case 'filter':
+      return data.filter(transformation.function);
+
+    case 'aggregate':
+      return this.aggregateData(
+        data,
+        transformation.groupBy,
+        transformation.aggregations
+      );
+
+    case 'join':
+      return this.joinData(
+        data,
+        transformation.joinData,
+        transformation.joinKey
+      );
+
+    case 'deduplicate':
+      return this.deduplicateData(data, transformation.key);
+
+    case 'validate':
+      return data.filter((item) => transformation.function(item));
+
+    case 'enrich':
+      return this.enrichData(data, transformation.enrichFunction);
+
+    default:
+      return data;
     }
   }
 
@@ -282,7 +295,7 @@ class DataWarehouseService {
   aggregateData(data, groupBy, aggregations) {
     const grouped = {};
 
-    data.forEach(item => {
+    data.forEach((item) => {
       const key = groupBy ? item[groupBy] : 'all';
       if (!grouped[key]) {
         grouped[key] = [];
@@ -292,26 +305,34 @@ class DataWarehouseService {
 
     return Object.entries(grouped).map(([key, items]) => {
       const result = { [groupBy || 'group']: key };
-      
-      aggregations.forEach(agg => {
-        const values = items.map(item => item[agg.column]);
-        
+
+      aggregations.forEach((agg) => {
+        const values = items.map((item) => item[agg.column]);
+
         switch (agg.function) {
-          case 'sum':
-            result[`${agg.column}_sum`] = values.reduce((sum, val) => sum + (val || 0), 0);
-            break;
-          case 'avg':
-            result[`${agg.column}_avg`] = values.reduce((sum, val) => sum + (val || 0), 0) / values.length;
-            break;
-          case 'count':
-            result[`${agg.column}_count`] = values.length;
-            break;
-          case 'min':
-            result[`${agg.column}_min`] = Math.min(...values.filter(v => v != null));
-            break;
-          case 'max':
-            result[`${agg.column}_max`] = Math.max(...values.filter(v => v != null));
-            break;
+        case 'sum':
+          result[`${agg.column}_sum`] = values.reduce(
+            (sum, val) => sum + (val || 0),
+            0
+          );
+          break;
+        case 'avg':
+          result[`${agg.column}_avg`] =
+              values.reduce((sum, val) => sum + (val || 0), 0) / values.length;
+          break;
+        case 'count':
+          result[`${agg.column}_count`] = values.length;
+          break;
+        case 'min':
+          result[`${agg.column}_min`] = Math.min(
+            ...values.filter((v) => v != null)
+          );
+          break;
+        case 'max':
+          result[`${agg.column}_max`] = Math.max(
+            ...values.filter((v) => v != null)
+          );
+          break;
         }
       });
 
@@ -321,9 +342,9 @@ class DataWarehouseService {
 
   // Join data
   joinData(data1, data2, joinKey) {
-    const data2Map = new Map(data2.map(item => [item[joinKey], item]));
-    
-    return data1.map(item => {
+    const data2Map = new Map(data2.map((item) => [item[joinKey], item]));
+
+    return data1.map((item) => {
       const joined = data2Map.get(item[joinKey]);
       return joined ? { ...item, ...joined } : item;
     });
@@ -332,7 +353,7 @@ class DataWarehouseService {
   // Deduplicate data
   deduplicateData(data, key) {
     const seen = new Set();
-    return data.filter(item => {
+    return data.filter((item) => {
       const keyValue = item[key];
       if (seen.has(keyValue)) {
         return false;
@@ -344,13 +365,13 @@ class DataWarehouseService {
 
   // Enrich data
   async enrichData(data, enrichFunction) {
-    return Promise.all(data.map(item => enrichFunction(item)));
+    return Promise.all(data.map((item) => enrichFunction(item)));
   }
 
   // Load data to warehouse
   async load(data, destination) {
     const table = destination || 'fact_bookings';
-    
+
     // Batch insert
     for (let i = 0; i < data.length; i += this.config.batchSize) {
       const batch = data.slice(i, i + this.config.batchSize);
@@ -388,7 +409,10 @@ class DataWarehouseService {
     }
 
     // Fetch source data
-    const sourceData = await this.warehouse.select(aggregation.sourceTable, aggregation.filters);
+    const sourceData = await this.warehouse.select(
+      aggregation.sourceTable,
+      aggregation.filters
+    );
 
     // Group by dimensions
     const grouped = this.groupByDimensions(sourceData, aggregation.dimensions);
@@ -413,8 +437,8 @@ class DataWarehouseService {
   groupByDimensions(data, dimensions) {
     const grouped = {};
 
-    data.forEach(item => {
-      const key = dimensions.map(dim => item[dim]).join('|');
+    data.forEach((item) => {
+      const key = dimensions.map((dim) => item[dim]).join('|');
       if (!grouped[key]) {
         grouped[key] = {
           dimensions: dimensions.reduce((obj, dim) => {
@@ -432,32 +456,36 @@ class DataWarehouseService {
 
   // Calculate metrics
   calculateMetrics(groups, metrics) {
-    return groups.map(group => {
+    return groups.map((group) => {
       const result = { ...group.dimensions };
 
-      metrics.forEach(metric => {
-        const values = group.records.map(r => r[metric.column]);
-        
+      metrics.forEach((metric) => {
+        const values = group.records.map((r) => r[metric.column]);
+
         switch (metric.aggregation) {
-          case 'sum':
-            result[metric.name || `${metric.column}_sum`] = 
-              values.reduce((sum, val) => sum + (val || 0), 0);
-            break;
-          case 'avg':
-            result[metric.name || `${metric.column}_avg`] = 
+        case 'sum':
+          result[metric.name || `${metric.column}_sum`] = values.reduce(
+            (sum, val) => sum + (val || 0),
+            0
+          );
+          break;
+        case 'avg':
+          result[metric.name || `${metric.column}_avg`] =
               values.reduce((sum, val) => sum + (val || 0), 0) / values.length;
-            break;
-          case 'count':
-            result[metric.name || 'count'] = values.length;
-            break;
-          case 'min':
-            result[metric.name || `${metric.column}_min`] = 
-              Math.min(...values.filter(v => v != null));
-            break;
-          case 'max':
-            result[metric.name || `${metric.column}_max`] = 
-              Math.max(...values.filter(v => v != null));
-            break;
+          break;
+        case 'count':
+          result[metric.name || 'count'] = values.length;
+          break;
+        case 'min':
+          result[metric.name || `${metric.column}_min`] = Math.min(
+            ...values.filter((v) => v != null)
+          );
+          break;
+        case 'max':
+          result[metric.name || `${metric.column}_max`] = Math.max(
+            ...values.filter((v) => v != null)
+          );
+          break;
         }
       });
 
@@ -478,7 +506,7 @@ class DataWarehouseService {
     }
 
     pipeline.enabled = true;
-    
+
     // Execute immediately
     this.executePipeline(pipelineId).catch(console.error);
   }
@@ -564,7 +592,9 @@ class DataWarehouseService {
       provider: this.warehouse.type,
       connected: this.warehouse.connected,
       dataSources: this.dataSources.size,
-      activePipelines: Array.from(this.pipelines.values()).filter(p => p.enabled).length
+      activePipelines: Array.from(this.pipelines.values()).filter(
+        (p) => p.enabled
+      ).length
     };
   }
 }

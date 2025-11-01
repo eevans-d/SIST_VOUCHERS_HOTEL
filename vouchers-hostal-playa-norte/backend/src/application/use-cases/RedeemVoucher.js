@@ -1,3 +1,5 @@
+import { AppError } from '../../middleware/errorHandler.js';
+
 /**
  * RedeemVoucher - Use Case para redimir vouchers
  * Realiza redención atómica con validación
@@ -14,21 +16,24 @@ export class RedeemVoucher {
   async execute({ voucherCode, notes = '' }) {
     try {
       // Usar operación atómica del repository
-      const result = this.voucherRepository.validateAndRedeem(voucherCode, notes);
+      const result = this.voucherRepository.validateAndRedeem(
+        voucherCode,
+        notes
+      );
 
       this.logger.info(`Voucher canjeado: ${voucherCode}`, {
-        voucherId: result.voucherId,
+        voucherId: result.voucherId
       });
 
       return {
         success: true,
         voucherId: result.voucherId,
         status: result.status,
-        message: 'Voucher canjeado exitosamente',
+        message: 'Voucher canjeado exitosamente'
       };
     } catch (error) {
       this.logger.warn(`Error canjeando voucher: ${voucherCode}`, {
-        error: error.message,
+        error: error.message
       });
 
       throw new AppError(error.message, 400);
@@ -51,7 +56,7 @@ export class RedeemVoucher {
         failed: result.failed.length,
         successful_list: result.successful,
         failed_list: result.failed,
-        message: `${result.successful.length} vouchers canjeados, ${result.failed.length} fallidos`,
+        message: `${result.successful.length} vouchers canjeados, ${result.failed.length} fallidos`
       };
 
       this.logger.info('Lote de vouchers procesado', summary);
@@ -77,7 +82,7 @@ export class RedeemVoucher {
       if (voucher.status !== 'active') {
         return {
           canRedeem: false,
-          reason: `Voucher no está activo (${voucher.status})`,
+          reason: `Voucher no está activo (${voucher.status})`
         };
       }
 
@@ -88,7 +93,7 @@ export class RedeemVoucher {
       return {
         canRedeem: true,
         voucherId: voucher.id,
-        expiryDate: voucher.expiryDate,
+        expiryDate: voucher.expiryDate
       };
     } catch (error) {
       this.logger.error('Error validando redención', { error });

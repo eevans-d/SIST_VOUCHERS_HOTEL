@@ -116,7 +116,7 @@ export class UserRepository {
 
     const stmt = this.db.prepare(query);
     const rows = stmt.all(...params);
-    return rows.map(row => User.fromPersistence(row));
+    return rows.map((row) => User.fromPersistence(row));
   }
 
   /**

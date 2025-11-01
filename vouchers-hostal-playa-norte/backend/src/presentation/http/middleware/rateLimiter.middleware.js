@@ -4,13 +4,13 @@
  * @author GitHub Copilot
  * @date 2025-10-22
  * @version 1.0.0
- * 
+ *
  * Implementa:
  * - Rate limiting global (100 req/15min por IP)
  * - Rate limiting específico para /login (5 intentos fallidos/15min)
  * - Rate limiting específico para /register (3 intentos/15min)
  * - Almacenamiento en memoria (development) o Redis (production)
- * 
+ *
  * @ref PLAN_IMPLEMENTACION_ROADMAP.md - Issue P0 #1
  * @ref SECURITY_CHECKLIST.md
  */
@@ -39,15 +39,15 @@ export const globalLimiter = rateLimit({
     res.status(429).json({
       success: false,
       error: 'Demasiadas solicitudes. Por favor intenta más tarde.',
-      retryAfter: req.rateLimit.resetTime,
+      retryAfter: req.rateLimit.resetTime
     });
-  },
+  }
 });
 
 /**
  * RATE LIMITING PARA LOGIN
  * Máximo 5 intentos fallidos por IP en 15 minutos
- * 
+ *
  * IMPORTANTE: Este limiter usa skipSuccessfulRequests=true
  * Esto significa que SOLO cuenta los intentos FALLIDOS (status != 2xx)
  */
@@ -56,7 +56,8 @@ export const loginLimiter = rateLimit({
   max: 5, // 5 intentos fallidos máximo
   skipSuccessfulRequests: true, // Resetea contador después de login exitoso
   skipFailedRequests: false, // Cuenta todos los intentos fallidos
-  message: 'Demasiados intentos de login fallidos. Tu cuenta está temporalmente bloqueada.',
+  message:
+    'Demasiados intentos de login fallidos. Tu cuenta está temporalmente bloqueada.',
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: (req) => {
@@ -68,10 +69,11 @@ export const loginLimiter = rateLimit({
   handler: (req, res) => {
     res.status(429).json({
       success: false,
-      error: 'Demasiados intentos de login fallidos. Tu cuenta está temporalmente bloqueada por 15 minutos.',
-      retryAfter: Math.ceil(req.rateLimit.resetTime / 1000),
+      error:
+        'Demasiados intentos de login fallidos. Tu cuenta está temporalmente bloqueada por 15 minutos.',
+      retryAfter: Math.ceil(req.rateLimit.resetTime / 1000)
     });
-  },
+  }
 });
 
 /**
@@ -92,10 +94,11 @@ export const registerLimiter = rateLimit({
   handler: (req, res) => {
     res.status(429).json({
       success: false,
-      error: 'Demasiados intentos de registro desde esta IP. Intenta en 15 minutos.',
-      retryAfter: Math.ceil(req.rateLimit.resetTime / 1000),
+      error:
+        'Demasiados intentos de registro desde esta IP. Intenta en 15 minutos.',
+      retryAfter: Math.ceil(req.rateLimit.resetTime / 1000)
     });
-  },
+  }
 });
 
 /**
@@ -117,9 +120,9 @@ export const refreshTokenLimiter = rateLimit({
     res.status(429).json({
       success: false,
       error: 'Demasiados intentos de refresh. Intenta más tarde.',
-      retryAfter: Math.ceil(req.rateLimit.resetTime / 1000),
+      retryAfter: Math.ceil(req.rateLimit.resetTime / 1000)
     });
-  },
+  }
 });
 
 /**
@@ -136,15 +139,17 @@ export const redeemVoucherLimiter = rateLimit({
   legacyHeaders: false,
   keyGenerator: (req) => {
     // Limitar por usuario autenticado
-    return req.user?.id || req.headers['x-forwarded-for']?.split(',')[0] || req.ip;
+    return (
+      req.user?.id || req.headers['x-forwarded-for']?.split(',')[0] || req.ip
+    );
   },
   handler: (req, res) => {
     res.status(429).json({
       success: false,
       error: 'Límite de intentos de redeem excedido. Intenta en 1 hora.',
-      retryAfter: Math.ceil(req.rateLimit.resetTime / 1000),
+      retryAfter: Math.ceil(req.rateLimit.resetTime / 1000)
     });
-  },
+  }
 });
 
 /**
@@ -161,15 +166,17 @@ export const apiLimiter = rateLimit({
   legacyHeaders: false,
   keyGenerator: (req) => {
     // Limitar por usuario autenticado o IP
-    return req.user?.id || req.headers['x-forwarded-for']?.split(',')[0] || req.ip;
+    return (
+      req.user?.id || req.headers['x-forwarded-for']?.split(',')[0] || req.ip
+    );
   },
   handler: (req, res) => {
     res.status(429).json({
       success: false,
       error: 'Has excedido el límite de la API. Intenta en 1 hora.',
-      retryAfter: Math.ceil(req.rateLimit.resetTime / 1000),
+      retryAfter: Math.ceil(req.rateLimit.resetTime / 1000)
     });
-  },
+  }
 });
 
 /**
@@ -182,7 +189,7 @@ export function getRateLimitInfo(req) {
     limit: req.rateLimit?.limit || 0,
     remaining: req.rateLimit?.remaining || 0,
     resetTime: req.rateLimit?.resetTime || null,
-    retryAfter: Math.ceil((req.rateLimit?.resetTime - Date.now()) / 1000) || 0,
+    retryAfter: Math.ceil((req.rateLimit?.resetTime - Date.now()) / 1000) || 0
   };
 }
 
@@ -195,7 +202,7 @@ export const rateLimiters = {
   register: registerLimiter,
   refreshToken: refreshTokenLimiter,
   redeemVoucher: redeemVoucherLimiter,
-  api: apiLimiter,
+  api: apiLimiter
 };
 
 export default rateLimiters;

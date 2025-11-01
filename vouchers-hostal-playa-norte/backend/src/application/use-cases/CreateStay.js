@@ -15,11 +15,17 @@ const CreateStayDTO = z.object({
   userId: z.string().uuid('User ID inválido'),
   hotelCode: z.string().min(2).max(10),
   roomNumber: z.string().min(1).max(10),
-  checkInDate: z.string().datetime().transform(d => new Date(d)),
-  checkOutDate: z.string().datetime().transform(d => new Date(d)),
+  checkInDate: z
+    .string()
+    .datetime()
+    .transform((d) => new Date(d)),
+  checkOutDate: z
+    .string()
+    .datetime()
+    .transform((d) => new Date(d)),
   numberOfGuests: z.number().int().min(1).max(10),
   roomType: z.enum(['single', 'double', 'triple', 'suite']).optional(),
-  basePrice: z.number().positive(),
+  basePrice: z.number().positive()
 });
 
 /**
@@ -50,7 +56,9 @@ export class CreateStay {
       // 1. Verificar que usuario existe
       const user = this.userRepository.findById(validated.userId);
       if (!user) {
-        this.logger.warn(`CreateStay: usuario no encontrado: ${validated.userId}`);
+        this.logger.warn(
+          `CreateStay: usuario no encontrado: ${validated.userId}`
+        );
         throw new Error(`Usuario no encontrado: ${validated.userId}`);
       }
 
@@ -61,7 +69,10 @@ export class CreateStay {
       }
 
       // 3. Calcular cantidad de noches
-      const nights = this.calculateNights(validated.checkInDate, validated.checkOutDate);
+      const nights = this.calculateNights(
+        validated.checkInDate,
+        validated.checkOutDate
+      );
       if (nights < 1) {
         throw new Error('Duración mínima de estadía: 1 noche');
       }
@@ -102,7 +113,7 @@ export class CreateStay {
         roomType: validated.roomType || 'double',
         basePrice: validated.basePrice,
         totalPrice,
-        status: 'pending',
+        status: 'pending'
       });
 
       // 8. Persistir en base de datos
@@ -116,7 +127,7 @@ export class CreateStay {
       // 10. Retornar resultado
       return {
         stay: savedStay.toJSON(),
-        message: `Estadía creada exitosamente. Check-in: ${validated.checkInDate.toLocaleDateString('es-ES')}, ${nights} noche(s).`,
+        message: `Estadía creada exitosamente. Check-in: ${validated.checkInDate.toLocaleDateString('es-ES')}, ${nights} noche(s).`
       };
     } catch (error) {
       if (error instanceof z.ZodError) {

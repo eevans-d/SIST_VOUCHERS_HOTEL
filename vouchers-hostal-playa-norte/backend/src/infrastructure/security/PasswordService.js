@@ -49,7 +49,8 @@ export class PasswordService {
    * @returns {string}
    */
   generateTempPassword(length = 12) {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+    const chars =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
     let password = '';
     for (let i = 0; i < length; i++) {
       password += chars.charAt(Math.floor(Math.random() * chars.length));
@@ -79,12 +80,12 @@ export class PasswordService {
       2: 'Regular',
       3: 'Buena',
       4: 'Fuerte',
-      5: 'Muy fuerte',
+      5: 'Muy fuerte'
     };
 
     return {
       score,
-      message: messages[score] || 'Desconocida',
+      message: messages[score] || 'Desconocida'
     };
   }
 }

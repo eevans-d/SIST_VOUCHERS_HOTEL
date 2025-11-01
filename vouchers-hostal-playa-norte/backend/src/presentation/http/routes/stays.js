@@ -38,7 +38,7 @@ export function createStaysRoutes(services) {
         stays = stayRepository.findAll({
           status,
           limit,
-          offset,
+          offset
         });
         total = stayRepository.countByStatus(status || 'active');
       } else {
@@ -46,15 +46,15 @@ export function createStaysRoutes(services) {
         stays = stayRepository.findByUserId(req.user.sub, {
           status,
           limit,
-          offset,
+          offset
         });
         total = stayRepository.findByUserId(req.user.sub).length;
       }
 
       res.json({
         success: true,
-        data: stays.map(s => s.toJSON()),
-        pagination: { limit, offset, total },
+        data: stays.map((s) => s.toJSON()),
+        pagination: { limit, offset, total }
       });
     } catch (error) {
       next(error);
@@ -72,21 +72,25 @@ export function createStaysRoutes(services) {
       if (!stay) {
         return res.status(404).json({
           success: false,
-          error: 'Estadía no encontrada',
+          error: 'Estadía no encontrada'
         });
       }
 
       // Verificar permisos
-      if (req.user.role !== 'admin' && req.user.role !== 'staff' && stay.userId !== req.user.sub) {
+      if (
+        req.user.role !== 'admin' &&
+        req.user.role !== 'staff' &&
+        stay.userId !== req.user.sub
+      ) {
         return res.status(403).json({
           success: false,
-          error: 'No tienes permiso para ver esta estadía',
+          error: 'No tienes permiso para ver esta estadía'
         });
       }
 
       res.json({
         success: true,
-        data: stay.toJSON(),
+        data: stay.toJSON()
       });
     } catch (error) {
       next(error);
@@ -101,7 +105,7 @@ export function createStaysRoutes(services) {
    */
   router.post('/', authenticateToken, async (req, res, next) => {
     try {
-      let input = { ...req.body };
+      const input = { ...req.body };
 
       // Si es guest, forzar que sea para sí mismo
       if (req.user.role === 'guest') {
@@ -113,7 +117,7 @@ export function createStaysRoutes(services) {
       res.status(201).json({
         success: true,
         data: result.stay,
-        message: result.message,
+        message: result.message
       });
     } catch (error) {
       next(error);
@@ -133,7 +137,7 @@ export function createStaysRoutes(services) {
       if (!stay) {
         return res.status(404).json({
           success: false,
-          error: 'Estadía no encontrada',
+          error: 'Estadía no encontrada'
         });
       }
 
@@ -141,7 +145,7 @@ export function createStaysRoutes(services) {
       if (req.user.role === 'guest' && stay.userId !== req.user.sub) {
         return res.status(403).json({
           success: false,
-          error: 'No tienes permiso para actualizar esta estadía',
+          error: 'No tienes permiso para actualizar esta estadía'
         });
       }
 
@@ -149,17 +153,25 @@ export function createStaysRoutes(services) {
       if (req.user.role === 'guest' && stay.status !== 'pending') {
         return res.status(403).json({
           success: false,
-          error: 'Solo puedes actualizar estadías pendientes',
+          error: 'Solo puedes actualizar estadías pendientes'
         });
       }
 
       // Filtrar campos actualizables
-      const allowedFields = req.user.role === 'admin'
-        ? ['numberOfGuests', 'roomType', 'basePrice', 'totalPrice', 'status', 'notes']
-        : ['numberOfGuests', 'notes']; // Guests solo notas
+      const allowedFields =
+        req.user.role === 'admin'
+          ? [
+            'numberOfGuests',
+            'roomType',
+            'basePrice',
+            'totalPrice',
+            'status',
+            'notes'
+          ]
+          : ['numberOfGuests', 'notes']; // Guests solo notas
 
       const updates = {};
-      allowedFields.forEach(field => {
+      allowedFields.forEach((field) => {
         if (field in req.body) {
           updates[field] = req.body[field];
         }
@@ -170,7 +182,7 @@ export function createStaysRoutes(services) {
       res.json({
         success: true,
         data: updatedStay.toJSON(),
-        message: 'Estadía actualizada correctamente',
+        message: 'Estadía actualizada correctamente'
       });
     } catch (error) {
       next(error);
@@ -182,143 +194,174 @@ export function createStaysRoutes(services) {
    * Eliminar/Cancelar estadía
    * - Solo admin/staff
    */
-  router.delete('/:id', authenticateToken, authorizeRole(['admin', 'staff']), (req, res, next) => {
-    try {
-      const stay = stayRepository.findById(req.params.id);
+  router.delete(
+    '/:id',
+    authenticateToken,
+    authorizeRole(['admin', 'staff']),
+    (req, res, next) => {
+      try {
+        const stay = stayRepository.findById(req.params.id);
 
-      if (!stay) {
-        return res.status(404).json({
-          success: false,
-          error: 'Estadía no encontrada',
+        if (!stay) {
+          return res.status(404).json({
+            success: false,
+            error: 'Estadía no encontrada'
+          });
+        }
+
+        if (stay.isCompleted()) {
+          return res.status(400).json({
+            success: false,
+            error: 'No se pueden cancelar estadías completadas'
+          });
+        }
+
+        const reason = req.body.reason || 'Cancelada por administrador';
+        stay.cancel(reason);
+        stayRepository.update(req.params.id, {
+          status: stay.status,
+          notes: stay.notes
         });
-      }
 
-      if (stay.isCompleted()) {
-        return res.status(400).json({
-          success: false,
-          error: 'No se pueden cancelar estadías completadas',
+        res.json({
+          success: true,
+          message: 'Estadía cancelada correctamente',
+          data: stay.toJSON()
         });
+      } catch (error) {
+        next(error);
       }
-
-      const reason = req.body.reason || 'Cancelada por administrador';
-      stay.cancel(reason);
-      stayRepository.update(req.params.id, { status: stay.status, notes: stay.notes });
-
-      res.json({
-        success: true,
-        message: 'Estadía cancelada correctamente',
-        data: stay.toJSON(),
-      });
-    } catch (error) {
-      next(error);
     }
-  });
+  );
 
   /**
    * POST /api/stays/:id/activate
    * Activar estadía (cambiar de pending a active)
    * - Solo admin/staff
    */
-  router.post('/:id/activate', authenticateToken, authorizeRole(['admin', 'staff']), (req, res, next) => {
-    try {
-      const stay = stayRepository.findById(req.params.id);
+  router.post(
+    '/:id/activate',
+    authenticateToken,
+    authorizeRole(['admin', 'staff']),
+    (req, res, next) => {
+      try {
+        const stay = stayRepository.findById(req.params.id);
 
-      if (!stay) {
-        return res.status(404).json({
-          success: false,
-          error: 'Estadía no encontrada',
+        if (!stay) {
+          return res.status(404).json({
+            success: false,
+            error: 'Estadía no encontrada'
+          });
+        }
+
+        stay.activate();
+        stayRepository.update(req.params.id, { status: stay.status });
+
+        res.json({
+          success: true,
+          message: 'Estadía activada',
+          data: stay.toJSON()
         });
+      } catch (error) {
+        next(error);
       }
-
-      stay.activate();
-      stayRepository.update(req.params.id, { status: stay.status });
-
-      res.json({
-        success: true,
-        message: 'Estadía activada',
-        data: stay.toJSON(),
-      });
-    } catch (error) {
-      next(error);
     }
-  });
+  );
 
   /**
    * POST /api/stays/:id/complete
    * Completar estadía (cambiar a completed)
    * - Solo admin/staff
    */
-  router.post('/:id/complete', authenticateToken, authorizeRole(['admin', 'staff']), (req, res, next) => {
-    try {
-      const stay = stayRepository.findById(req.params.id);
+  router.post(
+    '/:id/complete',
+    authenticateToken,
+    authorizeRole(['admin', 'staff']),
+    (req, res, next) => {
+      try {
+        const stay = stayRepository.findById(req.params.id);
 
-      if (!stay) {
-        return res.status(404).json({
-          success: false,
-          error: 'Estadía no encontrada',
+        if (!stay) {
+          return res.status(404).json({
+            success: false,
+            error: 'Estadía no encontrada'
+          });
+        }
+
+        stay.complete();
+        stayRepository.update(req.params.id, { status: stay.status });
+
+        res.json({
+          success: true,
+          message: 'Estadía completada',
+          data: stay.toJSON()
         });
+      } catch (error) {
+        next(error);
       }
-
-      stay.complete();
-      stayRepository.update(req.params.id, { status: stay.status });
-
-      res.json({
-        success: true,
-        message: 'Estadía completada',
-        data: stay.toJSON(),
-      });
-    } catch (error) {
-      next(error);
     }
-  });
+  );
 
   /**
    * GET /api/stays/occupancy/:hotelCode
    * Obtener ocupación de hotel para una fecha
    * - Solo admin/staff
    */
-  router.get('/occupancy/:hotelCode', authenticateToken, authorizeRole(['admin', 'staff']), (req, res, next) => {
-    try {
-      const date = req.query.date ? new Date(req.query.date) : new Date();
-      const occupancy = stayRepository.getOccupancy(req.params.hotelCode, date);
+  router.get(
+    '/occupancy/:hotelCode',
+    authenticateToken,
+    authorizeRole(['admin', 'staff']),
+    (req, res, next) => {
+      try {
+        const date = req.query.date ? new Date(req.query.date) : new Date();
+        const occupancy = stayRepository.getOccupancy(
+          req.params.hotelCode,
+          date
+        );
 
-      res.json({
-        success: true,
-        data: {
-          date: date.toISOString().split('T')[0],
-          hotelCode: req.params.hotelCode,
-          occupancy,
-        },
-      });
-    } catch (error) {
-      next(error);
+        res.json({
+          success: true,
+          data: {
+            date: date.toISOString().split('T')[0],
+            hotelCode: req.params.hotelCode,
+            occupancy
+          }
+        });
+      } catch (error) {
+        next(error);
+      }
     }
-  });
+  );
 
   /**
    * GET /api/stays/checkpoints/:hotelCode
    * Obtener check-ins/check-outs de hoy
    * - Solo admin/staff
    */
-  router.get('/checkpoints/:hotelCode', authenticateToken, authorizeRole(['admin', 'staff']), (req, res, next) => {
-    try {
-      const stays = stayRepository.findTodayCheckpoints(req.params.hotelCode);
+  router.get(
+    '/checkpoints/:hotelCode',
+    authenticateToken,
+    authorizeRole(['admin', 'staff']),
+    (req, res, next) => {
+      try {
+        const stays = stayRepository.findTodayCheckpoints(req.params.hotelCode);
 
-      const checkIns = stays.filter(s => s.isCheckInToday());
-      const checkOuts = stays.filter(s => s.isCheckOutToday());
+        const checkIns = stays.filter((s) => s.isCheckInToday());
+        const checkOuts = stays.filter((s) => s.isCheckOutToday());
 
-      res.json({
-        success: true,
-        data: {
-          date: new Date().toISOString().split('T')[0],
-          checkIns: checkIns.map(s => s.toJSON()),
-          checkOuts: checkOuts.map(s => s.toJSON()),
-        },
-      });
-    } catch (error) {
-      next(error);
+        res.json({
+          success: true,
+          data: {
+            date: new Date().toISOString().split('T')[0],
+            checkIns: checkIns.map((s) => s.toJSON()),
+            checkOuts: checkOuts.map((s) => s.toJSON())
+          }
+        });
+      } catch (error) {
+        next(error);
+      }
     }
-  });
+  );
 
   return router;
 }

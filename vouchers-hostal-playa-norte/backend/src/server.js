@@ -6,7 +6,11 @@ const { logger } = require('./config/logger');
 const { dbManager } = require('./config/database');
 const { correlationMiddleware } = require('./middleware/correlation');
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
-const { cacheMiddleware, invalidateCacheMiddleware, cacheService } = require('./services/cacheService');
+const {
+  cacheMiddleware,
+  invalidateCacheMiddleware,
+  cacheService
+} = require('./services/cacheService');
 
 // Routes
 const vouchersRoutes = require('./routes/vouchers');
@@ -20,24 +24,28 @@ const app = express();
 // ============================================
 
 // Seguridad
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'"],
-      imgSrc: ["'self'", "data:", "https:"]
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ['\'self\''],
+        styleSrc: ['\'self\'', '\'unsafe-inline\''],
+        scriptSrc: ['\'self\''],
+        imgSrc: ['\'self\'', 'data:', 'https:']
+      }
     }
-  }
-}));
+  })
+);
 
 // CORS
-app.use(cors({
-  origin: config.ALLOWED_ORIGINS,
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-correlation-id']
-}));
+app.use(
+  cors({
+    origin: config.ALLOWED_ORIGINS,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-correlation-id']
+  })
+);
 
 // Body parser
 app.use(express.json({ limit: '10mb' }));
@@ -68,11 +76,11 @@ app.use((req, res, next) => {
 
 app.get('/health', (req, res) => {
   const db = dbManager.getDb();
-  
+
   try {
     // Verificar conexión DB
     db.prepare('SELECT 1').get();
-    
+
     res.json({
       status: 'healthy',
       timestamp: new Date().toISOString(),
@@ -85,7 +93,7 @@ app.get('/health', (req, res) => {
       event: 'health_check_failed',
       error: error.message
     });
-    
+
     res.status(503).json({
       status: 'unhealthy',
       error: 'Database connection failed'
@@ -124,14 +132,14 @@ dbManager.initialize();
 // Manejo de señales de cierre
 process.on('SIGTERM', () => {
   logger.info({ event: 'sigterm_received', message: 'Cerrando servidor...' });
-  
+
   dbManager.close();
   process.exit(0);
 });
 
 process.on('SIGINT', () => {
   logger.info({ event: 'sigint_received', message: 'Cerrando servidor...' });
-  
+
   dbManager.close();
   process.exit(0);
 });
@@ -143,7 +151,7 @@ process.on('uncaughtException', (error) => {
     error: error.message,
     stack: error.stack
   });
-  
+
   dbManager.close();
   process.exit(1);
 });
@@ -166,7 +174,7 @@ const server = app.listen(PORT, () => {
     timezone: config.TZ,
     version: config.APP_VERSION
   });
-  
+
   console.log(`
 ╔═══════════════════════════════════════════════════════════╗
 ║  🏨 Sistema de Vouchers Digitales - Hostal Playa Norte   ║

@@ -34,7 +34,10 @@ import { createStaysRoutes } from './presentation/http/routes/stays.js';
 import createVouchersRoutes from './presentation/http/routes/vouchers.js';
 import { createOrdersRoutes } from './presentation/http/routes/orders.js';
 import { createReportsRoutes } from './presentation/http/routes/reports.js';
-import { authenticate, authorize } from './presentation/http/middleware/auth.middleware.js';
+import {
+  authenticate,
+  authorize
+} from './presentation/http/middleware/auth.middleware.js';
 import {
   globalLimiter,
   loginLimiter,
@@ -57,7 +60,7 @@ import {
   metricsMiddleware,
   metricsHandler,
   registerDefaultMetrics,
-  recordDbError,
+  recordDbError
 } from './middleware/metrics.js';
 
 // Cargar variables de entorno
@@ -79,20 +82,26 @@ const logger = winston.createLogger({
   ),
   defaultMeta: { service: 'voucher-system' },
   transports: [
-    new winston.transports.File({ filename: './logs/error.log', level: 'error' }),
-    new winston.transports.File({ filename: './logs/combined.log' }),
-  ],
+    new winston.transports.File({
+      filename: './logs/error.log',
+      level: 'error'
+    }),
+    new winston.transports.File({ filename: './logs/combined.log' })
+  ]
 });
 
 // En producción, por defecto Winston no loguea a consola.
 // Habilitamos consola si no es producción o si LOG_TO_CONSOLE=true (útil en Fly.io)
-if (NODE_ENV !== 'production' || String(process.env.LOG_TO_CONSOLE).toLowerCase() === 'true') {
+if (
+  NODE_ENV !== 'production' ||
+  String(process.env.LOG_TO_CONSOLE).toLowerCase() === 'true'
+) {
   logger.add(
     new winston.transports.Console({
       format: winston.format.combine(
         winston.format.colorize(),
         winston.format.simple()
-      ),
+      )
     })
   );
 }
@@ -117,8 +126,10 @@ try {
 // ==================== INICIALIZAR SERVICIOS ====================
 
 const jwtService = new JWTService(
-  process.env.JWT_SECRET || 'default-secret-change-in-production-min-32-chars-long!!',
-  process.env.JWT_REFRESH_SECRET || 'default-refresh-secret-change-in-production-min-32-chars'
+  process.env.JWT_SECRET ||
+    'default-secret-change-in-production-min-32-chars-long!!',
+  process.env.JWT_REFRESH_SECRET ||
+    'default-refresh-secret-change-in-production-min-32-chars'
 );
 
 const passwordService = new PasswordService(
@@ -130,24 +141,45 @@ const stayRepository = new StayRepository(db);
 const voucherRepository = new VoucherRepository(db);
 const orderRepository = new OrderRepository(db);
 
-const loginUser = new LoginUser(userRepository, passwordService, jwtService, logger);
+const loginUser = new LoginUser(
+  userRepository,
+  passwordService,
+  jwtService,
+  logger
+);
 const registerUser = new RegisterUser(userRepository, passwordService, logger);
 const createStay = new CreateStay(stayRepository, userRepository, logger);
 
 const qrService = new QRService({
   size: 250,
   margin: 10,
-  errorCorrection: 'M',
+  errorCorrection: 'M'
 });
 
-const cryptoService = new CryptoService(process.env.VOUCHER_SECRET || 'a-very-secret-secret-that-is-long-enough');
+const cryptoService = new CryptoService(
+  process.env.VOUCHER_SECRET || 'a-very-secret-secret-that-is-long-enough'
+);
 
-const generateVoucher = new GenerateVoucher(stayRepository, voucherRepository, cryptoService, logger);
-const validateVoucher = new ValidateVoucher(voucherRepository, stayRepository, cryptoService, logger);
+const generateVoucher = new GenerateVoucher(
+  stayRepository,
+  voucherRepository,
+  cryptoService,
+  logger
+);
+const validateVoucher = new ValidateVoucher(
+  voucherRepository,
+  stayRepository,
+  cryptoService,
+  logger
+);
 const redeemVoucher = new RedeemVoucher(voucherRepository, logger);
 
 const createOrder = new CreateOrder(stayRepository, orderRepository, logger);
-const completeOrder = new CompleteOrder(orderRepository, voucherRepository, logger);
+const completeOrder = new CompleteOrder(
+  orderRepository,
+  voucherRepository,
+  logger
+);
 
 const reportService = new ReportService({
   stayRepository,
@@ -211,7 +243,7 @@ app.get('/live', (req, res) => {
     status: 'live',
     timestamp: new Date().toISOString(),
     uptime_seconds: Math.round(process.uptime()),
-    version: process.env.APP_VERSION || 'unknown',
+    version: process.env.APP_VERSION || 'unknown'
   });
 });
 
@@ -233,7 +265,7 @@ app.get('/health', (req, res) => {
     environment: NODE_ENV,
     version: process.env.APP_VERSION || 'unknown',
     uptime_seconds: Math.round(process.uptime()),
-    database: dbStatus,
+    database: dbStatus
   });
 });
 
@@ -248,7 +280,7 @@ app.get('/ready', (req, res) => {
       environment: NODE_ENV,
       version: process.env.APP_VERSION || 'unknown',
       uptime_seconds: Math.round(process.uptime()),
-      database: 'connected',
+      database: 'connected'
     });
   } catch (e) {
     recordDbError('health_check', e.code || e.name || 'unknown');
@@ -259,7 +291,7 @@ app.get('/ready', (req, res) => {
       version: process.env.APP_VERSION || 'unknown',
       uptime_seconds: Math.round(process.uptime()),
       database: 'error',
-      error: NODE_ENV === 'production' ? undefined : e.message,
+      error: NODE_ENV === 'production' ? undefined : e.message
     });
   }
 });
@@ -273,7 +305,7 @@ app.use(
   createAuthRoutes({
     loginUser,
     registerUser,
-    jwtService,
+    jwtService
   })
 );
 
@@ -283,7 +315,7 @@ app.use(
   createStaysRoutes({
     createStay,
     stayRepository,
-    userRepository,
+    userRepository
   })
 );
 
@@ -294,7 +326,7 @@ app.use(
     generateVoucher,
     validateVoucher,
     redeemVoucher,
-    jwtService,
+    jwtService
   })
 );
 
@@ -305,7 +337,7 @@ app.use(
     stayRepository,
     createOrder,
     completeOrder,
-    logger,
+    logger
   })
 );
 
@@ -330,11 +362,15 @@ app.use((err, req, res, next) => {
     message: err.message,
     stack: err.stack,
     path: req.path,
-    method: req.method,
+    method: req.method
   });
 
   // Métrica para errores de base de datos detectables
-  if (err && (err.name === 'SqliteError' || (err.code && String(err.code).startsWith('SQLITE')))) {
+  if (
+    err &&
+    (err.name === 'SqliteError' ||
+      (err.code && String(err.code).startsWith('SQLITE')))
+  ) {
     recordDbError('query', err.code || err.name || 'unknown');
   }
 
@@ -343,25 +379,31 @@ app.use((err, req, res, next) => {
     return res.status(400).json({
       success: false,
       error: err.message,
-      timestamp: new Date().toISOString(),
+      timestamp: new Date().toISOString()
     });
   }
 
   // Errores personalizados de dominio
-  if (err.message.includes('no encontrado') || err.message.includes('no existe')) {
+  if (
+    err.message.includes('no encontrado') ||
+    err.message.includes('no existe')
+  ) {
     return res.status(404).json({
       success: false,
       error: err.message,
-      timestamp: new Date().toISOString(),
+      timestamp: new Date().toISOString()
     });
   }
 
   // Errores de autenticación
-  if (err.message.includes('incorrectos') || err.message.includes('inválidos')) {
+  if (
+    err.message.includes('incorrectos') ||
+    err.message.includes('inválidos')
+  ) {
     return res.status(401).json({
       success: false,
       error: err.message,
-      timestamp: new Date().toISOString(),
+      timestamp: new Date().toISOString()
     });
   }
 
@@ -370,17 +412,16 @@ app.use((err, req, res, next) => {
     return res.status(409).json({
       success: false,
       error: 'El recurso ya existe',
-      timestamp: new Date().toISOString(),
+      timestamp: new Date().toISOString()
     });
   }
 
   // Error genérico
   res.status(500).json({
     success: false,
-    error: NODE_ENV === 'production'
-      ? 'Error interno del servidor'
-      : err.message,
-    timestamp: new Date().toISOString(),
+    error:
+      NODE_ENV === 'production' ? 'Error interno del servidor' : err.message,
+    timestamp: new Date().toISOString()
   });
 });
 
@@ -389,7 +430,7 @@ app.use((req, res) => {
   res.status(404).json({
     success: false,
     error: 'Ruta no encontrada',
-    path: req.path,
+    path: req.path
   });
 });
 
@@ -464,7 +505,11 @@ process.on('SIGINT', () => {
 
 // Capturar excepciones no manejadas (imprimir también a consola por si el logger falla)
 process.on('uncaughtException', (error) => {
-  try { logger.error('❌ Excepción no manejada:', error); } catch (_) { /* noop */ }
+  try {
+    logger.error('❌ Excepción no manejada:', error);
+  } catch (_) {
+    /* noop */
+  }
   // Fallback a consola
   // eslint-disable-next-line no-console
   console.error('❌ Excepción no manejada (fallback):', error);
@@ -472,7 +517,11 @@ process.on('uncaughtException', (error) => {
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-  try { logger.error('❌ Promesa rechazada sin manejar:', { reason, promise }); } catch (_) { /* noop */ }
+  try {
+    logger.error('❌ Promesa rechazada sin manejar:', { reason, promise });
+  } catch (_) {
+    /* noop */
+  }
   // eslint-disable-next-line no-console
   console.error('❌ Promesa rechazada sin manejar (fallback):', reason);
   process.exit(1);

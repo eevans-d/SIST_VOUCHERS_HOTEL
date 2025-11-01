@@ -2,7 +2,7 @@
  * Price Optimization Service
  * Dynamic pricing based on demand, seasonality, competition
  * Issues: #27 → #28 (Demand Forecasting → Price Optimization)
- * 
+ *
  * Pattern: Revenue management algorithm
  * Features:
  *  - Demand-based pricing
@@ -24,7 +24,7 @@ export default class PriceOptimizationService {
       competitionFactor: config.competitionFactor || 0.2,
       elasticity: config.elasticity || -0.7, // Price elasticity of demand
       updateFrequency: config.updateFrequency || 3600000, // 1 hour
-      ...config,
+      ...config
     };
 
     // Pricing data
@@ -39,7 +39,12 @@ export default class PriceOptimizationService {
    * Calculate price based on factors
    * Price = Base * Demand_Multiplier * Seasonal_Multiplier * Competition_Multiplier
    */
-  calculateOptimalPrice(roomType, demandData = {}, seasonalIndex = 1.0, competitionAvg = null) {
+  calculateOptimalPrice(
+    roomType,
+    demandData = {},
+    seasonalIndex = 1.0,
+    competitionAvg = null
+  ) {
     const demandMultiplier = this._calculateDemandMultiplier(
       demandData.occupancy || 50,
       demandData.forecast || 50
@@ -69,12 +74,12 @@ export default class PriceOptimizationService {
         basePrice: this.config.basePrice,
         demandMultiplier: demandMultiplier.toFixed(3),
         seasonalMultiplier: seasonalIndex.toFixed(3),
-        competitionMultiplier: competitionMultiplier.toFixed(3),
+        competitionMultiplier: competitionMultiplier.toFixed(3)
       },
       occupancy: demandData.occupancy,
       forecast: demandData.forecast,
       seasonalIndex: seasonalIndex.toFixed(3),
-      timestamp: Date.now(),
+      timestamp: Date.now()
     };
   }
 
@@ -85,10 +90,11 @@ export default class PriceOptimizationService {
    */
   _calculateDemandMultiplier(occupancy, forecast) {
     const avgDemand = (occupancy + forecast) / 2;
-    
+
     // Sigmoid function: scales 0-100 to 0.5-1.5
     const normalized = avgDemand / 100;
-    const multiplier = 0.5 + (1.5 - 0.5) / (1 + Math.exp(-10 * (normalized - 0.5)));
+    const multiplier =
+      0.5 + (1.5 - 0.5) / (1 + Math.exp(-10 * (normalized - 0.5)));
 
     return multiplier;
   }
@@ -103,7 +109,7 @@ export default class PriceOptimizationService {
     }
 
     const priceRatio = ourPrice / competitorAvg;
-    
+
     // If competitors are cheaper, lower multiplier
     // If competitors are expensive, higher multiplier
     return Math.min(1.3, Math.max(0.7, priceRatio));
@@ -118,7 +124,7 @@ export default class PriceOptimizationService {
         current: this.config.basePrice,
         history: [],
         changes: [],
-        lastUpdated: Date.now(),
+        lastUpdated: Date.now()
       });
     }
 
@@ -136,7 +142,7 @@ export default class PriceOptimizationService {
       newPrice: price,
       changeAmount: priceChange,
       changePercent: changePercent.toFixed(2),
-      reason,
+      reason
     };
 
     roomPricing.history.push(price);
@@ -178,7 +184,7 @@ export default class PriceOptimizationService {
     const competitorData = this.competitorPrices.get(competitorName);
     competitorData[roomType] = {
       price,
-      lastUpdated: Date.now(),
+      lastUpdated: Date.now()
     };
   }
 
@@ -216,7 +222,7 @@ export default class PriceOptimizationService {
       forecast: metrics.forecast || 0,
       bookings: metrics.bookings || 0,
       inquiries: metrics.inquiries || 0,
-      cancellations: metrics.cancellations || 0,
+      cancellations: metrics.cancellations || 0
     });
 
     // Keep last 365 days of metrics
@@ -238,13 +244,17 @@ export default class PriceOptimizationService {
     }
 
     // Compare recent metrics with historical
-    const recentOccupancy = metrics.slice(-7).reduce((a, b) => a + b.occupancy, 0) / 7;
-    const previousOccupancy = metrics.slice(-14, -7).reduce((a, b) => a + b.occupancy, 0) / 7;
+    const recentOccupancy =
+      metrics.slice(-7).reduce((a, b) => a + b.occupancy, 0) / 7;
+    const previousOccupancy =
+      metrics.slice(-14, -7).reduce((a, b) => a + b.occupancy, 0) / 7;
 
     const recentPrice = priceHistory.slice(-7).reduce((a, b) => a + b, 0) / 7;
-    const previousPrice = priceHistory.slice(-14, -7).reduce((a, b) => a + b, 0) / 7;
+    const previousPrice =
+      priceHistory.slice(-14, -7).reduce((a, b) => a + b, 0) / 7;
 
-    const demandChange = (recentOccupancy - previousOccupancy) / previousOccupancy;
+    const demandChange =
+      (recentOccupancy - previousOccupancy) / previousOccupancy;
     const priceChange = (recentPrice - previousPrice) / previousPrice;
 
     const elasticity = priceChange !== 0 ? demandChange / priceChange : 0;
@@ -256,7 +266,7 @@ export default class PriceOptimizationService {
       previousOccupancy: previousOccupancy.toFixed(2),
       recentPrice: recentPrice.toFixed(2),
       previousPrice: previousPrice.toFixed(2),
-      interpretation: this._interpretElasticity(elasticity),
+      interpretation: this._interpretElasticity(elasticity)
     };
   }
 
@@ -265,9 +275,12 @@ export default class PriceOptimizationService {
    * @private
    */
   _interpretElasticity(elasticity) {
-    if (elasticity < -1.5) return 'Highly elastic (small price increase reduces demand significantly)';
-    if (elasticity < -0.5) return 'Elastic (price changes affect demand noticeably)';
-    if (elasticity < 0.5) return 'Inelastic (demand not very sensitive to price)';
+    if (elasticity < -1.5)
+      return 'Highly elastic (small price increase reduces demand significantly)';
+    if (elasticity < -0.5)
+      return 'Elastic (price changes affect demand noticeably)';
+    if (elasticity < 0.5)
+      return 'Inelastic (demand not very sensitive to price)';
     return 'Anomalous elasticity (check data)';
   }
 
@@ -283,8 +296,10 @@ export default class PriceOptimizationService {
     }
 
     const recentMetrics = metrics.slice(-horizon);
-    const avgOccupancy = recentMetrics.reduce((a, b) => a + b.occupancy, 0) / horizon;
-    const avgBookings = recentMetrics.reduce((a, b) => a + b.bookings, 0) / horizon;
+    const avgOccupancy =
+      recentMetrics.reduce((a, b) => a + b.occupancy, 0) / horizon;
+    const avgBookings =
+      recentMetrics.reduce((a, b) => a + b.bookings, 0) / horizon;
 
     const projectedDailyRevenue = avgBookings * currentPrice;
     const projectedHorizonRevenue = projectedDailyRevenue * horizon;
@@ -299,7 +314,7 @@ export default class PriceOptimizationService {
       averageBookings: avgBookings.toFixed(2),
       projectedDailyRevenue: projectedDailyRevenue.toFixed(2),
       projectedHorizonRevenue: projectedHorizonRevenue.toFixed(2),
-      horizon,
+      horizon
     };
   }
 
@@ -314,8 +329,11 @@ export default class PriceOptimizationService {
       return null;
     }
 
-    const recentOccupancy = metrics.slice(-7).reduce((a, b) => a + b.occupancy, 0) / 7;
-    const elasticity = this.analyzePriceElasticity(roomType)?.elasticity || this.config.elasticity;
+    const recentOccupancy =
+      metrics.slice(-7).reduce((a, b) => a + b.occupancy, 0) / 7;
+    const elasticity =
+      this.analyzePriceElasticity(roomType)?.elasticity ||
+      this.config.elasticity;
 
     let recommendation = 'hold';
     let priceAdjustment = 0;
@@ -345,10 +363,7 @@ export default class PriceOptimizationService {
 
     const recommendedPrice = Math.max(
       this.config.minPrice,
-      Math.min(
-        this.config.maxPrice,
-        currentPrice * (1 + priceAdjustment / 100)
-      )
+      Math.min(this.config.maxPrice, currentPrice * (1 + priceAdjustment / 100))
     );
 
     return {
@@ -358,7 +373,7 @@ export default class PriceOptimizationService {
       priceAdjustment: priceAdjustment.toFixed(2),
       recommendation,
       reason: this._getPriceRecommendationReason(recentOccupancy, elasticity),
-      occupancy: recentOccupancy.toFixed(2),
+      occupancy: recentOccupancy.toFixed(2)
     };
   }
 
@@ -388,14 +403,14 @@ export default class PriceOptimizationService {
     this.priceExperiments.set(testId, {
       testId,
       roomType,
-      variants: variants.map(v => ({
+      variants: variants.map((v) => ({
         ...v,
         conversions: 0,
         revenue: 0,
-        impressions: 0,
+        impressions: 0
       })),
       startedAt: Date.now(),
-      status: 'active',
+      status: 'active'
     });
 
     return this.priceExperiments.get(testId);
@@ -408,14 +423,19 @@ export default class PriceOptimizationService {
     const experiment = this.priceExperiments.get(testId);
     if (!experiment) return null;
 
-    const variant = experiment.variants.find(v => v.name === variantName);
+    const variant = experiment.variants.find((v) => v.name === variantName);
     if (!variant) return null;
 
     variant.conversions += bookings;
     variant.revenue += revenue;
     variant.impressions += 1;
-    variant.conversionRate = (variant.conversions / variant.impressions * 100).toFixed(2);
-    variant.revenuePerImpression = (variant.revenue / variant.impressions).toFixed(2);
+    variant.conversionRate = (
+      (variant.conversions / variant.impressions) *
+      100
+    ).toFixed(2);
+    variant.revenuePerImpression = (
+      variant.revenue / variant.impressions
+    ).toFixed(2);
 
     return variant;
   }
@@ -427,19 +447,20 @@ export default class PriceOptimizationService {
     const experiment = this.priceExperiments.get(testId);
     if (!experiment) return null;
 
-    const results = experiment.variants.map(v => ({
+    const results = experiment.variants.map((v) => ({
       name: v.name,
       price: v.price,
       conversions: v.conversions,
       conversionRate: v.conversionRate || '0.00',
       revenue: v.revenue.toFixed(2),
       revenuePerImpression: v.revenuePerImpression || '0.00',
-      impressions: v.impressions,
+      impressions: v.impressions
     }));
 
     // Calculate best performer
     const bestVariant = results.reduce((best, current) =>
-      parseFloat(current.revenuePerImpression) > parseFloat(best.revenuePerImpression)
+      parseFloat(current.revenuePerImpression) >
+      parseFloat(best.revenuePerImpression)
         ? current
         : best
     );
@@ -451,7 +472,7 @@ export default class PriceOptimizationService {
       duration: Date.now() - experiment.startedAt,
       status: experiment.status,
       variants: results,
-      winner: bestVariant,
+      winner: bestVariant
     };
   }
 
@@ -473,7 +494,7 @@ export default class PriceOptimizationService {
       min: sorted[0],
       max: sorted[sorted.length - 1],
       count: recent.length,
-      changes: roomPricing.changes.slice(-10),
+      changes: roomPricing.changes.slice(-10)
     };
   }
 
@@ -487,14 +508,15 @@ export default class PriceOptimizationService {
       competitorsTracked: this.competitorPrices.size,
       demandMetricsRecorded: this.demandMetrics.size,
       totalPriceChanges: this.historicalPrices.length,
-      activeExperiments: Array.from(this.priceExperiments.values())
-        .filter(e => e.status === 'active').length,
+      activeExperiments: Array.from(this.priceExperiments.values()).filter(
+        (e) => e.status === 'active'
+      ).length,
       config: {
         basePrice: this.config.basePrice,
         minPrice: this.config.minPrice,
-        maxPrice: this.config.maxPrice,
+        maxPrice: this.config.maxPrice
       },
-      timestamp: Date.now(),
+      timestamp: Date.now()
     };
   }
 

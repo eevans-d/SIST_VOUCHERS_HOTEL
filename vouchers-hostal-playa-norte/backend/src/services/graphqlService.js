@@ -1,6 +1,6 @@
 /**
  * graphqlService.js
- * 
+ *
  * Servidor GraphQL con Apollo Server
  * - Schema completo (Query, Mutation, Subscription)
  * - Resolvers para órdenes, usuarios, huéspedes
@@ -10,7 +10,7 @@
  * - Introspection + playground
  * - Subscriptions en tiempo real (WebSocket)
  * - Caching de resultados
- * 
+ *
  * Performance:
  * - <50ms por query simple
  * - Batch loading para N+1 prevention
@@ -34,7 +34,7 @@ class GraphQLService {
       errorsOccurred: 0,
       averageQueryTime: 0,
       cacheHits: 0,
-      cacheMisses: 0,
+      cacheMisses: 0
     };
     this.server = null;
   }
@@ -51,10 +51,10 @@ class GraphQLService {
           return {
             async willSendResponse(requestContext) {
               // Logging, métricas
-            },
+            }
           };
-        },
-      },
+        }
+      }
     ];
 
     this.server = new ApolloServer({
@@ -64,7 +64,7 @@ class GraphQLService {
       formatError: this.formatError,
       plugins: [...plugins, ...this.plugins],
       introspection: options.introspection !== false,
-      includeStacktraceInErrorResponses: options.debug !== false,
+      includeStacktraceInErrorResponses: options.debug !== false
     });
 
     return this.server;
@@ -256,7 +256,7 @@ class GraphQLService {
         rooms: this.resolveRooms.bind(this),
         guest: this.resolveGuest.bind(this),
         guests: this.resolveGuests.bind(this),
-        health: () => 'GraphQL service healthy',
+        health: () => 'GraphQL service healthy'
       },
 
       Mutation: {
@@ -269,31 +269,31 @@ class GraphQLService {
         createGuest: this.mutationCreateGuest.bind(this),
         updateGuest: this.mutationUpdateGuest.bind(this),
         createRoom: this.mutationCreateRoom.bind(this),
-        updateRoom: this.mutationUpdateRoom.bind(this),
+        updateRoom: this.mutationUpdateRoom.bind(this)
       },
 
       Subscription: {
         orderCreated: {
-          subscribe: this.subscribeOrderCreated.bind(this),
+          subscribe: this.subscribeOrderCreated.bind(this)
         },
         orderStatusChanged: {
-          subscribe: this.subscribeOrderStatusChanged.bind(this),
+          subscribe: this.subscribeOrderStatusChanged.bind(this)
         },
         orderCancelled: {
-          subscribe: this.subscribeOrderCancelled.bind(this),
-        },
+          subscribe: this.subscribeOrderCancelled.bind(this)
+        }
       },
 
       // Field resolvers
       User: {
         orders: this.resolveUserOrders.bind(this),
-        orderCount: this.resolveUserOrderCount.bind(this),
+        orderCount: this.resolveUserOrderCount.bind(this)
       },
 
       Order: {
         user: this.resolveOrderUser.bind(this),
-        guest: this.resolveOrderGuest.bind(this),
-      },
+        guest: this.resolveOrderGuest.bind(this)
+      }
     };
   }
 
@@ -308,7 +308,7 @@ class GraphQLService {
       token: req?.headers?.['authorization'],
       requestId: req?.headers?.['x-request-id'],
       dataloaders: this.getDataloaders(),
-      cache: new Map(),
+      cache: new Map()
     };
   }
 
@@ -323,10 +323,10 @@ class GraphQLService {
 
   async resolveUsers(parent, { limit = 10, offset = 0 }) {
     this.recordQuery();
-    return this.queryDatabase(
-      'SELECT * FROM users LIMIT ? OFFSET ?',
-      [limit, offset]
-    );
+    return this.queryDatabase('SELECT * FROM users LIMIT ? OFFSET ?', [
+      limit,
+      offset
+    ]);
   }
 
   async resolveUserByEmail(parent, { email }) {
@@ -339,13 +339,10 @@ class GraphQLService {
     return this.queryDatabase('SELECT * FROM orders WHERE id = ?', [id]);
   }
 
-  async resolveOrders(parent, {
-    limit = 20,
-    offset = 0,
-    cursor,
-    status,
-    userId,
-  }) {
+  async resolveOrders(
+    parent,
+    { limit = 20, offset = 0, cursor, status, userId }
+  ) {
     this.recordQuery();
 
     let query = 'SELECT * FROM orders WHERE 1=1';
@@ -380,7 +377,7 @@ class GraphQLService {
       items,
       totalCount: await this.countOrders({ status, userId }),
       hasMore,
-      cursor: items.length > 0 ? items[items.length - 1].id : null,
+      cursor: items.length > 0 ? items[items.length - 1].id : null
     };
   }
 
@@ -439,10 +436,10 @@ class GraphQLService {
 
   async resolveGuests(parent, { limit = 10, offset = 0 }) {
     this.recordQuery();
-    return this.queryDatabase(
-      'SELECT * FROM guests LIMIT ? OFFSET ?',
-      [limit, offset]
-    );
+    return this.queryDatabase('SELECT * FROM guests LIMIT ? OFFSET ?', [
+      limit,
+      offset
+    ]);
   }
 
   /**
@@ -456,7 +453,7 @@ class GraphQLService {
     const result = await this.insertDatabase('users', {
       email,
       name,
-      createdAt: new Date(),
+      createdAt: new Date()
     });
 
     return { id: result.lastID, email, name, createdAt: new Date() };
@@ -482,14 +479,21 @@ class GraphQLService {
 
   async mutationCreateOrder(parent, args, context) {
     this.recordMutation();
-    const { userId, guestId, checkInDate, checkOutDate, roomType, specialRequests } = args;
+    const {
+      userId,
+      guestId,
+      checkInDate,
+      checkOutDate,
+      roomType,
+      specialRequests
+    } = args;
 
     this.validateInput({
       userId,
       guestId,
       checkInDate,
       checkOutDate,
-      roomType,
+      roomType
     });
 
     const result = await this.insertDatabase('orders', {
@@ -502,10 +506,13 @@ class GraphQLService {
       status: 'PENDING',
       specialRequests,
       createdAt: new Date(),
-      updatedAt: new Date(),
+      updatedAt: new Date()
     });
 
-    const order = await this.queryDatabase('SELECT * FROM orders WHERE id = ?', [result.lastID]);
+    const order = await this.queryDatabase(
+      'SELECT * FROM orders WHERE id = ?',
+      [result.lastID]
+    );
     this.publishOrderCreated(order);
 
     return order;
@@ -516,10 +523,13 @@ class GraphQLService {
 
     await this.updateDatabase('orders', id, {
       status,
-      updatedAt: new Date(),
+      updatedAt: new Date()
     });
 
-    const order = await this.queryDatabase('SELECT * FROM orders WHERE id = ?', [id]);
+    const order = await this.queryDatabase(
+      'SELECT * FROM orders WHERE id = ?',
+      [id]
+    );
     this.publishOrderStatusChanged(order);
 
     return order;
@@ -530,10 +540,13 @@ class GraphQLService {
 
     await this.updateDatabase('orders', id, {
       status: 'CANCELLED',
-      updatedAt: new Date(),
+      updatedAt: new Date()
     });
 
-    const order = await this.queryDatabase('SELECT * FROM orders WHERE id = ?', [id]);
+    const order = await this.queryDatabase(
+      'SELECT * FROM orders WHERE id = ?',
+      [id]
+    );
     this.publishOrderCancelled(order);
 
     return order;
@@ -551,10 +564,12 @@ class GraphQLService {
       email,
       phone,
       nationality,
-      createdAt: new Date(),
+      createdAt: new Date()
     });
 
-    return this.queryDatabase('SELECT * FROM guests WHERE id = ?', [result.lastID]);
+    return this.queryDatabase('SELECT * FROM guests WHERE id = ?', [
+      result.lastID
+    ]);
   }
 
   async mutationUpdateGuest(parent, { id, firstName, lastName }) {
@@ -582,10 +597,12 @@ class GraphQLService {
       capacity,
       amenities: JSON.stringify(amenities || []),
       available: true,
-      createdAt: new Date(),
+      createdAt: new Date()
     });
 
-    return this.queryDatabase('SELECT * FROM rooms WHERE id = ?', [result.lastID]);
+    return this.queryDatabase('SELECT * FROM rooms WHERE id = ?', [
+      result.lastID
+    ]);
   }
 
   async mutationUpdateRoom(parent, { id, price, available }) {
@@ -620,11 +637,15 @@ class GraphQLService {
   }
 
   async resolveOrderUser(parent) {
-    return this.queryDatabase('SELECT * FROM users WHERE id = ?', [parent.userId]);
+    return this.queryDatabase('SELECT * FROM users WHERE id = ?', [
+      parent.userId
+    ]);
   }
 
   async resolveOrderGuest(parent) {
-    return this.queryDatabase('SELECT * FROM guests WHERE id = ?', [parent.guestId]);
+    return this.queryDatabase('SELECT * FROM guests WHERE id = ?', [
+      parent.guestId
+    ]);
   }
 
   /**
@@ -641,9 +662,7 @@ class GraphQLService {
 
   async subscribeOrderStatusChanged(parent, { orderId }) {
     return new Promise((resolve) => {
-      resolve(
-        this.createAsyncIterable(`ORDER_STATUS_CHANGED_${orderId}`)
-      );
+      resolve(this.createAsyncIterable(`ORDER_STATUS_CHANGED_${orderId}`));
     });
   }
 
@@ -661,7 +680,7 @@ class GraphQLService {
     return {
       parseValue: (value) => new Date(value),
       serialize: (value) => value.toISOString(),
-      parseLiteral: (ast) => new Date(ast.value),
+      parseLiteral: (ast) => new Date(ast.value)
     };
   }
 
@@ -669,7 +688,7 @@ class GraphQLService {
     return {
       message: error.message,
       code: error.extensions?.code || 'INTERNAL_ERROR',
-      timestamp: new Date(),
+      timestamp: new Date()
     };
   }
 
@@ -714,7 +733,7 @@ class GraphQLService {
       SINGLE: 50,
       DOUBLE: 80,
       SUITE: 150,
-      DELUXE: 250,
+      DELUXE: 250
     };
 
     const days = Math.ceil(
@@ -743,7 +762,7 @@ class GraphQLService {
     return {
       async *[Symbol.asyncIterator]() {
         // Yield events
-      },
+      }
     };
   }
 
@@ -776,7 +795,7 @@ class GraphQLService {
       healthy: true,
       serviceName: 'GraphQLService',
       timestamp: new Date(),
-      stats: this.getStats(),
+      stats: this.getStats()
     };
   }
 }

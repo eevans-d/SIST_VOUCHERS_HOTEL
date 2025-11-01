@@ -1,6 +1,6 @@
 /**
  * prometheusService.js
- * 
+ *
  * Servicio de monitoreo con Prometheus
  * - Métricas: Counters, Gauges, Histograms, Summaries
  * - Exposición en /metrics (Prometheus format)
@@ -22,7 +22,7 @@ class PrometheusService {
     this.stats = {
       metricsRegistered: 0,
       measurementsRecorded: 0,
-      errors: 0,
+      errors: 0
     };
   }
 
@@ -35,27 +35,27 @@ class PrometheusService {
    */
   registerCounter(name, help, labels = []) {
     const fullName = `${this.namespace}_${this.subsystem}_${name}`;
-    
+
     const metric = {
       type: 'counter',
       name: fullName,
       help,
       labels,
       value: 0,
-      values: new Map(),  // Para tracked por labels
-      
+      values: new Map(), // Para tracked por labels
+
       inc: (amount = 1, labelValues = {}) => {
         metric.value += amount;
         this.recordMeasurement();
-        
+
         if (Object.keys(labelValues).length > 0) {
           const key = JSON.stringify(labelValues);
           metric.values.set(key, (metric.values.get(key) || 0) + amount);
         }
       },
-      
+
       get: () => metric.value,
-      getLabeled: () => metric.values,
+      getLabeled: () => metric.values
     };
 
     this.metrics.set(fullName, metric);
@@ -72,7 +72,7 @@ class PrometheusService {
    */
   registerGauge(name, help, labels = []) {
     const fullName = `${this.namespace}_${this.subsystem}_${name}`;
-    
+
     const metric = {
       type: 'gauge',
       name: fullName,
@@ -80,29 +80,29 @@ class PrometheusService {
       labels,
       value: 0,
       values: new Map(),
-      
+
       set: (value, labelValues = {}) => {
         metric.value = value;
         this.recordMeasurement();
-        
+
         if (Object.keys(labelValues).length > 0) {
           const key = JSON.stringify(labelValues);
           metric.values.set(key, value);
         }
       },
-      
+
       inc: (amount = 1) => {
         metric.value += amount;
         this.recordMeasurement();
       },
-      
+
       dec: (amount = 1) => {
         metric.value -= amount;
         this.recordMeasurement();
       },
-      
+
       get: () => metric.value,
-      getLabeled: () => metric.values,
+      getLabeled: () => metric.values
     };
 
     this.metrics.set(fullName, metric);
@@ -120,26 +120,26 @@ class PrometheusService {
   registerHistogram(name, help, labels = [], buckets = null) {
     const fullName = `${this.namespace}_${this.subsystem}_${name}`;
     const histogram_buckets = buckets || this.histogramBuckets;
-    
+
     const metric = {
       type: 'histogram',
       name: fullName,
       help,
       labels,
-      buckets: histogram_buckets.map(b => ({
+      buckets: histogram_buckets.map((b) => ({
         le: b,
-        count: 0,
+        count: 0
       })),
       sum: 0,
       count: 0,
       observations: [],
-      
+
       observe: (value, labelValues = {}) => {
         metric.count++;
         metric.sum += value;
         metric.observations.push(value);
         this.recordMeasurement();
-        
+
         // Actualizar buckets
         for (const bucket of metric.buckets) {
           if (value <= bucket.le) {
@@ -147,7 +147,7 @@ class PrometheusService {
           }
         }
       },
-      
+
       get: () => ({
         buckets: metric.buckets,
         sum: metric.sum,
@@ -155,8 +155,8 @@ class PrometheusService {
         mean: metric.count > 0 ? metric.sum / metric.count : 0,
         median: this.calculatePercentile(metric.observations, 0.5),
         p95: this.calculatePercentile(metric.observations, 0.95),
-        p99: this.calculatePercentile(metric.observations, 0.99),
-      }),
+        p99: this.calculatePercentile(metric.observations, 0.99)
+      })
     };
 
     this.metrics.set(fullName, metric);
@@ -173,7 +173,7 @@ class PrometheusService {
    */
   registerSummary(name, help, labels = []) {
     const fullName = `${this.namespace}_${this.subsystem}_${name}`;
-    
+
     const metric = {
       type: 'summary',
       name: fullName,
@@ -182,14 +182,14 @@ class PrometheusService {
       sum: 0,
       count: 0,
       observations: [],
-      
+
       observe: (value) => {
         metric.count++;
         metric.sum += value;
         metric.observations.push(value);
         this.recordMeasurement();
       },
-      
+
       get: () => ({
         sum: metric.sum,
         count: metric.count,
@@ -198,8 +198,8 @@ class PrometheusService {
         max: Math.max(...metric.observations),
         p50: this.calculatePercentile(metric.observations, 0.5),
         p90: this.calculatePercentile(metric.observations, 0.9),
-        p99: this.calculatePercentile(metric.observations, 0.99),
-      }),
+        p99: this.calculatePercentile(metric.observations, 0.99)
+      })
     };
 
     this.metrics.set(fullName, metric);
@@ -233,7 +233,7 @@ class PrometheusService {
       // Histogram
       if (metric.type === 'histogram') {
         const data = metric.get();
-        
+
         for (const bucket of data.buckets) {
           output += `${name}_bucket{le="${bucket.le}"} ${bucket.count}\n`;
         }
@@ -280,7 +280,11 @@ class PrometheusService {
    */
   requestLatencyMiddleware() {
     // Registrar métrica si no existe
-    if (!this.metrics.has(`${this.namespace}_${this.subsystem}_http_request_duration_seconds`)) {
+    if (
+      !this.metrics.has(
+        `${this.namespace}_${this.subsystem}_http_request_duration_seconds`
+      )
+    ) {
       this.registerHistogram(
         'http_request_duration_seconds',
         'HTTP request latency in seconds',
@@ -288,7 +292,9 @@ class PrometheusService {
       );
     }
 
-    const histogram = this.metrics.get(`${this.namespace}_${this.subsystem}_http_request_duration_seconds`);
+    const histogram = this.metrics.get(
+      `${this.namespace}_${this.subsystem}_http_request_duration_seconds`
+    );
 
     return (req, res, next) => {
       const start = Date.now();
@@ -298,7 +304,7 @@ class PrometheusService {
         histogram.observe(duration, {
           method: req.method,
           path: req.path,
-          status: res.statusCode,
+          status: res.statusCode
         });
       });
 
@@ -311,22 +317,28 @@ class PrometheusService {
    * @returns {function} Middleware
    */
   requestCounterMiddleware() {
-    if (!this.metrics.has(`${this.namespace}_${this.subsystem}_http_requests_total`)) {
-      this.registerCounter(
-        'http_requests_total',
-        'Total HTTP requests',
-        ['method', 'path', 'status']
-      );
+    if (
+      !this.metrics.has(
+        `${this.namespace}_${this.subsystem}_http_requests_total`
+      )
+    ) {
+      this.registerCounter('http_requests_total', 'Total HTTP requests', [
+        'method',
+        'path',
+        'status'
+      ]);
     }
 
-    const counter = this.metrics.get(`${this.namespace}_${this.subsystem}_http_requests_total`);
+    const counter = this.metrics.get(
+      `${this.namespace}_${this.subsystem}_http_requests_total`
+    );
 
     return (req, res, next) => {
       res.on('finish', () => {
         counter.inc(1, {
           method: req.method,
           path: req.path,
-          status: res.statusCode,
+          status: res.statusCode
         });
       });
 
@@ -339,21 +351,25 @@ class PrometheusService {
    * @returns {function} Middleware
    */
   errorCounterMiddleware() {
-    if (!this.metrics.has(`${this.namespace}_${this.subsystem}_http_errors_total`)) {
-      this.registerCounter(
-        'http_errors_total',
-        'Total HTTP errors',
-        ['method', 'path', 'error_type']
-      );
+    if (
+      !this.metrics.has(`${this.namespace}_${this.subsystem}_http_errors_total`)
+    ) {
+      this.registerCounter('http_errors_total', 'Total HTTP errors', [
+        'method',
+        'path',
+        'error_type'
+      ]);
     }
 
-    const counter = this.metrics.get(`${this.namespace}_${this.subsystem}_http_errors_total`);
+    const counter = this.metrics.get(
+      `${this.namespace}_${this.subsystem}_http_errors_total`
+    );
 
     return (err, req, res, next) => {
       counter.inc(1, {
         method: req.method,
         path: req.path,
-        error_type: err.name || 'UnknownError',
+        error_type: err.name || 'UnknownError'
       });
 
       next(err);
@@ -400,11 +416,9 @@ class PrometheusService {
    * @returns {object} Métrica gauge
    */
   createCacheSizeGauge() {
-    return this.registerGauge(
-      'cache_size_bytes',
-      'Size of cache in bytes',
-      ['cache_name']
-    );
+    return this.registerGauge('cache_size_bytes', 'Size of cache in bytes', [
+      'cache_name'
+    ]);
   }
 
   /**
@@ -412,11 +426,9 @@ class PrometheusService {
    * @returns {object} Métricas counters
    */
   createCacheHitMissCounters() {
-    const hits = this.registerCounter(
-      'cache_hits_total',
-      'Total cache hits',
-      ['cache_name']
-    );
+    const hits = this.registerCounter('cache_hits_total', 'Total cache hits', [
+      'cache_name'
+    ]);
 
     const misses = this.registerCounter(
       'cache_misses_total',
@@ -439,8 +451,8 @@ class PrometheusService {
         for: '5m',
         annotations: {
           summary: 'High HTTP error rate detected',
-          description: 'Error rate > 5% in the last 5 minutes',
-        },
+          description: 'Error rate > 5% in the last 5 minutes'
+        }
       },
       {
         alert: 'HighLatency',
@@ -448,8 +460,8 @@ class PrometheusService {
         for: '5m',
         annotations: {
           summary: 'High request latency detected',
-          description: 'P99 latency > 1s',
-        },
+          description: 'P99 latency > 1s'
+        }
       },
       {
         alert: 'DatabaseSlow',
@@ -457,8 +469,8 @@ class PrometheusService {
         for: '5m',
         annotations: {
           summary: 'Database queries are slow',
-          description: 'P95 query time > 500ms',
-        },
+          description: 'P95 query time > 500ms'
+        }
       },
       {
         alert: 'CacheHighMissRate',
@@ -466,9 +478,9 @@ class PrometheusService {
         for: '5m',
         annotations: {
           summary: 'High cache miss rate',
-          description: 'Cache miss rate > 30%',
-        },
-      },
+          description: 'Cache miss rate > 30%'
+        }
+      }
     ];
   }
 
@@ -487,49 +499,49 @@ class PrometheusService {
             title: 'Request Rate (req/sec)',
             targets: [
               {
-                expr: 'rate(hostal_api_http_requests_total[1m])',
-              },
+                expr: 'rate(hostal_api_http_requests_total[1m])'
+              }
             ],
-            type: 'graph',
+            type: 'graph'
           },
           {
             title: 'Error Rate',
             targets: [
               {
-                expr: 'rate(hostal_api_http_errors_total[1m])',
-              },
+                expr: 'rate(hostal_api_http_errors_total[1m])'
+              }
             ],
-            type: 'graph',
+            type: 'graph'
           },
           {
             title: 'P95 Latency',
             targets: [
               {
-                expr: 'histogram_quantile(0.95, hostal_api_http_request_duration_seconds)',
-              },
+                expr: 'histogram_quantile(0.95, hostal_api_http_request_duration_seconds)'
+              }
             ],
-            type: 'stat',
+            type: 'stat'
           },
           {
             title: 'Database Query Latency',
             targets: [
               {
-                expr: 'histogram_quantile(0.95, hostal_api_database_query_duration_seconds)',
-              },
+                expr: 'histogram_quantile(0.95, hostal_api_database_query_duration_seconds)'
+              }
             ],
-            type: 'graph',
+            type: 'graph'
           },
           {
             title: 'Cache Hit Rate',
             targets: [
               {
-                expr: 'rate(hostal_api_cache_hits_total[5m]) / (rate(hostal_api_cache_hits_total[5m]) + rate(hostal_api_cache_misses_total[5m]))',
-              },
+                expr: 'rate(hostal_api_cache_hits_total[5m]) / (rate(hostal_api_cache_hits_total[5m]) + rate(hostal_api_cache_misses_total[5m]))'
+              }
             ],
-            type: 'stat',
-          },
-        ],
-      },
+            type: 'stat'
+          }
+        ]
+      }
     };
   }
 
@@ -565,7 +577,7 @@ class PrometheusService {
     return {
       metricsRegistered: this.stats.metricsRegistered,
       measurementsRecorded: this.stats.measurementsRecorded,
-      errors: this.stats.errors,
+      errors: this.stats.errors
     };
   }
 
@@ -575,7 +587,7 @@ class PrometheusService {
       serviceName: 'PrometheusService',
       timestamp: new Date(),
       stats: this.getStats(),
-      metricsCount: this.metrics.size,
+      metricsCount: this.metrics.size
     };
   }
 }

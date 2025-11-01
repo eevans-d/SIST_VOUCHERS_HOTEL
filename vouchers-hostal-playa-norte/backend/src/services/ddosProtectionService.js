@@ -1,6 +1,6 @@
 /**
  * Advanced DDoS Protection Service
- * 
+ *
  * Implements multi-layer DDoS protection:
  * - Rate limiting per IP and user
  * - Behavioral analysis and anomaly detection
@@ -17,23 +17,32 @@ class DDoSProtectionService {
       enableBehavioralAnalysis: config.enableBehavioralAnalysis !== false,
       enableGeoFiltering: config.enableGeoFiltering !== false,
       enableHoneypot: config.enableHoneypot !== false,
-      
+
       // Rate limiting
-      globalRateLimit: config.globalRateLimit || { requests: 100000, window: 60 },
+      globalRateLimit: config.globalRateLimit || {
+        requests: 100000,
+        window: 60
+      },
       perIpRateLimit: config.perIpRateLimit || { requests: 1000, window: 60 },
-      perUserRateLimit: config.perUserRateLimit || { requests: 500, window: 60 },
-      perEndpointRateLimit: config.perEndpointRateLimit || { requests: 10000, window: 60 },
-      
+      perUserRateLimit: config.perUserRateLimit || {
+        requests: 500,
+        window: 60
+      },
+      perEndpointRateLimit: config.perEndpointRateLimit || {
+        requests: 10000,
+        window: 60
+      },
+
       // Behavioral analysis
       anomalyThreshold: config.anomalyThreshold || 2.5, // Standard deviations
       learningPeriod: config.learningPeriod || 3600000, // 1 hour
       historyWindow: config.historyWindow || 86400000, // 24 hours
-      
+
       // GeoIP
       blockedCountries: config.blockedCountries || [],
       allowedCountries: config.allowedCountries || [],
       requireGeoVerification: config.requireGeoVerification || false,
-      
+
       // Honeypot
       honeypotPaths: config.honeypotPaths || [
         '/admin',
@@ -42,12 +51,12 @@ class DDoSProtectionService {
         '/.env',
         '/config.php'
       ],
-      
+
       // Thresholds
       suspiciousScoreThreshold: config.suspiciousScoreThreshold || 50,
       blockThreshold: config.blockThreshold || 80,
       graylistThreshold: config.graylistThreshold || 30,
-      
+
       // Cleanup
       cleanupInterval: config.cleanupInterval || 300000 // 5 minutes
     };
@@ -182,10 +191,7 @@ class DDoSProtectionService {
 
     // Per-IP rate limit
     const ipKey = `ip:${ip}`;
-    const ipCheck = this._checkWindowLimit(
-      ipKey,
-      this.config.perIpRateLimit
-    );
+    const ipCheck = this._checkWindowLimit(ipKey, this.config.perIpRateLimit);
     result.remaining.ip = ipCheck.remaining;
 
     // Per-user rate limit
@@ -238,7 +244,7 @@ class DDoSProtectionService {
     let queue = this.requestHistory.get(key) || [];
 
     // Clean old requests
-    queue = queue.filter(ts => (now - ts) < windowMs);
+    queue = queue.filter((ts) => now - ts < windowMs);
 
     const allowed = queue.length < limit.requests;
     const remaining = Math.max(0, limit.requests - queue.length);
@@ -265,9 +271,12 @@ class DDoSProtectionService {
     };
 
     // Check request frequency anomaly
-    const timeSinceLastRequest = analysis.timestamp - (metrics.lastRequestTime || analysis.timestamp);
+    const timeSinceLastRequest =
+      analysis.timestamp - (metrics.lastRequestTime || analysis.timestamp);
     const expectedFrequency = 5000; // Expected 5s between requests
-    const frequencyDeviation = Math.abs(timeSinceLastRequest - expectedFrequency);
+    const frequencyDeviation = Math.abs(
+      timeSinceLastRequest - expectedFrequency
+    );
 
     if (frequencyDeviation > this.config.anomalyThreshold * expectedFrequency) {
       result.anomalyScore += 15;
@@ -277,7 +286,8 @@ class DDoSProtectionService {
     // Check request size anomaly
     const requestSize = analysis.requestSize || 0;
     const avgSize = metrics.averageRequestSize || requestSize;
-    const sizeDeviation = Math.abs(requestSize - avgSize) / Math.max(1, avgSize);
+    const sizeDeviation =
+      Math.abs(requestSize - avgSize) / Math.max(1, avgSize);
 
     if (sizeDeviation > this.config.anomalyThreshold) {
       result.anomalyScore += 10;
@@ -341,7 +351,8 @@ class DDoSProtectionService {
 
     // Pattern 6: Rapid request succession (potential flood)
     const lastRequest = metrics.lastRequestTime || 0;
-    if (analysis.timestamp - lastRequest < 100) { // Less than 100ms apart
+    if (analysis.timestamp - lastRequest < 100) {
+      // Less than 100ms apart
       result.score += 10;
       result.threats.push('rapid_succession');
     }
@@ -370,8 +381,10 @@ class DDoSProtectionService {
     }
 
     // Check whitelist
-    if (this.config.allowedCountries.length > 0 &&
-        !this.config.allowedCountries.includes(result.country)) {
+    if (
+      this.config.allowedCountries.length > 0 &&
+      !this.config.allowedCountries.includes(result.country)
+    ) {
       result.allowed = false;
     }
 
@@ -395,7 +408,7 @@ class DDoSProtectionService {
    * Check if honeypot path
    */
   _isHoneypotPath(path) {
-    return this.config.honeypotPaths.some(hp => path.includes(hp));
+    return this.config.honeypotPaths.some((hp) => path.includes(hp));
   }
 
   /**
@@ -415,11 +428,17 @@ class DDoSProtectionService {
    * Check if IP/User is blocked
    */
   _isBlocked(ip, userId) {
-    if (this.whitelist.has(ip) || (userId && this.whitelist.has(`user:${userId}`))) {
+    if (
+      this.whitelist.has(ip) ||
+      (userId && this.whitelist.has(`user:${userId}`))
+    ) {
       return false;
     }
 
-    if (this.blocklist.has(ip) || (userId && this.blocklist.has(`user:${userId}`))) {
+    if (
+      this.blocklist.has(ip) ||
+      (userId && this.blocklist.has(`user:${userId}`))
+    ) {
       return this.blocklist.get(ip)?.expiresAt > Date.now();
     }
 
@@ -433,14 +452,14 @@ class DDoSProtectionService {
     if (ip) {
       this.blocklist.set(ip, {
         addedAt: Date.now(),
-        expiresAt: Date.now() + (durationSeconds * 1000),
+        expiresAt: Date.now() + durationSeconds * 1000,
         reason: 'DDoS Protection'
       });
     }
     if (userId) {
       this.blocklist.set(`user:${userId}`, {
         addedAt: Date.now(),
-        expiresAt: Date.now() + (durationSeconds * 1000),
+        expiresAt: Date.now() + durationSeconds * 1000,
         reason: 'DDoS Protection'
       });
     }
@@ -452,7 +471,7 @@ class DDoSProtectionService {
   _addToGraylist(ip, durationSeconds = 600) {
     this.graylist.set(ip, {
       addedAt: Date.now(),
-      expiresAt: Date.now() + (durationSeconds * 1000),
+      expiresAt: Date.now() + durationSeconds * 1000,
       suspiciousCount: (this.graylist.get(ip)?.suspiciousCount || 0) + 1
     });
   }
@@ -489,15 +508,18 @@ class DDoSProtectionService {
     }
 
     // Update average request size
-    metrics.totalDataTransferred = (metrics.totalDataTransferred || 0) + (analysis.requestSize || 0);
-    metrics.averageRequestSize = metrics.totalDataTransferred / metrics.requestCount;
+    metrics.totalDataTransferred =
+      (metrics.totalDataTransferred || 0) + (analysis.requestSize || 0);
+    metrics.averageRequestSize =
+      metrics.totalDataTransferred / metrics.requestCount;
 
     this.ipMetrics.set(ipKey, metrics);
 
     // Also record user metrics
     if (analysis.userId) {
       const userKey = `user:${analysis.userId}`;
-      const userMetrics = this.userMetrics.get(userKey) || this._initializeMetrics();
+      const userMetrics =
+        this.userMetrics.get(userKey) || this._initializeMetrics();
       userMetrics.requestCount++;
       userMetrics.lastRequestTime = analysis.timestamp;
       this.userMetrics.set(userKey, userMetrics);
@@ -526,7 +548,12 @@ class DDoSProtectionService {
    * Get client IP from request
    */
   _getClientIp(req) {
-    return req.ip || req.connection?.remoteAddress || req.socket?.remoteAddress || '0.0.0.0';
+    return (
+      req.ip ||
+      req.connection?.remoteAddress ||
+      req.socket?.remoteAddress ||
+      '0.0.0.0'
+    );
   }
 
   /**
@@ -535,7 +562,7 @@ class DDoSProtectionService {
   whitelistIp(ip, durationSeconds = null) {
     this.whitelist.set(ip, {
       addedAt: Date.now(),
-      expiresAt: durationSeconds ? Date.now() + (durationSeconds * 1000) : null
+      expiresAt: durationSeconds ? Date.now() + durationSeconds * 1000 : null
     });
   }
 
@@ -586,7 +613,7 @@ class DDoSProtectionService {
    * Reset metrics
    */
   resetMetrics() {
-    Object.keys(this.metrics).forEach(key => {
+    Object.keys(this.metrics).forEach((key) => {
       this.metrics[key] = 0;
     });
     return true;
@@ -642,7 +669,8 @@ class DDoSProtectionService {
     }
 
     // Clean GeoIP cache periodically
-    if (Math.random() < 0.1) { // 10% of cleanup calls
+    if (Math.random() < 0.1) {
+      // 10% of cleanup calls
       this.geoipCache.clear();
     }
 

@@ -26,13 +26,38 @@ class ReportBuilderService {
   initializeFilters() {
     return {
       dateRange: { type: 'date', label: 'Date Range' },
-      roomType: { type: 'select', label: 'Room Type', options: ['single', 'double', 'suite', 'deluxe'] },
-      bookingStatus: { type: 'select', label: 'Booking Status', options: ['confirmed', 'pending', 'cancelled', 'completed'] },
-      paymentStatus: { type: 'select', label: 'Payment Status', options: ['paid', 'unpaid', 'partial', 'refunded'] },
-      customerType: { type: 'select', label: 'Customer Type', options: ['new', 'returning', 'vip', 'corporate'] },
-      bookingSource: { type: 'select', label: 'Booking Source', options: ['direct', 'online', 'agency', 'phone'] },
+      roomType: {
+        type: 'select',
+        label: 'Room Type',
+        options: ['single', 'double', 'suite', 'deluxe']
+      },
+      bookingStatus: {
+        type: 'select',
+        label: 'Booking Status',
+        options: ['confirmed', 'pending', 'cancelled', 'completed']
+      },
+      paymentStatus: {
+        type: 'select',
+        label: 'Payment Status',
+        options: ['paid', 'unpaid', 'partial', 'refunded']
+      },
+      customerType: {
+        type: 'select',
+        label: 'Customer Type',
+        options: ['new', 'returning', 'vip', 'corporate']
+      },
+      bookingSource: {
+        type: 'select',
+        label: 'Booking Source',
+        options: ['direct', 'online', 'agency', 'phone']
+      },
       priceRange: { type: 'range', label: 'Price Range', min: 0, max: 10000 },
-      occupancyRate: { type: 'range', label: 'Occupancy Rate', min: 0, max: 100 },
+      occupancyRate: {
+        type: 'range',
+        label: 'Occupancy Rate',
+        min: 0,
+        max: 100
+      },
       stayDuration: { type: 'number', label: 'Stay Duration (nights)' },
       guestCount: { type: 'number', label: 'Guest Count' },
       city: { type: 'text', label: 'City' },
@@ -40,9 +65,17 @@ class ReportBuilderService {
       discountCode: { type: 'text', label: 'Discount Code' },
       roomNumber: { type: 'text', label: 'Room Number' },
       floor: { type: 'number', label: 'Floor' },
-      amenities: { type: 'multiselect', label: 'Amenities', options: ['wifi', 'parking', 'breakfast', 'pool', 'gym'] },
+      amenities: {
+        type: 'multiselect',
+        label: 'Amenities',
+        options: ['wifi', 'parking', 'breakfast', 'pool', 'gym']
+      },
       ratingRange: { type: 'range', label: 'Rating Range', min: 1, max: 5 },
-      cancellationPolicy: { type: 'select', label: 'Cancellation Policy', options: ['flexible', 'moderate', 'strict'] },
+      cancellationPolicy: {
+        type: 'select',
+        label: 'Cancellation Policy',
+        options: ['flexible', 'moderate', 'strict']
+      },
       checkInTime: { type: 'time', label: 'Check-In Time' },
       checkOutTime: { type: 'time', label: 'Check-Out Time' },
       specialRequests: { type: 'boolean', label: 'Has Special Requests' }
@@ -86,12 +119,15 @@ class ReportBuilderService {
     const sortedData = this.applySorting(data, report.sorting);
 
     // Apply grouping
-    const groupedData = report.grouping 
+    const groupedData = report.grouping
       ? this.applyGrouping(sortedData, report.grouping)
       : sortedData;
 
     // Calculate aggregations
-    const aggregatedData = this.applyAggregations(groupedData, report.aggregations);
+    const aggregatedData = this.applyAggregations(
+      groupedData,
+      report.aggregations
+    );
 
     // Select columns
     const columnsData = this.selectColumns(aggregatedData, report.columns);
@@ -130,26 +166,33 @@ class ReportBuilderService {
     const filter = this.filters[filterKey];
     if (!filter) return data;
 
-    return data.filter(item => {
+    return data.filter((item) => {
       switch (filter.type) {
-        case 'date':
-          return this.filterByDate(item.date, filterValue);
-        case 'select':
-          return item[filterKey] === filterValue;
-        case 'multiselect':
-          return Array.isArray(filterValue) && filterValue.includes(item[filterKey]);
-        case 'range':
-          return item[filterKey] >= filterValue.min && item[filterKey] <= filterValue.max;
-        case 'number':
-          return item[filterKey] === filterValue;
-        case 'text':
-          return item[filterKey]?.toLowerCase().includes(filterValue.toLowerCase());
-        case 'boolean':
-          return item[filterKey] === filterValue;
-        case 'time':
-          return this.filterByTime(item[filterKey], filterValue);
-        default:
-          return true;
+      case 'date':
+        return this.filterByDate(item.date, filterValue);
+      case 'select':
+        return item[filterKey] === filterValue;
+      case 'multiselect':
+        return (
+          Array.isArray(filterValue) && filterValue.includes(item[filterKey])
+        );
+      case 'range':
+        return (
+          item[filterKey] >= filterValue.min &&
+            item[filterKey] <= filterValue.max
+        );
+      case 'number':
+        return item[filterKey] === filterValue;
+      case 'text':
+        return item[filterKey]
+          ?.toLowerCase()
+          .includes(filterValue.toLowerCase());
+      case 'boolean':
+        return item[filterKey] === filterValue;
+      case 'time':
+        return this.filterByTime(item[filterKey], filterValue);
+      default:
+        return true;
       }
     });
   }
@@ -168,10 +211,14 @@ class ReportBuilderService {
   // Filter by time
   filterByTime(itemTime, timeFilter) {
     if (!timeFilter.start && !timeFilter.end) return true;
-    
+
     const time = new Date(`1970-01-01T${itemTime}`);
-    const start = timeFilter.start ? new Date(`1970-01-01T${timeFilter.start}`) : null;
-    const end = timeFilter.end ? new Date(`1970-01-01T${timeFilter.end}`) : null;
+    const start = timeFilter.start
+      ? new Date(`1970-01-01T${timeFilter.start}`)
+      : null;
+    const end = timeFilter.end
+      ? new Date(`1970-01-01T${timeFilter.end}`)
+      : null;
 
     if (start && time < start) return false;
     if (end && time > end) return false;
@@ -198,7 +245,7 @@ class ReportBuilderService {
   applyGrouping(data, groupBy) {
     const grouped = {};
 
-    data.forEach(item => {
+    data.forEach((item) => {
       const key = item[groupBy] || 'Other';
       if (!grouped[key]) {
         grouped[key] = [];
@@ -215,28 +262,38 @@ class ReportBuilderService {
 
     const results = {};
 
-    aggregations.forEach(agg => {
+    aggregations.forEach((agg) => {
       const { column, function: func } = agg;
-      const values = Array.isArray(data) 
-        ? data.map(item => item[column])
-        : Object.values(data).flat().map(item => item[column]);
+      const values = Array.isArray(data)
+        ? data.map((item) => item[column])
+        : Object.values(data)
+          .flat()
+          .map((item) => item[column]);
 
       switch (func) {
-        case 'sum':
-          results[`${column}_sum`] = values.reduce((sum, val) => sum + (val || 0), 0);
-          break;
-        case 'avg':
-          results[`${column}_avg`] = values.reduce((sum, val) => sum + (val || 0), 0) / values.length;
-          break;
-        case 'count':
-          results[`${column}_count`] = values.length;
-          break;
-        case 'min':
-          results[`${column}_min`] = Math.min(...values.filter(v => v != null));
-          break;
-        case 'max':
-          results[`${column}_max`] = Math.max(...values.filter(v => v != null));
-          break;
+      case 'sum':
+        results[`${column}_sum`] = values.reduce(
+          (sum, val) => sum + (val || 0),
+          0
+        );
+        break;
+      case 'avg':
+        results[`${column}_avg`] =
+            values.reduce((sum, val) => sum + (val || 0), 0) / values.length;
+        break;
+      case 'count':
+        results[`${column}_count`] = values.length;
+        break;
+      case 'min':
+        results[`${column}_min`] = Math.min(
+          ...values.filter((v) => v != null)
+        );
+        break;
+      case 'max':
+        results[`${column}_max`] = Math.max(
+          ...values.filter((v) => v != null)
+        );
+        break;
       }
     });
 
@@ -249,7 +306,7 @@ class ReportBuilderService {
 
     const selectFromItem = (item) => {
       const selected = {};
-      columns.forEach(col => {
+      columns.forEach((col) => {
         selected[col] = item[col];
       });
       return selected;
@@ -259,12 +316,12 @@ class ReportBuilderService {
       return data.map(selectFromItem);
     } else if (data.data) {
       return {
-        data: Array.isArray(data.data) 
+        data: Array.isArray(data.data)
           ? data.data.map(selectFromItem)
           : Object.keys(data.data).reduce((acc, key) => {
-              acc[key] = data.data[key].map(selectFromItem);
-              return acc;
-            }, {}),
+            acc[key] = data.data[key].map(selectFromItem);
+            return acc;
+          }, {}),
         aggregations: data.aggregations
       };
     }
@@ -274,7 +331,7 @@ class ReportBuilderService {
 
   // Build report sections
   buildSections(data, sectionConfigs) {
-    return sectionConfigs.map(config => ({
+    return sectionConfigs.map((config) => ({
       title: config.title,
       type: config.type || 'table',
       data: this.formatSectionData(data, config),
@@ -285,16 +342,16 @@ class ReportBuilderService {
   // Format data for section
   formatSectionData(data, config) {
     switch (config.type) {
-      case 'table':
-        return this.formatTableData(data);
-      case 'chart':
-        return this.formatChartData(data, config.chartType);
-      case 'summary':
-        return this.formatSummaryData(data);
-      case 'text':
-        return config.content || '';
-      default:
-        return data;
+    case 'table':
+      return this.formatTableData(data);
+    case 'chart':
+      return this.formatChartData(data, config.chartType);
+    case 'summary':
+      return this.formatSummaryData(data);
+    case 'text':
+      return config.content || '';
+    default:
+      return data;
     }
   }
 
@@ -303,7 +360,9 @@ class ReportBuilderService {
     if (Array.isArray(data)) {
       return data;
     } else if (data.data) {
-      return Array.isArray(data.data) ? data.data : Object.values(data.data).flat();
+      return Array.isArray(data.data)
+        ? data.data
+        : Object.values(data.data).flat();
     }
     return [];
   }
@@ -312,11 +371,15 @@ class ReportBuilderService {
   formatChartData(data, chartType) {
     const tableData = this.formatTableData(data);
     return {
-      labels: tableData.map((item, i) => item.label || item.name || `Item ${i + 1}`),
-      datasets: [{
-        data: tableData.map(item => item.value || 0),
-        backgroundColor: this.generateColors(tableData.length)
-      }]
+      labels: tableData.map(
+        (item, i) => item.label || item.name || `Item ${i + 1}`
+      ),
+      datasets: [
+        {
+          data: tableData.map((item) => item.value || 0),
+          backgroundColor: this.generateColors(tableData.length)
+        }
+      ]
     };
   }
 
@@ -336,18 +399,18 @@ class ReportBuilderService {
   // Generate output in specified format
   async generateOutput(sections, format, report) {
     switch (format) {
-      case 'pdf':
-        return this.generatePDF(sections, report);
-      case 'excel':
-        return this.generateExcel(sections, report);
-      case 'csv':
-        return this.generateCSV(sections, report);
-      case 'json':
-        return this.generateJSON(sections, report);
-      case 'html':
-        return this.generateHTML(sections, report);
-      default:
-        throw new Error(`Unsupported format: ${format}`);
+    case 'pdf':
+      return this.generatePDF(sections, report);
+    case 'excel':
+      return this.generateExcel(sections, report);
+    case 'csv':
+      return this.generateCSV(sections, report);
+    case 'json':
+      return this.generateJSON(sections, report);
+    case 'html':
+      return this.generateHTML(sections, report);
+    default:
+      throw new Error(`Unsupported format: ${format}`);
     }
   }
 
@@ -357,7 +420,9 @@ class ReportBuilderService {
     return {
       type: 'buffer',
       mimeType: 'application/pdf',
-      content: Buffer.from(`PDF Report: ${report.name}\n${JSON.stringify(sections, null, 2)}`),
+      content: Buffer.from(
+        `PDF Report: ${report.name}\n${JSON.stringify(sections, null, 2)}`
+      ),
       filename: `${report.name.replace(/\s/g, '_')}.pdf`
     };
   }
@@ -367,8 +432,11 @@ class ReportBuilderService {
     // Simulated Excel generation - use library like exceljs in production
     return {
       type: 'buffer',
-      mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      content: Buffer.from(`Excel Report: ${report.name}\n${JSON.stringify(sections, null, 2)}`),
+      mimeType:
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      content: Buffer.from(
+        `Excel Report: ${report.name}\n${JSON.stringify(sections, null, 2)}`
+      ),
       filename: `${report.name.replace(/\s/g, '_')}.xlsx`
     };
   }
@@ -380,20 +448,20 @@ class ReportBuilderService {
     rows.push(`Generated: ${new Date().toISOString()}`);
     rows.push('');
 
-    sections.forEach(section => {
+    sections.forEach((section) => {
       rows.push(section.title);
       const data = Array.isArray(section.data) ? section.data : [section.data];
-      
+
       if (data.length > 0) {
         const headers = Object.keys(data[0]);
         rows.push(headers.join(','));
-        
-        data.forEach(item => {
-          const values = headers.map(h => item[h] || '');
+
+        data.forEach((item) => {
+          const values = headers.map((h) => item[h] || '');
           rows.push(values.join(','));
         });
       }
-      
+
       rows.push('');
     });
 
@@ -410,11 +478,15 @@ class ReportBuilderService {
     return {
       type: 'json',
       mimeType: 'application/json',
-      content: JSON.stringify({
-        report: report.name,
-        generatedAt: new Date().toISOString(),
-        sections
-      }, null, 2),
+      content: JSON.stringify(
+        {
+          report: report.name,
+          generatedAt: new Date().toISOString(),
+          sections
+        },
+        null,
+        2
+      ),
       filename: `${report.name.replace(/\s/g, '_')}.json`
     };
   }
@@ -437,7 +509,7 @@ class ReportBuilderService {
         <body>
           <h1>${report.name}</h1>
           <p>Generated: ${new Date().toISOString()}</p>
-          ${sections.map(s => this.sectionToHTML(s)).join('\n')}
+          ${sections.map((s) => this.sectionToHTML(s)).join('\n')}
         </body>
       </html>
     `;
@@ -453,17 +525,21 @@ class ReportBuilderService {
   // Convert section to HTML
   sectionToHTML(section) {
     let html = `<h2>${section.title}</h2>`;
-    
+
     if (section.type === 'table') {
       const data = Array.isArray(section.data) ? section.data : [section.data];
       if (data.length > 0) {
         const headers = Object.keys(data[0]);
         html += '<table><thead><tr>';
-        headers.forEach(h => { html += `<th>${h}</th>`; });
+        headers.forEach((h) => {
+          html += `<th>${h}</th>`;
+        });
         html += '</tr></thead><tbody>';
-        data.forEach(item => {
+        data.forEach((item) => {
           html += '<tr>';
-          headers.forEach(h => { html += `<td>${item[h] || ''}</td>`; });
+          headers.forEach((h) => {
+            html += `<td>${item[h] || ''}</td>`;
+          });
           html += '</tr>';
         });
         html += '</tbody></table>';
@@ -471,7 +547,7 @@ class ReportBuilderService {
     } else {
       html += `<pre>${JSON.stringify(section.data, null, 2)}</pre>`;
     }
-    
+
     return html;
   }
 
@@ -490,7 +566,7 @@ class ReportBuilderService {
 
     this.schedules.set(scheduleConfig.id, scheduleConfig);
     this.startScheduler();
-    
+
     return scheduleConfig;
   }
 
@@ -516,7 +592,10 @@ class ReportBuilderService {
           await this.sendReport(result, schedule.recipients, schedule.format);
           schedule.lastExecuted = now;
         } catch (error) {
-          console.error(`Failed to execute scheduled report ${scheduleId}:`, error);
+          console.error(
+            `Failed to execute scheduled report ${scheduleId}:`,
+            error
+          );
         }
       }
     }
@@ -530,21 +609,23 @@ class ReportBuilderService {
     const hoursSince = (now - lastExec) / (1000 * 60 * 60);
 
     switch (schedule.frequency) {
-      case 'daily':
-        return hoursSince >= 24;
-      case 'weekly':
-        return hoursSince >= 168;
-      case 'monthly':
-        return hoursSince >= 720;
-      default:
-        return false;
+    case 'daily':
+      return hoursSince >= 24;
+    case 'weekly':
+      return hoursSince >= 168;
+    case 'monthly':
+      return hoursSince >= 720;
+    default:
+      return false;
     }
   }
 
   // Send report to recipients
   async sendReport(report, recipients, format) {
     // Simulated email sending - integrate with email service
-    console.log(`Sending report to ${recipients.join(', ')} in ${format} format`);
+    console.log(
+      `Sending report to ${recipients.join(', ')} in ${format} format`
+    );
     return true;
   }
 
@@ -627,7 +708,7 @@ class ReportBuilderService {
     let reports = Array.from(this.reports.values());
 
     if (filters.userId) {
-      reports = reports.filter(r => r.createdBy === filters.userId);
+      reports = reports.filter((r) => r.createdBy === filters.userId);
     }
 
     return reports;
@@ -643,7 +724,9 @@ class ReportBuilderService {
     return {
       totalReports: this.reports.size,
       totalTemplates: this.templates.size,
-      activeSchedules: Array.from(this.schedules.values()).filter(s => s.enabled).length,
+      activeSchedules: Array.from(this.schedules.values()).filter(
+        (s) => s.enabled
+      ).length,
       availableFilters: Object.keys(this.filters).length
     };
   }

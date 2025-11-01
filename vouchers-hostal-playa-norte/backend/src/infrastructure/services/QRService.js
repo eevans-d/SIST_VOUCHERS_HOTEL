@@ -50,7 +50,7 @@ export class QRService {
       type: parts[0],
       voucherId: parts[1],
       voucherCode: parts[2],
-      stayId: parts[3],
+      stayId: parts[3]
     };
   }
 
@@ -80,7 +80,7 @@ export class QRService {
       voucherCode,
       stayId,
       size: this.size,
-      errorCorrection: this.errorCorrectionLevel,
+      errorCorrection: this.errorCorrectionLevel
     };
   }
 

@@ -8,15 +8,21 @@ import { z } from 'zod';
 import { v4 as uuidv4 } from 'uuid';
 
 const VoucherSchema = z.object({
-  id: z.string().uuid().optional().default(() => uuidv4()),
-  code: z.string().min(1, "Code is required"),
-  stayId: z.string().uuid("Invalid Stay ID"),
-  validFrom: z.date("Invalid validFrom date"),
-  validUntil: z.date("Invalid validUntil date"),
-  hmacSignature: z.string().min(1, "HMAC signature is required"),
-  status: z.enum(['active', 'redeemed', 'expired', 'cancelled']).default('active'),
+  id: z
+    .string()
+    .uuid()
+    .optional()
+    .default(() => uuidv4()),
+  code: z.string().min(1, 'Code is required'),
+  stayId: z.string().uuid('Invalid Stay ID'),
+  validFrom: z.date('Invalid validFrom date'),
+  validUntil: z.date('Invalid validUntil date'),
+  hmacSignature: z.string().min(1, 'HMAC signature is required'),
+  status: z
+    .enum(['active', 'redeemed', 'expired', 'cancelled'])
+    .default('active'),
   createdAt: z.date().default(() => new Date()),
-  updatedAt: z.date().default(() => new Date()),
+  updatedAt: z.date().default(() => new Date())
 });
 
 export class Voucher {
@@ -73,7 +79,7 @@ export class Voucher {
       validUntil: this.validUntil.toISOString(),
       status: this.status,
       createdAt: this.createdAt.toISOString(),
-      updatedAt: this.updatedAt.toISOString(),
+      updatedAt: this.updatedAt.toISOString()
     };
   }
 
@@ -87,7 +93,7 @@ export class Voucher {
       hmacSignature: this.hmacSignature,
       status: this.status,
       createdAt: this.createdAt.toISOString(),
-      updatedAt: this.updatedAt.toISOString(),
+      updatedAt: this.updatedAt.toISOString()
     };
   }
 
@@ -97,7 +103,7 @@ export class Voucher {
       validFrom: new Date(data.validFrom),
       validUntil: new Date(data.validUntil),
       createdAt: new Date(data.createdAt),
-      updatedAt: new Date(data.updatedAt),
+      updatedAt: new Date(data.updatedAt)
     });
   }
 }

@@ -1,6 +1,6 @@
 /**
  * tracingService.js
- * 
+ *
  * Servicio de Distributed Tracing con OpenTelemetry
  * - Trace collection (W3C Trace Context)
  * - Span correlation
@@ -18,14 +18,14 @@ class TracingService {
     this.traceIdHeader = 'x-trace-id';
     this.spanIdHeader = 'x-span-id';
     this.parentSpanHeader = 'x-parent-span-id';
-    
+
     this.traces = new Map();
     this.spans = new Map();
     this.stats = {
       tracesCreated: 0,
       spansCreated: 0,
       tracesSampled: 0,
-      errors: 0,
+      errors: 0
     };
   }
 
@@ -67,10 +67,10 @@ class TracingService {
         service: this.serviceName,
         version: this.version,
         environment: this.environment,
-        ...attributes,
+        ...attributes
       },
       sampled: shouldSample,
-      parentTraceId: null,
+      parentTraceId: null
     };
 
     this.traces.set(traceId, trace);
@@ -96,9 +96,10 @@ class TracingService {
     }
 
     const spanId = this.generateSpanId();
-    const parentSpanId = trace.spans.length > 0
-      ? trace.spans[trace.spans.length - 1].spanId
-      : null;
+    const parentSpanId =
+      trace.spans.length > 0
+        ? trace.spans[trace.spans.length - 1].spanId
+        : null;
 
     const span = {
       spanId,
@@ -111,10 +112,10 @@ class TracingService {
       status: 'UNSET',
       attributes: {
         component: 'span',
-        ...attributes,
+        ...attributes
       },
       events: [],
-      links: [],
+      links: []
     };
 
     this.spans.set(spanId, span);
@@ -177,7 +178,7 @@ class TracingService {
     span.events.push({
       name: eventName,
       timestamp: Date.now(),
-      attributes,
+      attributes
     });
   }
 
@@ -196,7 +197,7 @@ class TracingService {
     span.links.push({
       spanId: linkedSpanId,
       attributes,
-      timestamp: Date.now(),
+      timestamp: Date.now()
     });
   }
 
@@ -213,7 +214,7 @@ class TracingService {
       return {
         traceId: this.generateTraceId(),
         spanId: this.generateSpanId(),
-        sampled: true,
+        sampled: true
       };
     }
 
@@ -223,7 +224,7 @@ class TracingService {
       return {
         traceId: this.generateTraceId(),
         spanId: this.generateSpanId(),
-        sampled: true,
+        sampled: true
       };
     }
 
@@ -232,7 +233,7 @@ class TracingService {
       spanId: this.generateSpanId(),
       parentSpanId: parts[2],
       sampled: parseInt(parts[3], 16) === 1,
-      traceState,
+      traceState
     };
   }
 
@@ -247,7 +248,7 @@ class TracingService {
 
     return {
       traceparent,
-      tracestate: context.traceState || '',
+      tracestate: context.traceState || ''
     };
   }
 
@@ -259,7 +260,7 @@ class TracingService {
     return (req, res, next) => {
       // Extraer contexto
       const context = this.extractContext(req.headers);
-      
+
       // Crear traza
       const trace = this.createTrace(req.method + ' ' + req.path, {
         http: {
@@ -269,21 +270,17 @@ class TracingService {
           host: req.hostname,
           scheme: req.protocol,
           clientIp: this.getClientIp(req),
-          userAgent: req.get('user-agent'),
-        },
+          userAgent: req.get('user-agent')
+        }
       });
 
       // Crear span para request
-      const span = this.createSpan(
-        trace.traceId,
-        'http.request',
-        {
-          http: {
-            method: req.method,
-            url: req.path,
-          },
+      const span = this.createSpan(trace.traceId, 'http.request', {
+        http: {
+          method: req.method,
+          url: req.path
         }
-      );
+      });
 
       // Almacenar en request
       req.traceId = trace.traceId;
@@ -298,7 +295,7 @@ class TracingService {
       // Finalizar en respuesta
       res.on('finish', () => {
         span.attributes.http = {
-          status_code: res.statusCode,
+          status_code: res.statusCode
         };
 
         const status = res.statusCode >= 400 ? 'ERROR' : 'OK';
@@ -324,8 +321,8 @@ class TracingService {
         system: 'sqlite',
         operation,
         name: table,
-        parameterized_query: this.maskSensitiveParams(params),
-      },
+        parameterized_query: this.maskSensitiveParams(params)
+      }
     });
 
     return span;
@@ -343,8 +340,8 @@ class TracingService {
       cache: {
         system: 'redis',
         operation,
-        key,
-      },
+        key
+      }
     });
 
     return span;
@@ -358,11 +355,11 @@ class TracingService {
    * @returns {object} Span para API
    */
   createExternalAPISpan(traceId, method, url) {
-    const span = this.createSpan(traceId, `http.client`, {
+    const span = this.createSpan(traceId, 'http.client', {
       http: {
         method,
-        url: this.maskUrl(url),
-      },
+        url: this.maskUrl(url)
+      }
     });
 
     return span;
@@ -386,7 +383,7 @@ class TracingService {
       this.addEvent(span.spanId, 'exception', {
         'exception.type': error.name,
         'exception.message': error.message,
-        'exception.stacktrace': error.stack,
+        'exception.stacktrace': error.stack
       });
       this.endSpan(span.spanId, 'ERROR');
       throw error;
@@ -406,10 +403,10 @@ class TracingService {
 
     return {
       ...trace,
-      spans: trace.spans.map(span => ({
+      spans: trace.spans.map((span) => ({
         ...span,
-        depth: this.calculateSpanDepth(span),
-      })),
+        depth: this.calculateSpanDepth(span)
+      }))
     };
   }
 
@@ -432,29 +429,31 @@ class TracingService {
           serviceName: this.serviceName,
           tags: [
             { key: 'version', value: this.version },
-            { key: 'environment', value: this.environment },
-          ],
-        },
+            { key: 'environment', value: this.environment }
+          ]
+        }
       },
-      spans: trace.spans.map(span => ({
+      spans: trace.spans.map((span) => ({
         traceID: span.traceId,
         spanID: span.spanId,
         operationName: span.spanName,
-        references: span.parentSpanId ? [
-          {
-            refType: 'CHILD_OF',
-            traceID: span.traceId,
-            spanID: span.parentSpanId,
-          },
-        ] : [],
+        references: span.parentSpanId
+          ? [
+            {
+              refType: 'CHILD_OF',
+              traceID: span.traceId,
+              spanID: span.parentSpanId
+            }
+          ]
+          : [],
         startTime: span.startTime * 1000,
         duration: (span.duration || 0) * 1000,
         tags: this.attributesToTags(span.attributes),
-        logs: span.events.map(event => ({
+        logs: span.events.map((event) => ({
           timestamp: event.timestamp * 1000,
-          fields: this.attributesToTags(event.attributes),
-        })),
-      })),
+          fields: this.attributesToTags(event.attributes)
+        }))
+      }))
     };
   }
 
@@ -476,16 +475,19 @@ class TracingService {
             attributes: [
               { key: 'service.name', value: { stringValue: this.serviceName } },
               { key: 'service.version', value: { stringValue: this.version } },
-              { key: 'deployment.environment', value: { stringValue: this.environment } },
-            ],
+              {
+                key: 'deployment.environment',
+                value: { stringValue: this.environment }
+              }
+            ]
           },
           scopeSpans: [
             {
               scope: {
                 name: this.serviceName,
-                version: this.version,
+                version: this.version
               },
-              spans: trace.spans.map(span => ({
+              spans: trace.spans.map((span) => ({
                 traceId: trace.traceId,
                 spanId: span.spanId,
                 parentSpanId: span.parentSpanId,
@@ -495,13 +497,13 @@ class TracingService {
                 endTimeUnixNano: BigInt(span.endTime) * BigInt(1000000),
                 attributes: this.attributesToKeyValues(span.attributes),
                 status: {
-                  code: span.status === 'ERROR' ? 2 : 0,
-                },
-              })),
-            },
-          ],
-        },
-      ],
+                  code: span.status === 'ERROR' ? 2 : 0
+                }
+              }))
+            }
+          ]
+        }
+      ]
     };
   }
 
@@ -522,7 +524,10 @@ class TracingService {
       }
 
       // Filtrar por operationName
-      if (query.operationName && !trace.operationName.includes(query.operationName)) {
+      if (
+        query.operationName &&
+        !trace.operationName.includes(query.operationName)
+      ) {
         matches = false;
       }
 
@@ -580,7 +585,7 @@ class TracingService {
       averageDuration: 0,
       maxDuration: 0,
       minDuration: Infinity,
-      errorRate: 0,
+      errorRate: 0
     };
 
     let errorCount = 0;
@@ -599,12 +604,12 @@ class TracingService {
       }
     }
 
-    stats.averageDuration = tracesWithDuration > 0
-      ? stats.totalDuration / tracesWithDuration
-      : 0;
-    stats.errorRate = this.stats.tracesCreated > 0
-      ? (errorCount / this.stats.tracesCreated) * 100
-      : 0;
+    stats.averageDuration =
+      tracesWithDuration > 0 ? stats.totalDuration / tracesWithDuration : 0;
+    stats.errorRate =
+      this.stats.tracesCreated > 0
+        ? (errorCount / this.stats.tracesCreated) * 100
+        : 0;
 
     return stats;
   }
@@ -620,7 +625,7 @@ class TracingService {
       timestamp: new Date(),
       stats: this.getStatistics(),
       tracesInMemory: this.traces.size,
-      spansInMemory: this.spans.size,
+      spansInMemory: this.spans.size
     };
   }
 
@@ -637,20 +642,27 @@ class TracingService {
   }
 
   getClientIp(req) {
-    return req.ip ||
-           req.connection.remoteAddress ||
-           req.socket.remoteAddress ||
-           req.connection.socket.remoteAddress;
+    return (
+      req.ip ||
+      req.connection.remoteAddress ||
+      req.socket.remoteAddress ||
+      req.connection.socket.remoteAddress
+    );
   }
 
   maskUrl(url) {
     // Remover parámetros sensibles
-    return url.replace(/([?&])([^=]+)=([^&]*)/g, (match, prefix, key, value) => {
-      if (['password', 'token', 'secret', 'api_key'].includes(key.toLowerCase())) {
-        return `${prefix}${key}=***`;
+    return url.replace(
+      /([?&])([^=]+)=([^&]*)/g,
+      (match, prefix, key, value) => {
+        if (
+          ['password', 'token', 'secret', 'api_key'].includes(key.toLowerCase())
+        ) {
+          return `${prefix}${key}=***`;
+        }
+        return match;
       }
-      return match;
-    });
+    );
   }
 
   maskSensitiveParams(params) {
@@ -680,7 +692,7 @@ class TracingService {
     for (const [key, value] of Object.entries(attributes)) {
       tags.push({
         key,
-        value: this.typeValue(value),
+        value: this.typeValue(value)
       });
     }
     return tags;
@@ -691,7 +703,7 @@ class TracingService {
     for (const [key, value] of Object.entries(attributes)) {
       keyValues.push({
         key,
-        value: this.typeValue(value),
+        value: this.typeValue(value)
       });
     }
     return keyValues;

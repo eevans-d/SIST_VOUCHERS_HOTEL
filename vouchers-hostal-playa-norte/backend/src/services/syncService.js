@@ -2,7 +2,6 @@ const { getDb } = require('../config/database');
 const { logger, auditLogger } = require('../config/logger');
 const { VoucherService } = require('./voucherService');
 const { ConflictError } = require('../middleware/errorHandler');
-const config = require('../config/environment');
 
 class SyncService {
   /**
@@ -11,7 +10,7 @@ class SyncService {
   async syncRedemptions({ device_id, redemptions, correlation_id, user_id }) {
     const db = getDb();
     const startTime = Date.now();
-    
+
     logger.info({
       event: 'sync_redemptions_start',
       correlation_id,
@@ -51,7 +50,8 @@ class SyncService {
         db.prepare(
           `
           INSERT INTO sync_log (            device_id, operation, payload, result, synced_at          ) VALUES (?, 'redemption', ?, 'success', datetime('now', 'localtime'))
-        `).run(device_id, JSON.stringify(redemption), 'success');
+        `
+        ).run(device_id, JSON.stringify(redemption), 'success');
 
         results.push({
           local_id: redemption.local_id,
@@ -59,9 +59,8 @@ class SyncService {
           redemption_id: result.redemption.redemption_id,
           server_timestamp: result.redemption.redeemed_at
         });
-        
+
         successCount++;
-        
       } catch (error) {
         if (error instanceof ConflictError) {
           // Conflicto: voucher ya canjeado
@@ -77,7 +76,8 @@ class SyncService {
           db.prepare(
             `
             INSERT INTO sync_log (              device_id, operation, payload, result, synced_at            ) VALUES (?, 'redemption', ?, 'conflict', datetime('now', 'localtime'))
-          `).run(device_id, JSON.stringify(redemption));
+          `
+          ).run(device_id, JSON.stringify(redemption));
 
           const conflictResult = {
             local_id: redemption.local_id,
@@ -92,7 +92,6 @@ class SyncService {
           results.push(conflictResult);
           conflicts.push(conflictResult);
           conflictCount++;
-          
         } else {
           // Otro error
           logger.error({
@@ -106,7 +105,8 @@ class SyncService {
           db.prepare(
             `
             INSERT INTO sync_log (              device_id, operation, payload, result, synced_at            ) VALUES (?, 'redemption', ?, 'error', datetime('now', 'localtime'))
-          `).run(device_id, JSON.stringify(redemption));
+          `
+          ).run(device_id, JSON.stringify(redemption));
 
           results.push({
             local_id: redemption.local_id,
@@ -159,18 +159,21 @@ class SyncService {
    */
   async getSyncHistory({ device_id, limit = 100, correlation_id }) {
     const db = getDb();
-    
-    const history = db.prepare(
-      `
+
+    const history = db
+      .prepare(
+        `
       SELECT * FROM sync_log
       WHERE device_id = ?
       ORDER BY synced_at DESC
       LIMIT ?
-    `).all(device_id, limit);
+    `
+      )
+      .all(device_id, limit);
 
     return {
       device_id,
-      history: history.map(record => ({
+      history: history.map((record) => ({
         ...record,
         payload: JSON.parse(record.payload)
       }))
@@ -182,32 +185,32 @@ class SyncService {
    */
   async getSyncStats({ device_id, from_date, to_date, correlation_id }) {
     const db = getDb();
-    
+
     let query = `
-      SELECT 
+      SELECT
         result,
         COUNT(*) as count,
         DATE(synced_at) as sync_date
       FROM sync_log
       WHERE device_id = ?
     `;
-    
+
     const params = [device_id];
-    
+
     if (from_date) {
       query += ' AND DATE(synced_at) >= ?';
       params.push(from_date);
     }
-    
+
     if (to_date) {
       query += ' AND DATE(synced_at) <= ?';
       params.push(to_date);
     }
-    
+
     query += ' GROUP BY result, DATE(synced_at) ORDER BY sync_date DESC';
-    
+
     const stats = db.prepare(query).all(...params);
-    
+
     return {
       device_id,
       period: { from: from_date, to: to_date },

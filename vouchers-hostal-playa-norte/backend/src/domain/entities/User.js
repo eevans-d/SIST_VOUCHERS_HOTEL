@@ -13,16 +13,23 @@ import { v4 as uuidv4 } from 'uuid';
  * Ref: Pilar 2.1 (Standards & Validation)
  */
 const UserSchema = z.object({
-  id: z.string().uuid().optional().default(() => uuidv4()),
+  id: z
+    .string()
+    .uuid()
+    .optional()
+    .default(() => uuidv4()),
   email: z.string().email('Email inválido').toLowerCase(),
   firstName: z.string().min(2, 'Mínimo 2 caracteres').max(50),
   lastName: z.string().min(2, 'Mínimo 2 caracteres').max(50),
-  phone: z.string().regex(/^[0-9+\-\s()]*$/, 'Teléfono inválido').optional(),
+  phone: z
+    .string()
+    .regex(/^[0-9+\-\s()]*$/, 'Teléfono inválido')
+    .optional(),
   role: z.enum(['admin', 'staff', 'guest', 'cafe_manager']).default('guest'),
   passwordHash: z.string().min(60, 'Password hash inválido'),
   isActive: z.boolean().default(true),
   createdAt: z.date().default(() => new Date()),
-  updatedAt: z.date().default(() => new Date()),
+  updatedAt: z.date().default(() => new Date())
 });
 
 /**
@@ -34,7 +41,7 @@ export class User {
   constructor(data) {
     // Validar contra schema
     const validated = UserSchema.parse(data);
-    
+
     Object.assign(this, validated);
   }
 
@@ -88,38 +95,38 @@ export class User {
     const basePermissions = ['read:own_profile'];
 
     switch (this.role) {
-      case 'admin':
-        return [
-          ...basePermissions,
-          'manage:users',
-          'manage:stays',
-          'manage:vouchers',
-          'manage:cafe_orders',
-          'view:analytics',
-          'view:reports',
-          'manage:system',
-        ];
-      case 'staff':
-        return [
-          ...basePermissions,
-          'manage:stays',
-          'manage:vouchers',
-          'view:analytics',
-        ];
-      case 'cafe_manager':
-        return [
-          ...basePermissions,
-          'manage:cafe_orders',
-          'view:cafe_analytics',
-        ];
-      case 'guest':
-      default:
-        return [
-          ...basePermissions,
-          'read:stays',
-          'read:vouchers',
-          'redeem:vouchers',
-        ];
+    case 'admin':
+      return [
+        ...basePermissions,
+        'manage:users',
+        'manage:stays',
+        'manage:vouchers',
+        'manage:cafe_orders',
+        'view:analytics',
+        'view:reports',
+        'manage:system'
+      ];
+    case 'staff':
+      return [
+        ...basePermissions,
+        'manage:stays',
+        'manage:vouchers',
+        'view:analytics'
+      ];
+    case 'cafe_manager':
+      return [
+        ...basePermissions,
+        'manage:cafe_orders',
+        'view:cafe_analytics'
+      ];
+    case 'guest':
+    default:
+      return [
+        ...basePermissions,
+        'read:stays',
+        'read:vouchers',
+        'redeem:vouchers'
+      ];
     }
   }
 
@@ -175,7 +182,7 @@ export class User {
       passwordHash: this.passwordHash,
       isActive: this.isActive ? 1 : 0,
       createdAt: this.createdAt.toISOString(),
-      updatedAt: this.updatedAt.toISOString(),
+      updatedAt: this.updatedAt.toISOString()
     };
   }
 
@@ -189,7 +196,7 @@ export class User {
       ...data,
       isActive: Boolean(data.isActive),
       createdAt: new Date(data.createdAt),
-      updatedAt: new Date(data.updatedAt),
+      updatedAt: new Date(data.updatedAt)
     });
   }
 }

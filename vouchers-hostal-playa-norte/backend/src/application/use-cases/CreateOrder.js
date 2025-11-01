@@ -1,4 +1,5 @@
 import { Order } from '../../domain/entities/Order.js';
+import { AppError } from '../../middleware/errorHandler.js';
 
 /**
  * CreateOrder - Use Case para crear órdenes
@@ -35,7 +36,7 @@ export class CreateOrder {
           productCode: item.productCode,
           productName: item.productName,
           quantity: item.quantity,
-          unitPrice: item.unitPrice,
+          unitPrice: item.unitPrice
         });
       }
 
@@ -45,7 +46,7 @@ export class CreateOrder {
       this.logger.info(`Orden creada: ${orderId}`, {
         stayId,
         itemCount: items.length,
-        total: order.total,
+        total: order.total
       });
 
       return {
@@ -55,7 +56,7 @@ export class CreateOrder {
         itemCount: order.items.length,
         total: order.total,
         finalTotal: order.finalTotal,
-        message: 'Orden creada exitosamente',
+        message: 'Orden creada exitosamente'
       };
     } catch (error) {
       this.logger.error('Error creando orden', { error, stayId });
