@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">26.92% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>7/26</span>
+                <span class='fraction'>0/26</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">10% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>1/10</span>
+                <span class='fraction'>0/10</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">38.46% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>5/13</span>
+                <span class='fraction'>0/13</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">26.92% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>7/26</span>
+                <span class='fraction'>0/26</span>
             </div>
         
             
@@ -183,35 +183,35 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">15x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">15x</span>
-<span class="cline-any cline-yes">15x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">15x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">15x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">15x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -294,12 +294,12 @@
 import { z } from 'zod';
 import { v4 as uuidv4 } from 'uuid';
 &nbsp;
-const VoucherSchema = z.object({
+const VoucherSchema = <span class="cstat-no" title="statement not covered" >z.object({</span>
   id: z
     .string()
     .uuid()
     .optional()
-    .default(() =&gt; uuidv4()),
+    .default(<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >uuidv4())</span>,
   code: z.string().min(1, 'Code is required'),
   stayId: z.string().uuid('Invalid Stay ID'),
   validFrom: z.date('Invalid validFrom date'),
@@ -308,21 +308,21 @@ const VoucherSchema = z.object({
   status: z
     .enum(['active', 'redeemed', 'expired', 'cancelled'])
     .default('active'),
-  createdAt: z.date().default(() =&gt; new Date()),
-  updatedAt: z.date().default(() =&gt; new Date())
+  createdAt: z.date().default(<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >new Date())</span>,
+  updatedAt: z.date().default(<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >new Date())</span>
 });
 &nbsp;
 export class Voucher {
-  constructor(data) {
-    <span class="missing-if-branch" title="if path not taken" >I</span>if (data.validUntil &lt;= data.validFrom) {
+<span class="fstat-no" title="function not covered" >  co</span>nstructor(data) {
+<span class="cstat-no" title="statement not covered" >    if (data.validUntil &lt;= data.validFrom) {</span>
 <span class="cstat-no" title="statement not covered" >      throw new Error('validUntil must be after validFrom');</span>
     }
-    const validated = VoucherSchema.parse(data);
+    const validated = <span class="cstat-no" title="statement not covered" >VoucherSchema.parse(data);</span>
 <span class="cstat-no" title="statement not covered" >    Object.assign(this, validated);</span>
   }
 &nbsp;
-  static create(data) {
-    return new Voucher(data);
+<span class="fstat-no" title="function not covered" >  st</span>atic create(data) {
+<span class="cstat-no" title="statement not covered" >    return new Voucher(data);</span>
   }
 &nbsp;
 <span class="fstat-no" title="function not covered" >  is</span>Redeemed() {
@@ -403,7 +403,7 @@ export default Voucher;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-11-01T05:13:25.050Z
+                at 2025-11-01T05:25:28.177Z
             </div>
         <script src="../../prettify.js"></script>
         <script>
