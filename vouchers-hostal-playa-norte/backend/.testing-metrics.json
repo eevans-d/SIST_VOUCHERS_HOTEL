@@ -82,11 +82,11 @@
   },
 
   "tests_totales": {
-    "ejecutados": 70,
-    "pasando": 70,
+    "ejecutados": 79,
+    "pasando": 79,
     "fallando": 0,
     "success_rate": 100,
-    "suites": 6
+    "suites": 7
   },
 
   "migracion_es_modules": {
