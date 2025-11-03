@@ -14,8 +14,10 @@ export default defineConfig({
     video: 'retain-on-failure',
   },
   webServer: {
-    command: 'npm start',
-    url: 'http://localhost:3001',
+    // Ejecuta el servidor del backend (paquete padre) desde el subdirectorio e2e
+    // --prefix .. asegura que use el package.json del backend
+    command: 'npm --prefix .. start',
+    url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
   },

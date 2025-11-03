@@ -1,0 +1,46 @@
+name: CI E2E (non-gating)
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+          cache: 'npm'
+          cache-dependency-path: |
+            vouchers-hostal-playa-norte/backend/package-lock.json
+            vouchers-hostal-playa-norte/backend/e2e/package-lock.json
+
+      - name: Install backend dependencies
+        working-directory: vouchers-hostal-playa-norte/backend
+        run: |
+          if [ -f package-lock.json ]; then npm ci; else npm install; fi
+
+      - name: Install e2e dependencies
+        working-directory: vouchers-hostal-playa-norte/backend/e2e
+        run: |
+          if [ -f package-lock.json ]; then npm ci; else npm install; fi
+          npx playwright install --with-deps
+
+      - name: Run E2E tests (Playwright)
+        working-directory: vouchers-hostal-playa-norte/backend/e2e
+        run: npm run test:e2e
+        continue-on-error: true
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: vouchers-hostal-playa-norte/backend/e2e/playwright-report
