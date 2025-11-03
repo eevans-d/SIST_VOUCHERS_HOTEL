@@ -70,13 +70,13 @@
     },
     "SyncService": {
       "statements": 100,
-      "branches": 76.92,
+      "branches": 92.3,
       "functions": 100,
       "lines": 100,
-      "tests": 6,
-      "tests_pasando": 6,
+      "tests": 9,
+      "tests_pasando": 9,
       "lineas_codigo": 223,
-      "estado": "BUENO",
+      "estado": "EXCELENTE",
       "metodos_cubiertos": ["syncRedemptions", "getSyncHistory", "getSyncStats"]
     }
   },
