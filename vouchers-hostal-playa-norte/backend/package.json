@@ -9,6 +9,8 @@
     "dev": "nodemon src/index.js",
     "dev:debug": "nodemon --inspect src/index.js",
     "test": "NODE_ENV=test node --experimental-vm-modules ./node_modules/jest/bin/jest.js --coverage",
+    "test:core": "NODE_ENV=test node --experimental-vm-modules ./node_modules/jest/bin/jest.js --testPathPattern=realcoverage",
+    "test:core:coverage": "NODE_ENV=test node --experimental-vm-modules ./node_modules/jest/bin/jest.js --testPathPattern=realcoverage --collectCoverageFrom=src/services/voucherService.js --collectCoverageFrom=src/services/cryptoService.js --collectCoverageFrom=src/services/qrService.js --collectCoverageFrom=src/services/reportService.js --coverage",
     "test:unit": "NODE_ENV=test node --experimental-vm-modules ./node_modules/jest/bin/jest.js tests/unit --coverage",
     "test:watch": "NODE_ENV=test node --experimental-vm-modules ./node_modules/jest/bin/jest.js --watch",
     "test:integration": "NODE_ENV=test node --experimental-vm-modules ./node_modules/jest/bin/jest.js tests/integration",
@@ -22,7 +24,8 @@
     "prepare": "cd ../.. && husky install vouchers-hostal-playa-norte/backend/.husky",
     "db:init": "bash scripts/init-database.sh",
     "db:migrate": "node scripts/migrate.js",
-    "db:seed": "node scripts/seed.js"
+    "db:seed": "node scripts/seed.js",
+    "docs:sync": "node scripts/docs-sync.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

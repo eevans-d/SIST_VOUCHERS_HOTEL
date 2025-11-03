@@ -1,3 +1,17 @@
+<!-- AUTO:METRICS:BEGIN -->
+Actualizado: 2025-11-03T06:41:43.990Z
+
+Servicios completados: 4/7 (57.14%)
+Cobertura (servicios completados): statements 96.21% | branches 92.98% | funcs 100% | lines 96.19%
+Tests: 56/56 pasando (success 100%)
+
+Detalle por servicio:
+- VoucherService: statements 93.39% | branches 89.47% | funcs 100% | lines 93.33% | tests 21/21
+- CryptoService: statements 100% | branches 100% | funcs 100% | lines 100% | tests 12/12
+- QRService: statements 100% | branches 100% | funcs 100% | lines 100% | tests 11/11
+- ReportService: statements 100% | branches 100% | funcs 100% | lines 100% | tests 12/12
+<!-- AUTO:METRICS:END -->
+
 # 📊 PROGRESO PUESTA A PUNTO - TRACKER
 
 **Plan:** Opción C - Profesional (380 horas)  
