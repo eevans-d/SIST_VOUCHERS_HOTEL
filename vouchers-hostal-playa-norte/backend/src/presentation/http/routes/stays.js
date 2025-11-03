@@ -6,7 +6,7 @@
  */
 
 import express from 'express';
-import { authenticateToken, authorizeRole } from './auth.js';
+import { authenticate, authorize } from '../middleware/auth.middleware.js';
 
 /**
  * Crear router de estadías
@@ -24,7 +24,7 @@ export function createStaysRoutes(services) {
    * - Admin: ve todas
    * - Guest: ve solo las suyas
    */
-  router.get('/', authenticateToken, (req, res, next) => {
+  router.get('/', authenticate, (req, res, next) => {
     try {
       const limit = parseInt(req.query.limit) || 10;
       const offset = parseInt(req.query.offset) || 0;
@@ -65,7 +65,7 @@ export function createStaysRoutes(services) {
    * GET /api/stays/:id
    * Obtener estadía por ID
    */
-  router.get('/:id', authenticateToken, (req, res, next) => {
+  router.get('/:id', authenticate, (req, res, next) => {
     try {
       const stay = stayRepository.findById(req.params.id);
 
@@ -103,7 +103,7 @@ export function createStaysRoutes(services) {
    * - Solo admin/staff pueden crear para otros
    * - Guests crean solo para sí mismos
    */
-  router.post('/', authenticateToken, async (req, res, next) => {
+  router.post('/', authenticate, async (req, res, next) => {
     try {
       const input = { ...req.body };
 
@@ -130,7 +130,7 @@ export function createStaysRoutes(services) {
    * - Admin/staff pueden actualizar cualquiera
    * - Guest solo puede actualizar las suyas (si están pending)
    */
-  router.put('/:id', authenticateToken, (req, res, next) => {
+  router.put('/:id', authenticate, (req, res, next) => {
     try {
       const stay = stayRepository.findById(req.params.id);
 
@@ -196,8 +196,8 @@ export function createStaysRoutes(services) {
    */
   router.delete(
     '/:id',
-    authenticateToken,
-    authorizeRole(['admin', 'staff']),
+    authenticate,
+    authorize(['admin', 'staff']),
     (req, res, next) => {
       try {
         const stay = stayRepository.findById(req.params.id);
@@ -241,8 +241,8 @@ export function createStaysRoutes(services) {
    */
   router.post(
     '/:id/activate',
-    authenticateToken,
-    authorizeRole(['admin', 'staff']),
+    authenticate,
+    authorize(['admin', 'staff']),
     (req, res, next) => {
       try {
         const stay = stayRepository.findById(req.params.id);
@@ -275,8 +275,8 @@ export function createStaysRoutes(services) {
    */
   router.post(
     '/:id/complete',
-    authenticateToken,
-    authorizeRole(['admin', 'staff']),
+    authenticate,
+    authorize(['admin', 'staff']),
     (req, res, next) => {
       try {
         const stay = stayRepository.findById(req.params.id);
@@ -309,8 +309,8 @@ export function createStaysRoutes(services) {
    */
   router.get(
     '/occupancy/:hotelCode',
-    authenticateToken,
-    authorizeRole(['admin', 'staff']),
+    authenticate,
+    authorize(['admin', 'staff']),
     (req, res, next) => {
       try {
         const date = req.query.date ? new Date(req.query.date) : new Date();
@@ -340,8 +340,8 @@ export function createStaysRoutes(services) {
    */
   router.get(
     '/checkpoints/:hotelCode',
-    authenticateToken,
-    authorizeRole(['admin', 'staff']),
+    authenticate,
+    authorize(['admin', 'staff']),
     (req, res, next) => {
       try {
         const stays = stayRepository.findTodayCheckpoints(req.params.hotelCode);

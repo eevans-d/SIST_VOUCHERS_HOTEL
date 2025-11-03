@@ -305,7 +305,8 @@ app.use(
   createAuthRoutes({
     loginUser,
     registerUser,
-    jwtService
+    jwtService,
+    userRepository
   })
 );
 
@@ -398,8 +399,10 @@ app.use((err, req, res, next) => {
   // Errores de autenticación
   if (
     err.message.includes('incorrectos') ||
-    err.message.includes('inválidos')
+    err.message.includes('inválidos') ||
+    err.message.includes('incorrecta')
   ) {
+    logger.warn('Error de autenticación:', { message: err.message, path: req.path });
     return res.status(401).json({
       success: false,
       error: err.message,

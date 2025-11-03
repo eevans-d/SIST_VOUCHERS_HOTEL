@@ -23,7 +23,7 @@ import {
 export function createAuthRoutes(services) {
   const router = express.Router();
 
-  const { loginUser, registerUser, jwtService } = services;
+  const { loginUser, registerUser, jwtService, userRepository } = services;
 
   /**
    * POST /auth/register
@@ -56,7 +56,8 @@ export function createAuthRoutes(services) {
    * Nota: skipSuccessfulRequests=true significa que el contador se resetea
    * después de un login exitoso, pero se incrementa para cada intento fallido.
    */
-  router.post('/login', loginLimiter, async (req, res, next) => {
+  const loginMiddlewares = process.env.SKIP_RATE_LIMIT_E2E === 'true' ? [] : [loginLimiter];
+  router.post('/login', ...loginMiddlewares, async (req, res, next) => {
     try {
       const result = await loginUser.execute(req.body);
 
@@ -73,8 +74,14 @@ export function createAuthRoutes(services) {
         data: {
           user: result.user,
           accessToken: result.accessToken,
+          refreshToken: result.refreshToken,
           expiresIn: result.expiresIn
-        }
+        },
+        // Campos en plano para compatibilidad con E2E
+        user: result.user,
+        accessToken: result.accessToken,
+        refreshToken: result.refreshToken,
+        expiresIn: result.expiresIn
       });
     } catch (error) {
       next(error);
@@ -88,7 +95,7 @@ export function createAuthRoutes(services) {
    * RATE LIMITING: 10 intentos por IP en 15 minutos
    * @see rateLimiter.middleware.js - refreshTokenLimiter
    */
-  router.post('/refresh', refreshTokenLimiter, (req, res, next) => {
+  router.post('/refresh', refreshTokenLimiter, async (req, res, next) => {
     try {
       const refreshToken = req.cookies?.refreshToken || req.body?.refreshToken;
 
@@ -101,15 +108,31 @@ export function createAuthRoutes(services) {
 
       try {
         const payload = jwtService.verifyRefreshToken(refreshToken);
-        // Aquí buscarías el usuario nuevamente y generarías nuevo access token
-        // Por ahora, esto es un placeholder
+
+        // Buscar usuario y generar nuevo access token
+        if (!userRepository) {
+          throw new Error('UserRepository no disponible');
+        }
+        const user = userRepository.findById(payload.sub);
+        if (!user) {
+          return res.status(404).json({
+            success: false,
+            error: 'Usuario no encontrado'
+          });
+        }
+
+        const newAccessToken = jwtService.generateAccessToken(user);
+        const expiresIn = 7 * 24 * 60 * 60; // 7 días en segundos
 
         res.json({
           success: true,
           data: {
-            // accessToken: newAccessToken,
-            // expiresIn: 7 * 24 * 60 * 60,
-          }
+            accessToken: newAccessToken,
+            expiresIn
+          },
+          // Campos en plano para compatibilidad con E2E
+          accessToken: newAccessToken,
+          expiresIn
         });
       } catch (tokenError) {
         return res.status(401).json({
