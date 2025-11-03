@@ -67,6 +67,17 @@
       "lineas_codigo": 220,
       "estado": "PERFECTO",
       "metodos_cubiertos": ["generateRedemptionsCSV", "getReconciliationReport", "getOperationalMetrics"]
+    },
+    "SyncService": {
+      "statements": 100,
+      "branches": 76.92,
+      "functions": 100,
+      "lines": 100,
+      "tests": 6,
+      "tests_pasando": 6,
+      "lineas_codigo": 223,
+      "estado": "BUENO",
+      "metodos_cubiertos": ["syncRedemptions", "getSyncHistory", "getSyncStats"]
     }
   },
 

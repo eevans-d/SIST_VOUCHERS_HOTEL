@@ -1,0 +1,32 @@
+name: CI Legacy (non-gating)
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  legacy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    continue-on-error: true
+    defaults:
+      run:
+        working-directory: vouchers-hostal-playa-norte/backend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+          cache: 'npm'
+          cache-dependency-path: vouchers-hostal-playa-norte/backend/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          if [ -f package-lock.json ]; then npm ci; else npm install; fi
+
+      - name: Run full test suite (legacy + experimental)
+        run: npm test -- -i
+        continue-on-error: true

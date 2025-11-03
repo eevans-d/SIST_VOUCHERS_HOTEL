@@ -1,7 +1,7 @@
-const { getDb } = require('../config/database');
-const { logger, auditLogger } = require('../config/logger');
-const { VoucherService } = require('./voucherService');
-const { ConflictError } = require('../middleware/errorHandler');
+import { getDb } from '../config/database.js';
+import { logger, auditLogger } from '../config/logger.js';
+import { voucherService } from './voucherService.js';
+import { ConflictError } from '../middleware/errorHandler.js';
 
 class SyncService {
   /**
@@ -38,7 +38,7 @@ class SyncService {
         }
 
         // Intentar canjear
-        const result = await VoucherService.redeemVoucher({
+        const result = await voucherService.redeemVoucher({
           code: redemption.voucher_code,
           cafeteria_id: redemption.cafeteria_id,
           device_id: device_id,
@@ -219,4 +219,5 @@ class SyncService {
   }
 }
 
-module.exports = { SyncService: new SyncService() };
+export { SyncService };
+export const syncService = new SyncService();
