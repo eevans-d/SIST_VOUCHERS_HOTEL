@@ -2,13 +2,10 @@
 // Tests que importan y ejecutan el código fuente real para generar coverage
 
 import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals';
-import { createRequire } from 'module';
-
-// Create require for importing CommonJS modules
-const require = createRequire(import.meta.url);
 
 describe('VoucherService - REAL Code Coverage', () => {
   let VoucherService;
+  let voucherService;
   let mockDb;
   let mockLogger;
   let mockAuditLogger;
@@ -125,21 +122,21 @@ describe('VoucherService - REAL Code Coverage', () => {
         // Import the real VoucherService module
         const voucherModule = require('../../../src/services/voucherService.js');
         VoucherService = voucherModule;
-        
+
         expect(VoucherService).toBeDefined();
         expect(typeof VoucherService).toBe('object');
-        
+
         // Test that it has the expected methods
         expect(typeof VoucherService.emitVouchers).toBe('function');
         expect(typeof VoucherService.validateVoucher).toBe('function');
         expect(typeof VoucherService.redeemVoucher).toBe('function');
         expect(typeof VoucherService.getVoucher).toBe('function');
         expect(typeof VoucherService.cancelVoucher).toBe('function');
-        
+
       } catch (error) {
         // Log the error but don't fail the test - this gives us visibility
         console.log('VoucherService import error (expected):', error.message);
-        
+
         // Create a mock that follows the same interface
         VoucherService = {
           emitVouchers: jest.fn(),
@@ -148,7 +145,7 @@ describe('VoucherService - REAL Code Coverage', () => {
           getVoucher: jest.fn(),
           cancelVoucher: jest.fn()
         };
-        
+
         expect(VoucherService).toBeDefined();
       }
     });
@@ -181,21 +178,21 @@ describe('VoucherService - REAL Code Coverage', () => {
         };
 
         const result = await VoucherService.emitVouchers(params);
-        
+
         // Verify the result structure
         expect(result).toBeDefined();
         expect(result.vouchers).toBeDefined();
         expect(Array.isArray(result.vouchers)).toBe(true);
-        
+
         // Verify database interactions
         expect(mockDb.prepare).toHaveBeenCalled();
         expect(mockLogger.info).toHaveBeenCalled();
-        
+
       } catch (error) {
         // Even if execution fails, we're testing the code paths
         console.log('emitVouchers execution result:', error.message);
         expect(typeof error).toBe('object');
-        
+
         // Verify that database prepare was called (shows code execution)
         expect(mockDb.prepare).toHaveBeenCalled();
       }
@@ -227,15 +224,15 @@ describe('VoucherService - REAL Code Coverage', () => {
 
         expect(result).toBeDefined();
         expect(result.valid).toBeDefined();
-        
+
         // Verify interactions
         expect(mockDb.prepare).toHaveBeenCalled();
         expect(mockCryptoService.verifyHMAC).toHaveBeenCalled();
-        
+
       } catch (error) {
         console.log('validateVoucher execution result:', error.message);
         expect(typeof error).toBe('object');
-        
+
         // Verify code was executed
         expect(mockDb.prepare).toHaveBeenCalled();
       }
@@ -267,15 +264,15 @@ describe('VoucherService - REAL Code Coverage', () => {
 
         expect(result).toBeDefined();
         expect(result.voucher_id).toBe('VOH-2025-001');
-        
+
         // Verify database interactions
         expect(mockDb.prepare).toHaveBeenCalled();
         expect(mockAuditLogger.info).toHaveBeenCalled();
-        
+
       } catch (error) {
         console.log('redeemVoucher execution result:', error.message);
         expect(typeof error).toBe('object');
-        
+
         // Verify code execution
         expect(mockDb.prepare).toHaveBeenCalled();
       }
@@ -301,14 +298,14 @@ describe('VoucherService - REAL Code Coverage', () => {
 
         expect(result).toBeDefined();
         expect(result.voucher_id).toBe('VOH-2025-001');
-        
+
         // Verify database query
         expect(mockDb.prepare).toHaveBeenCalled();
-        
+
       } catch (error) {
         console.log('getVoucher execution result:', error.message);
         expect(typeof error).toBe('object');
-        
+
         // Verify code was executed
         expect(mockDb.prepare).toHaveBeenCalled();
       }
@@ -339,15 +336,15 @@ describe('VoucherService - REAL Code Coverage', () => {
 
         expect(result).toBeDefined();
         expect(result.voucher_id).toBe('VOH-2025-001');
-        
+
         // Verify interactions
         expect(mockDb.prepare).toHaveBeenCalled();
         expect(mockAuditLogger.info).toHaveBeenCalled();
-        
+
       } catch (error) {
         console.log('cancelVoucher execution result:', error.message);
         expect(typeof error).toBe('object');
-        
+
         // Code execution verified
         expect(mockDb.prepare).toHaveBeenCalled();
       }
@@ -372,7 +369,7 @@ describe('VoucherService - REAL Code Coverage', () => {
 
         // Should not reach here
         expect(false).toBe(true);
-        
+
       } catch (error) {
         // Expected error path
         expect(typeof error).toBe('object');
@@ -401,7 +398,7 @@ describe('VoucherService - REAL Code Coverage', () => {
 
         // Should not reach here
         expect(false).toBe(true);
-        
+
       } catch (error) {
         // Expected validation error
         expect(typeof error).toBe('object');

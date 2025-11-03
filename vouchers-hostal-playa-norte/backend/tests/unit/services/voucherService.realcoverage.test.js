@@ -353,7 +353,7 @@ describe('VoucherService - Real Coverage Tests', () => {
   // =================================================================
 
   describe('emitVouchers - Validaciones adicionales', () => {
-    
+
     it('debe rechazar fechas de voucher fuera del período de estadía (before checkin)', async () => {
       // Arrange
       const stay_id = 1;
@@ -440,7 +440,7 @@ describe('VoucherService - Real Coverage Tests', () => {
   });
 
   describe('validateVoucher - Estados adicionales', () => {
-    
+
     it('debe rechazar voucher en estado cancelled', async () => {
       // Arrange
       const code = 'HOTEL-2025-0001';
@@ -524,7 +524,7 @@ describe('VoucherService - Real Coverage Tests', () => {
   });
 
   describe('redeemVoucher - Validaciones adicionales', () => {
-    
+
     it('debe rechazar voucher en estado cancelled al intentar canjear', async () => {
       // Arrange
       const mockVoucher = {
@@ -609,7 +609,7 @@ describe('VoucherService - Real Coverage Tests', () => {
   });
 
   describe('cancelVoucher - Validación de estado cancelled', () => {
-    
+
     it('debe rechazar cancelación de voucher ya cancelado', async () => {
       // Arrange
       const mockVoucher = {
