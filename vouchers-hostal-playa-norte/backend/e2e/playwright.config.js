@@ -16,10 +16,15 @@ export default defineConfig({
   webServer: {
     // Ejecuta el servidor del backend (paquete padre) desde el subdirectorio e2e
     // --prefix .. asegura que use el package.json del backend
-    command: 'npm --prefix .. start',
+    // Usa BD de E2E para aislar pruebas
+      command: 'npm --prefix .. start',
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
+      env: {
+        DATABASE_PATH: '../db/e2e.db',
+        NODE_ENV: 'e2e'
+      }
   },
   projects: [
     {

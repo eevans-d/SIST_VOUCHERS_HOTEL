@@ -327,7 +327,7 @@ app.use(
     generateVoucher,
     validateVoucher,
     redeemVoucher,
-    jwtService
+    voucherRepository
   })
 );
 
