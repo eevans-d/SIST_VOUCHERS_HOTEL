@@ -150,4 +150,33 @@ describe('SyncService - Real Coverage', () => {
     expect(res.stats.length).toBe(2);
     expect(res.period).toEqual({ from: '2025-11-01', to: '2025-11-02' });
   });
+
+  it('getSyncStats sin filtros debe construir query base', async () => {
+    const prepCustom = { all: jest.fn().mockReturnValue([
+      { result: 'success', count: 2, sync_date: '2025-11-02' }
+    ]) };
+    mockDb.prepare.mockReturnValueOnce(prepCustom);
+
+    const res = await syncService.getSyncStats({ device_id: 'dev-1' });
+    expect(res.stats[0]).toMatchObject({ result: 'success', count: 2 });
+    expect(prepCustom.all).toHaveBeenCalledWith('dev-1');
+  });
+
+  it('getSyncStats con solo from_date', async () => {
+    const prepCustom = { all: jest.fn().mockReturnValue([]) };
+    mockDb.prepare.mockReturnValueOnce(prepCustom);
+
+    const res = await syncService.getSyncStats({ device_id: 'dev-1', from_date: '2025-11-01' });
+    expect(res.period.from).toBe('2025-11-01');
+    expect(prepCustom.all).toHaveBeenCalledWith('dev-1', '2025-11-01');
+  });
+
+  it('getSyncStats con solo to_date', async () => {
+    const prepCustom = { all: jest.fn().mockReturnValue([]) };
+    mockDb.prepare.mockReturnValueOnce(prepCustom);
+
+    const res = await syncService.getSyncStats({ device_id: 'dev-1', to_date: '2025-11-03' });
+    expect(res.period.to).toBe('2025-11-03');
+    expect(prepCustom.all).toHaveBeenCalledWith('dev-1', '2025-11-03');
+  });
 });

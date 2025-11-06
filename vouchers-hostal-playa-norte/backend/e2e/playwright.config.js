@@ -22,7 +22,7 @@ export default defineConfig({
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
       env: {
-        DATABASE_PATH: '../db/e2e.db',
+        DATABASE_PATH: './db/e2e.db',
         NODE_ENV: 'e2e'
       }
   },

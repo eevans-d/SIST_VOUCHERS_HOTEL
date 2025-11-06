@@ -24,6 +24,7 @@ const UserSchema = z.object({
   phone: z
     .string()
     .regex(/^[0-9+\-\s()]*$/, 'Teléfono inválido')
+    .nullable()
     .optional(),
   role: z.enum(['admin', 'staff', 'guest', 'cafe_manager']).default('guest'),
   passwordHash: z.string().min(60, 'Password hash inválido'),
@@ -194,6 +195,8 @@ export class User {
   static fromPersistence(data) {
     return new User({
       ...data,
+        // Normalizar nulls
+        phone: data.phone ?? undefined,
       isActive: Boolean(data.isActive),
       createdAt: new Date(data.createdAt),
       updatedAt: new Date(data.updatedAt)

@@ -33,6 +33,12 @@ jobs:
           if [ -f package-lock.json ]; then npm ci; else npm install; fi
           npx playwright install --with-deps
 
+      - name: Seed E2E database
+        working-directory: vouchers-hostal-playa-norte/backend
+        run: node scripts/seed-e2e.mjs
+        env:
+          DATABASE_PATH: ./db/e2e.db
+
       - name: Run E2E tests (Playwright)
         working-directory: vouchers-hostal-playa-norte/backend/e2e
         run: npm run test:e2e
