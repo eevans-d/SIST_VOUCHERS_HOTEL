@@ -9,9 +9,10 @@
 
 import { spawn } from 'node:child_process';
 import axios from 'axios';
+import path from 'node:path';
 
 const ROOT = new URL('..', import.meta.url).pathname; // carpeta backend/
-const DB_PATH = process.env.DATABASE_PATH || './db/e2e.db';
+const DB_PATH = process.env.DATABASE_PATH || path.join(ROOT, 'db', 'e2e.db');
 const PORT = process.env.PORT || '3000';
 const BASE_URL = `http://localhost:${PORT}`;
 

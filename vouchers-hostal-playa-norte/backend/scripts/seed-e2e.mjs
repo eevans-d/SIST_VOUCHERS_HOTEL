@@ -8,6 +8,8 @@
 import Database from 'better-sqlite3';
 import bcrypt from 'bcryptjs';
 import { randomUUID } from 'crypto';
+import fs from 'node:fs';
+import path from 'node:path';
 
 const DB_PATH = process.env.DATABASE_PATH || './db/e2e.db';
 const ROUNDS = parseInt(process.env.BCRYPT_ROUNDS || '10', 10);
@@ -149,6 +151,12 @@ function insertAdmin(db) {
 
 function main() {
   log(`Usando base de datos: ${DB_PATH}`);
+  // Crear directorio si no existe
+  const dir = path.dirname(DB_PATH);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+    log('Directorio BD creado', dir);
+  }
   const db = new Database(DB_PATH);
   ensureTables(db);
   resetData(db);

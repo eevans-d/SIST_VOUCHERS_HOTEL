@@ -1,4 +1,4 @@
-const { CryptoService } = require('../../src/services/cryptoService');
+import { CryptoService } from '../../src/services/cryptoService.js';
 
 describe('CryptoService', () => {
   describe('generateVoucherHMAC', () => {
@@ -9,7 +9,7 @@ describe('CryptoService', () => {
         '2025-01-05',
         1
       );
-      
+
       expect(hmac).toMatch(/^[a-f0-9]{64}$/);
     });
 
@@ -20,14 +20,14 @@ describe('CryptoService', () => {
         '2025-01-05',
         1
       );
-      
+
       const hmac2 = CryptoService.generateVoucherHMAC(
         'HPN-2025-0001',
         '2025-01-01',
         '2025-01-05',
         1
       );
-      
+
       expect(hmac1).toBe(hmac2);
     });
 
@@ -38,14 +38,14 @@ describe('CryptoService', () => {
         '2025-01-05',
         1
       );
-      
+
       const hmac2 = CryptoService.generateVoucherHMAC(
         'HPN-2025-0002',
         '2025-01-01',
         '2025-01-05',
         1
       );
-      
+
       expect(hmac1).not.toBe(hmac2);
     });
   });
@@ -58,7 +58,7 @@ describe('CryptoService', () => {
         '2025-01-05',
         1
       );
-      
+
       const isValid = CryptoService.verifyVoucherHMAC(
         'HPN-2025-0001',
         '2025-01-01',
@@ -66,7 +66,7 @@ describe('CryptoService', () => {
         1,
         hmac
       );
-      
+
       expect(isValid).toBe(true);
     });
 
@@ -78,7 +78,7 @@ describe('CryptoService', () => {
         1,
         'invalid-hmac-signature-here'
       );
-      
+
       expect(isValid).toBe(false);
     });
 
@@ -89,7 +89,7 @@ describe('CryptoService', () => {
         '2025-01-05',
         1
       );
-      
+
       const isValid = CryptoService.verifyVoucherHMAC(
         'HPN-2025-0002', // Código modificado
         '2025-01-01',
@@ -97,7 +97,7 @@ describe('CryptoService', () => {
         1,
         hmac
       );
-      
+
       expect(isValid).toBe(false);
     });
   });
@@ -118,7 +118,7 @@ describe('CryptoService', () => {
       const code1 = CryptoService.generateVoucherCode(1);
       const code99 = CryptoService.generateVoucherCode(99);
       const code1000 = CryptoService.generateVoucherCode(1000);
-      
+
       expect(code1).toMatch(/-0001$/);
       expect(code99).toMatch(/-0099$/);
       expect(code1000).toMatch(/-1000$/);
@@ -129,7 +129,7 @@ describe('CryptoService', () => {
     it('debe parsear QR válido correctamente', () => {
       const qrData = 'HPN-2025-0001|abcd1234|2025-01-05';
       const parsed = CryptoService.parseQRData(qrData);
-      
+
       expect(parsed).toEqual({
         code: 'HPN-2025-0001',
         hmac: 'abcd1234',

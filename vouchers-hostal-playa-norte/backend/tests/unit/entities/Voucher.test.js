@@ -1,159 +1,101 @@
 import { describe, it, expect, beforeEach } from '@jest/globals';
 import { Voucher } from '../../../src/domain/entities/Voucher.js';
 
-describe('Voucher Entity', () => {
+// UUID válido estático para pruebas (evitamos dependencia de generador en assertions)
+const STAY_ID = '00000000-0000-0000-0000-000000000001';
+
+function buildValidVoucher(overrides = {}) {
+  const now = new Date();
+  const later = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+  return Voucher.create({
+    stayId: STAY_ID,
+    code: overrides.code || 'VOC-TEST-001',
+    validFrom: overrides.validFrom || now,
+    validUntil: overrides.validUntil || later,
+    hmacSignature: overrides.hmacSignature || 'abc123',
+    ...(overrides.status ? { status: overrides.status } : {})
+  });
+}
+
+describe('Voucher Entity (aligned)', () => {
   let voucher;
-  const expiryDate = new Date();
-  expiryDate.setDate(expiryDate.getDate() + 30);
 
   beforeEach(() => {
-    voucher = Voucher.create({
-      stayId: 'stay-123',
-      code: 'VOC-TEST-001',
-      qrCode: 'https://example.com/qr',
-      expiryDate,
-    });
+    voucher = buildValidVoucher();
   });
 
   describe('Creation', () => {
-    it('should create a voucher with valid data', () => {
+    it('crea voucher válido con campos obligatorios', () => {
       expect(voucher).toBeDefined();
       expect(voucher.id).toBeDefined();
       expect(voucher.code).toBe('VOC-TEST-001');
-      expect(voucher.status).toBe('pending');
+      expect(voucher.status).toBe('active'); // por default en schema
+      expect(voucher.validUntil > voucher.validFrom).toBe(true);
     });
 
-    it('should throw error with invalid data', () => {
-      expect(() => {
-        Voucher.create({
-          stayId: 'stay-123',
-          code: '',
-          qrCode: 'https://example.com/qr',
-          expiryDate,
-        });
-      }).toThrow();
+    it('lanza error si validUntil <= validFrom', () => {
+      const now = new Date();
+      const same = new Date(now);
+      expect(() => buildValidVoucher({ validFrom: now, validUntil: same })).toThrow(
+        'validUntil must be after validFrom'
+      );
     });
   });
 
-  describe('State Transitions', () => {
-    it('should activate from pending', () => {
-      voucher.activate();
-      expect(voucher.status).toBe('active');
-    });
-
-    it('should throw error activating non-pending voucher', () => {
-      voucher.activate();
-      expect(() => voucher.activate()).toThrow();
-    });
-
-    it('should redeem from active', () => {
-      voucher.activate();
-      voucher.redeem('Test redemption');
+  describe('Estado y transiciones', () => {
+    it('redeem() cambia status a redeemed', () => {
+      voucher.redeem();
       expect(voucher.status).toBe('redeemed');
-      expect(voucher.redemptionNotes).toBe('Test redemption');
-      expect(voucher.redemptionDate).toBeDefined();
+      expect(voucher.isRedeemed()).toBe(true);
     });
 
-    it('should throw error redeeming non-active voucher', () => {
-      expect(() => voucher.redeem()).toThrow();
+    it('redeem() falla si status no es active', () => {
+      voucher.status = 'cancelled';
+      expect(() => voucher.redeem()).toThrow('Only active vouchers can be redeemed');
     });
 
-    it('should expire from active', () => {
-      voucher.activate();
-      voucher.expire();
-      expect(voucher.status).toBe('expired');
-    });
-
-    it('should cancel from pending or active', () => {
-      voucher.cancel('Test cancel');
+    it('cancel() cambia status a cancelled', () => {
+      voucher.cancel();
       expect(voucher.status).toBe('cancelled');
-      expect(voucher.redemptionNotes).toBe('Test cancel');
+    });
+
+    it('cancel() falla si ya está redeemed', () => {
+      voucher.redeem();
+      expect(() => voucher.cancel()).toThrow('Cannot cancel a redeemed voucher');
     });
   });
 
-  describe('Expiration', () => {
-    it('should detect expired voucher', () => {
-      const pastDate = new Date();
-      pastDate.setDate(pastDate.getDate() - 1);
-
-      const expiredVoucher = new Voucher({
-        id: 'v-1',
-        stayId: 'stay-123',
-        code: 'VOC-EXPIRED',
-        qrCode: 'https://example.com/qr',
-        status: 'active',
-        expiryDate: pastDate,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
-
-      expect(expiredVoucher.isExpired()).toBe(true);
+  describe('Expiración', () => {
+    it('isExpired() true si fecha pasada', () => {
+      const past = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      const pastLater = new Date(Date.now() - 12 * 60 * 60 * 1000);
+      const expired = buildValidVoucher({ validFrom: past, validUntil: pastLater });
+      expect(expired.isExpired()).toBe(true);
     });
 
-    it('should calculate days remaining', () => {
-      voucher.activate();
-      const daysRemaining = voucher.getDaysRemaining();
-      expect(daysRemaining).toBeGreaterThan(0);
-      expect(daysRemaining).toBeLessThanOrEqual(30);
+    it('isActive() false si expirado', () => {
+      const past = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      const pastLater = new Date(Date.now() - 12 * 60 * 60 * 1000);
+      const expired = buildValidVoucher({ validFrom: past, validUntil: pastLater });
+      expect(expired.isActive()).toBe(false);
     });
   });
 
-  describe('Validation', () => {
-    it('should validate active and non-expired voucher', () => {
-      voucher.activate();
-      expect(voucher.isValid()).toBe(true);
-    });
-
-    it('should not validate expired voucher', () => {
-      const pastDate = new Date();
-      pastDate.setDate(pastDate.getDate() - 1);
-
-      const expiredVoucher = new Voucher({
-        id: 'v-1',
-        stayId: 'stay-123',
-        code: 'VOC-EXPIRED',
-        qrCode: 'https://example.com/qr',
-        status: 'active',
-        expiryDate: pastDate,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
-
-      expect(expiredVoucher.isValid()).toBe(false);
-    });
-
-    it('should not validate non-active voucher', () => {
-      expect(voucher.isValid()).toBe(false);
-    });
-  });
-
-  describe('Serialization', () => {
-    it('should serialize to JSON', () => {
+  describe('Serialización', () => {
+    it('toJSON() expone campos esperados', () => {
       const json = voucher.toJSON();
       expect(json).toHaveProperty('id');
-      expect(json).toHaveProperty('stayId');
-      expect(json).toHaveProperty('code');
-      expect(json).toHaveProperty('status');
-      expect(json).toHaveProperty('expiryDate');
+      expect(json).toHaveProperty('code', 'VOC-TEST-001');
+      expect(json).toHaveProperty('stayId', STAY_ID);
+      expect(json).toHaveProperty('status', 'active');
+      expect(typeof json.validUntil).toBe('string');
     });
 
-    it('should deserialize from database', () => {
-      const data = {
-        id: 'v-1',
-        stayId: 'stay-123',
-        code: 'VOC-001',
-        qrCode: 'https://example.com/qr',
-        status: 'active',
-        redemptionDate: null,
-        expiryDate: expiryDate.toISOString(),
-        redemptionNotes: '',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-
-      const restored = Voucher.fromDatabase(data);
-      expect(restored.id).toBe('v-1');
-      expect(restored.code).toBe('VOC-001');
+    it('fromPersistence() reconstruye instancia', () => {
+      const data = voucher.toPersistence();
+      const restored = Voucher.fromPersistence(data);
+      expect(restored.code).toBe(voucher.code);
+      expect(restored.validUntil.getTime()).toBe(voucher.validUntil.getTime());
       expect(restored.status).toBe('active');
     });
   });
