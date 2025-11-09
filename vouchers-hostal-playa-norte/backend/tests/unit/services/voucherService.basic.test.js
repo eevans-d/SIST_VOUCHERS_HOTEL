@@ -1,4 +1,5 @@
-const { VoucherService } = require('../../../src/services/voucherService');
+import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { VoucherService } from '../../../src/services/voucherService.js';
 
 // Mock dependencies
 jest.mock('../../../src/config/database');

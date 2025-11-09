@@ -1,5 +1,6 @@
-const { VoucherService } = require('../../src/services/voucherService');
-const { getDb } = require('../../src/config/database');
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from '@jest/globals';
+import { VoucherService } from '../../src/services/voucherService.js';
+import { getDb } from '../../src/config/database.js';
 
 describe('VoucherService', () => {
   let db;
@@ -61,7 +62,7 @@ describe('VoucherService', () => {
 
       const codes = result.vouchers.map(v => v.code);
       const uniqueCodes = new Set(codes);
-      
+
       expect(uniqueCodes.size).toBe(3);
       expect(codes[0]).toBe('HPN-2025-0001');
       expect(codes[1]).toBe('HPN-2025-0002');

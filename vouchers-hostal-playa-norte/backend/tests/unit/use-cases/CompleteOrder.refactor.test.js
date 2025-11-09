@@ -86,7 +86,7 @@ describe('CompleteOrder - Issue #5 Refactorization', () => {
 
       expect(() => {
         completeOrder._validateCancellation(cancelledOrder);
-      }).toThrow('No puede cancelarse');
+      }).toThrow(/no puede cancelarse/);
     });
 
     it('should allow cancellation of open order', () => {

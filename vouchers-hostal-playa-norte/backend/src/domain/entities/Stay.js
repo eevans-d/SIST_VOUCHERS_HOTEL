@@ -250,7 +250,8 @@ export class Stay {
       checkInDate: new Date(data.checkInDate),
       checkOutDate: new Date(data.checkOutDate),
       createdAt: new Date(data.createdAt),
-      updatedAt: new Date(data.updatedAt)
+      updatedAt: new Date(data.updatedAt),
+      notes: data.notes ?? undefined
     });
   }
 }

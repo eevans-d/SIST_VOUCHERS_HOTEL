@@ -1,12 +1,13 @@
-const { VoucherService } = require('../../../src/services/voucherService');
-const { getDb } = require('../../../src/config/database');
-const { CryptoService } = require('../../../src/services/cryptoService');
-const { QRService } = require('../../../src/services/qrService');
-const {
+import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
+import { VoucherService } from '../../../src/services/voucherService.js';
+import { getDb } from '../../../src/config/database.js';
+import { CryptoService } from '../../../src/services/cryptoService.js';
+import { QRService } from '../../../src/services/qrService.js';
+import {
   ValidationError,
   NotFoundError,
   ConflictError
-} = require('../../../src/middleware/errorHandler');
+} from '../../../src/middleware/errorHandler.js';
 
 // Mock dependencies
 jest.mock('../../../src/config/database');
