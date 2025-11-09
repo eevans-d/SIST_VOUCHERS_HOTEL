@@ -81,7 +81,11 @@ async function main() {
     const loginRes = await axios.post(`${BASE_URL}/auth/login`, {
       email: 'admin@hotel.com',
       password: 'password123'
+    }).catch(err => {
+      log('auth/login', 'ERROR response', err.response ? { status: err.response.status, data: err.response.data } : err.message);
+      throw err;
     });
+    log('auth/login', 'RESP', { status: loginRes.status, data: loginRes.data });
     if (!loginRes.data?.success) throw new Error('Login no exitoso');
     log('auth/login', 'OK', loginRes.data?.accessToken);
 
