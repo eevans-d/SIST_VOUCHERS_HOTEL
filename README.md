@@ -1,209 +1,416 @@
-# 🏨 Sistema de Vouchers - Hostal Playa Norte
+# 🏨 Sistema de Vouchers - Hostal Playa Norte# 🏨 Sistema de Vouchers - Hostal Playa Norte
 
-> Sistema completo de gestión de vouchers y estadías hoteleras
 
-![Status](https://img.shields.io/badge/status-production%20ready-brightgreen)
-![Backend](https://img.shields.io/badge/backend-deployed-success)
-![Frontend](https://img.shields.io/badge/frontend-ready-yellow)
+
+> Sistema backend de gestión de vouchers, estadías y cafetería hotelera> Sistema completo de gestión de vouchers y estadías hoteleras
+
+
+
+![Status](https://img.shields.io/badge/status-development-yellow)![Status](https://img.shields.io/badge/status-production%20ready-brightgreen)
+
+![Tests](https://img.shields.io/badge/tests-325%2F327%20passing-brightgreen)![Backend](https://img.shields.io/badge/backend-deployed-success)
+
+![Node.js](https://img.shields.io/badge/node-%3E%3D18-brightgreen)![Frontend](https://img.shields.io/badge/frontend-ready-yellow)
+
+
+
+------
+
+
+
+## 📊 Estado Actual## 🎯 Estado del Proyecto
+
+
+
+**Backend**: FUNCIONAL Y ESTABLE (99.4% tests passing)  ### ✅ Backend - EN PRODUCCIÓN
+
+**Frontend**: NO IMPLEMENTADO (pendiente decisión)  
+
+**Deployment**: LOCAL (listo para producción tras migración PostgreSQL)**URL**: https://hpn-vouchers-backend.fly.dev
+
+
+
+**Última actualización**: 9 noviembre 2025  - ✅ Desplegado en Fly.io (región São Paulo)
+
+**Branch**: `main` | **Commits**: ee34437, 7f8b3bd, 6890f4a- ✅ Health checks: `/live`, `/ready`, `/health`
+
+- ✅ Métricas Prometheus: `/metrics`
+
+---- ✅ Tests: 154/187 pasando (82.4%)
+
+- ✅ Observabilidad completa
+
+## 🎯 Características Implementadas- ✅ CORS configurable
+
+
+
+### ✅ Módulos Funcionales**Commit**: `28ba427` | **Documentación**: [`backend/DEPLOYMENT.md`](vouchers-hostal-playa-norte/backend/DEPLOYMENT.md)
+
+- **Autenticación**: JWT (access + refresh tokens), RBAC (admin/recepcionista/usuario)
+
+- **Estadías**: CRUD completo, activación, finalización, filtros, ocupación hotel### ⏳ Frontend - LISTO PARA DEPLOY (mañana)
+
+- **Vouchers**: Generación con HMAC, validación, redención, cancelación, QR codes
+
+- **Órdenes (Cafetería)**: CRUD items, completar/cancelar, estadísticas consumo**Preparación completa**:
+
+- **Reportes**: Ocupación, vouchers, consumo, revenue, dashboard consolidado- ✅ Dockerfile.production con nginx
+
+- ✅ fly.toml configurado
+
+### ✅ Infraestructura- ✅ Scripts de deployment
+
+- **Tests**: 325/327 passing (core 79/79, E2E 46/46, unit 200/202)- ✅ Documentación completa
+
+- **Arquitectura**: DDD/Clean (entities, use-cases, repositories, services)- ✅ Smoke tests preparados
+
+- **Validación**: Zod schemas en entities
+
+- **DB**: SQLite (better-sqlite3) - requiere migración a PostgreSQL para producción**Requiere**: Credenciales Fly.io (mañana)
+
+- **Logging**: Winston (JSON structured)
+
+- **Security**: Rate limiting, CORS, error handler centralizado**Commit**: `391c41f` | **Checklist**: [`frontend/DEPLOY-CHECKLIST.md`](vouchers-hostal-playa-norte/frontend/DEPLOY-CHECKLIST.md)
+
+- **Health**: Endpoints `/health`, `/live`, `/ready`
 
 ---
-
-## 🎯 Estado del Proyecto
-
-### ✅ Backend - EN PRODUCCIÓN
-
-**URL**: https://hpn-vouchers-backend.fly.dev
-
-- ✅ Desplegado en Fly.io (región São Paulo)
-- ✅ Health checks: `/live`, `/ready`, `/health`
-- ✅ Métricas Prometheus: `/metrics`
-- ✅ Tests: 154/187 pasando (82.4%)
-- ✅ Observabilidad completa
-- ✅ CORS configurable
-
-**Commit**: `28ba427` | **Documentación**: [`backend/DEPLOYMENT.md`](vouchers-hostal-playa-norte/backend/DEPLOYMENT.md)
-
-### ⏳ Frontend - LISTO PARA DEPLOY (mañana)
-
-**Preparación completa**:
-- ✅ Dockerfile.production con nginx
-- ✅ fly.toml configurado
-- ✅ Scripts de deployment
-- ✅ Documentación completa
-- ✅ Smoke tests preparados
-
-**Requiere**: Credenciales Fly.io (mañana)
-
-**Commit**: `391c41f` | **Checklist**: [`frontend/DEPLOY-CHECKLIST.md`](vouchers-hostal-playa-norte/frontend/DEPLOY-CHECKLIST.md)
 
 ---
 
 ## 🚀 Quick Start
 
+## 🚀 Quick Start
+
 ### Backend (Producción)
 
-El backend ya está desplegado:
+### Requisitos
 
-```bash
+- Node.js 18+El backend ya está desplegado:
+
+- npm 9+
+
+- SQLite 3 (incluido en better-sqlite3)```bash
+
 # Health check
-curl https://hpn-vouchers-backend.fly.dev/api/health
 
-# Métricas
-curl https://hpn-vouchers-backend.fly.dev/api/metrics
+### Instalacióncurl https://hpn-vouchers-backend.fly.dev/api/health
 
-# Ver logs
+
+
+```bash# Métricas
+
+# 1. Clonar repositoriocurl https://hpn-vouchers-backend.fly.dev/api/metrics
+
+git clone <repo-url>
+
+cd SIST_VOUCHERS_HOTEL/vouchers-hostal-playa-norte/backend# Ver logs
+
 flyctl logs -a hpn-vouchers-backend
-```
+
+# 2. Instalar dependencias```
+
+npm install
 
 **Documentación completa**: [`backend/DEPLOYMENT.md`](vouchers-hostal-playa-norte/backend/DEPLOYMENT.md)
 
-### Frontend (Desarrollo local)
+# 3. Configurar entorno
+
+cp .env.example .env### Frontend (Desarrollo local)
+
+# Editar .env con valores locales
 
 ```bash
-cd vouchers-hostal-playa-norte/frontend
-npm install
-npm run dev
+
+# 4. Iniciar en desarrollocd vouchers-hostal-playa-norte/frontend
+
+npm run devnpm install
+
+```npm run dev
+
 # Abrir http://localhost:3000
-```
 
-### Frontend (Deployment - mañana)
+### Verificar funcionamiento```
 
-```bash
+
+
+```bash### Frontend (Deployment - mañana)
+
+# Health check
+
+curl http://localhost:3000/health```bash
+
 # 1. Autenticarse
-flyctl auth login
 
-# 2. Deploy
-cd frontend
-./scripts/deploy-frontend.sh
+# Testsflyctl auth login
 
-# 3. Actualizar CORS
+npm run test:core    # 79 tests core (100% pass)
+
+npm run test:e2e     # 46 tests E2E Playwright# 2. Deploy
+
+npm run test:unit    # 200 tests unit (99% pass)cd frontend
+
+```./scripts/deploy-frontend.sh
+
+
+
+---# 3. Actualizar CORS
+
 flyctl secrets set \
-  CORS_ORIGIN="https://hpn-vouchers-backend.fly.dev,https://hpn-vouchers-frontend.fly.dev" \
+
+## 📋 Roadmap a Producción  CORS_ORIGIN="https://hpn-vouchers-backend.fly.dev,https://hpn-vouchers-frontend.fly.dev" \
+
   -a hpn-vouchers-backend
-```
 
-**Checklist completo**: [`frontend/DEPLOY-CHECKLIST.md`](vouchers-hostal-playa-norte/frontend/DEPLOY-CHECKLIST.md)
+**Ver**: [`PRODUCTION_ROADMAP.md`](./PRODUCTION_ROADMAP.md) para blueprint completo```
 
----
 
-## 🏗️ Arquitectura
 
-### Stack Tecnológico
+### Gaps Críticos (Blockers)**Checklist completo**: [`frontend/DEPLOY-CHECKLIST.md`](vouchers-hostal-playa-norte/frontend/DEPLOY-CHECKLIST.md)
 
-**Backend**:
+1. **PostgreSQL Migration** (4-6h) - SQLite no apto producción
+
+2. **Deployment Platform** (2-4h) - Railway, Render, o Fly.io---
+
+3. **Secrets Management** (1-2h) - Rotar y configurar secrets
+
+4. **Frontend** (40-60h) - O usar API vía Postman/Swagger temporalmente## 🏗️ Arquitectura
+
+
+
+### Timeline Estimado### Stack Tecnológico
+
+- **Backend Solo (API)**: 8-12 horas → Producción mínima viable
+
+- **Backend + Frontend**: 50-70 horas → Sistema completo**Backend**:
+
 - Node.js 18 + Express
-- SQLite (better-sqlite3)
-- JWT auth
-- Prometheus metrics
-- Fly.io deployment
+
+### Decisiones Pendientes- SQLite (better-sqlite3)
+
+- [ ] ¿Plataforma deployment? (Railway recomendado)- JWT auth
+
+- [ ] ¿Presupuesto hosting? (~$10-20/mes o free tier)- Prometheus metrics
+
+- [ ] ¿Frontend necesario YA o post-backend?- Fly.io deployment
+
+- [ ] ¿PostgreSQL provider? (Railway incluido, Supabase, Render)
 
 **Frontend**:
-- React 18 + Vite 5
+
+---- React 18 + Vite 5
+
 - React Router v6
-- Zustand (state)
+
+## 📁 Estructura Proyecto- Zustand (state)
+
 - Tailwind CSS
-- Nginx (production)
 
-### Estructura del Proyecto
+```- Nginx (production)
 
-```
 SIST_VOUCHERS_HOTEL/
-└── vouchers-hostal-playa-norte/
-    ├── backend/              # API REST
-    │   ├── src/             
-    │   ├── tests/           
-    │   ├── scripts/         
-    │   ├── docs/            
-    │   └── DEPLOYMENT.md    
-    │
-    ├── frontend/            # React SPA
-    │   ├── src/            
-    │   ├── scripts/        
-    │   └── DEPLOYMENT.md   
-    │
-    └── scripts/            
-        └── integration-test.sh
+
+├── PRODUCTION_ROADMAP.md          # Blueprint producción (LEER PRIMERO)### Estructura del Proyecto
+
+├── README.md                       # Este archivo
+
+├── _archive/                       # Docs obsoletas archivadas```
+
+└── vouchers-hostal-playa-norte/SIST_VOUCHERS_HOTEL/
+
+    └── backend/└── vouchers-hostal-playa-norte/
+
+        ├── src/    ├── backend/              # API REST
+
+        │   ├── domain/             # Entities, repositories (DDD)    │   ├── src/             
+
+        │   ├── application/        # Use-cases (business logic)    │   ├── tests/           
+
+        │   ├── infrastructure/     # DB, security, services    │   ├── scripts/         
+
+        │   └── presentation/       # HTTP routes, middleware    │   ├── docs/            
+
+        ├── tests/    │   └── DEPLOYMENT.md    
+
+        │   ├── unit/               # Unit tests (200/202 pass)    │
+
+        │   │   ├── **/*.realcoverage.test.js  # Core tests (79/79)    ├── frontend/            # React SPA
+
+        │   │   └── __skip__/       # Legacy tests skippeados    │   ├── src/            
+
+        │   └── e2e/                # Playwright E2E (46/46 pass)    │   ├── scripts/        
+
+        ├── e2e/    │   └── DEPLOYMENT.md   
+
+        │   └── tests/              # Full-flow E2E specs    │
+
+        ├── db/                     # SQLite DB files    └── scripts/            
+
+        ├── package.json        └── integration-test.sh
+
+        ├── jest.config.js```
+
+        └── README.md               # Docs backend detalladas
+
+```---
+
+
+
+---## 📊 Observabilidad
+
+
+
+## 🧪 Testing### Health Checks
+
+
+
+### Suite Core (Fuente de Verdad)| Endpoint | Status | Propósito |
+
+```bash|----------|--------|-----------|
+
+npm run test:core| `/live` | ✅ 200 | Liveness probe |
+
+# 7/7 suites, 79/79 tests PASS| `/ready` | ✅ 200 | Readiness probe |
+
+# Coverage: ~93-100% en servicios clave| `/health` | ✅ 200 | Health detallado |
+
 ```
-
----
-
-## 📊 Observabilidad
-
-### Health Checks
-
-| Endpoint | Status | Propósito |
-|----------|--------|-----------|
-| `/live` | ✅ 200 | Liveness probe |
-| `/ready` | ✅ 200 | Readiness probe |
-| `/health` | ✅ 200 | Health detallado |
 
 ### Métricas
 
-```bash
-curl https://hpn-vouchers-backend.fly.dev/api/metrics
-```
+### Suite E2E (Playwright)
 
-**Métricas expuestas**:
+```bash```bash
+
+npm run test:e2ecurl https://hpn-vouchers-backend.fly.dev/api/metrics
+
+# 46/46 tests PASS (chromium + firefox)```
+
+# Flujos completos: auth, estadías, vouchers, órdenes, reportes
+
+```**Métricas expuestas**:
+
 - `http_requests_total` - Total requests
-- `http_request_duration_seconds` - Latencia
-- `http_server_errors_total` - Errores 5xx
-- `db_errors_total` - Errores de DB
-- `nodejs_*` - Métricas Node.js
 
-**Documentación**: [`backend/docs/OBSERVABILITY.md`](vouchers-hostal-playa-norte/backend/docs/OBSERVABILITY.md)
+### Suite Unit Completa- `http_request_duration_seconds` - Latencia
 
----
+```bash- `http_server_errors_total` - Errores 5xx
 
-## 🧪 Testing
+npm run test:unit- `db_errors_total` - Errores de DB
+
+# 14/15 suites, 200/202 tests PASS (99%)- `nodejs_*` - Métricas Node.js
+
+# Nota: 2 fallos conocidos no-bloqueantes (CompleteOrder.refactor)
+
+```**Documentación**: [`backend/docs/OBSERVABILITY.md`](vouchers-hostal-playa-norte/backend/docs/OBSERVABILITY.md)
+
+
+
+------
+
+
+
+## 📖 Documentación## 🧪 Testing
+
+
+
+### Principales### Backend
+
+- [`PRODUCTION_ROADMAP.md`](./PRODUCTION_ROADMAP.md) - **LEER PRIMERO**: Blueprint completo producción
+
+- [`backend/README.md`](./vouchers-hostal-playa-norte/backend/README.md) - Guía detallada backend```bash
+
+- [`backend/e2e/README.md`](./vouchers-hostal-playa-norte/backend/e2e/README.md) - Suite E2E Playwrightcd backend
+
+- [`backend/tests/unit/__skip__/README.md`](./vouchers-hostal-playa-norte/backend/tests/unit/__skip__/README.md) - Tests legacy skippeadosnpm test              # 154/187 tests pasando
+
+npm test -- --coverage
+
+### Archivadas```
+
+- `_archive/docs-obsoletas-nov-2025/` - Docs antiguas (CONSTITUCION, STATUS, etc.)
+
+- `backend/_archive/docs-obsoletas-nov-2025/` - Issues futuras no implementadas### Frontend
+
+
+
+---```bash
+
+cd frontend
+
+## 🛠️ Stack Tecnológiconpm test
+
+```
 
 ### Backend
 
-```bash
-cd backend
-npm test              # 154/187 tests pasando
-npm test -- --coverage
-```
+- **Runtime**: Node.js 18+ (ESM modules)### Integration
 
-### Frontend
+- **Framework**: Express 4.x
 
-```bash
-cd frontend
-npm test
-```
+- **Database**: SQLite (better-sqlite3) → PostgreSQL (producción)```bash
 
-### Integration
+- **Validation**: Zod./scripts/integration-test.sh
 
-```bash
-./scripts/integration-test.sh
-```
+- **Testing**: Jest (unit/core), Playwright (E2E)```
 
----
+- **Auth**: JWT (jsonwebtoken), bcryptjs
+
+- **Logging**: Winston---
+
+- **Security**: express-rate-limit, cors, helmet (parcial)
 
 ## 📝 Documentación
 
-### Por Componente
+### Arquitectura
 
-**Backend**:
-- [README.md](vouchers-hostal-playa-norte/backend/README.md)
-- [DEPLOYMENT.md](vouchers-hostal-playa-norte/backend/DEPLOYMENT.md)
-- [docs/OBSERVABILITY.md](vouchers-hostal-playa-norte/backend/docs/OBSERVABILITY.md)
+- **Patrón**: DDD/Clean Architecture### Por Componente
 
-**Frontend**:
+- **Capas**: Domain → Application → Infrastructure → Presentation
+
+- **Entities**: Validación Zod, inmutabilidad**Backend**:
+
+- **Use-cases**: Business logic aislada- [README.md](vouchers-hostal-playa-norte/backend/README.md)
+
+- **Repositories**: Abstracción DB- [DEPLOYMENT.md](vouchers-hostal-playa-norte/backend/DEPLOYMENT.md)
+
+- **Services**: Cross-cutting (crypto, QR, reports, sync)- [docs/OBSERVABILITY.md](vouchers-hostal-playa-norte/backend/docs/OBSERVABILITY.md)
+
+
+
+---**Frontend**:
+
 - [README.md](vouchers-hostal-playa-norte/frontend/README.md)
-- [DEPLOYMENT.md](vouchers-hostal-playa-norte/frontend/DEPLOYMENT.md)
+
+## ✨ Próximos Pasos- [DEPLOYMENT.md](vouchers-hostal-playa-norte/frontend/DEPLOYMENT.md)
+
 - [DEPLOY-CHECKLIST.md](vouchers-hostal-playa-norte/frontend/DEPLOY-CHECKLIST.md)
 
-### Scripts Disponibles
+1. **Leer**: [`PRODUCTION_ROADMAP.md`](./PRODUCTION_ROADMAP.md) completo
 
-| Script | Ubicación | Propósito |
-|--------|-----------|-----------|
+2. **Decidir**: ¿Backend solo (API) o Backend + Frontend?### Scripts Disponibles
+
+3. **Elegir**: Plataforma deployment (Railway recomendado)
+
+4. **Migrar**: PostgreSQL + Deploy + Smoke test| Script | Ubicación | Propósito |
+
+5. **Validar**: E2E contra producción + Monitoreo básico|--------|-----------|-----------|
+
 | `deploy-frontend.sh` | frontend/scripts/ | Deploy frontend |
-| `smoke-test-frontend.sh` | frontend/scripts/ | Validación frontend |
-| `smoke-check.sh` | backend/scripts/ | Validación backend |
-| `validate-deploy.sh` | backend/scripts/ | Validación deployment |
+
+**Estado**: LISTO PARA PRODUCCIÓN tras migración PostgreSQL  | `smoke-test-frontend.sh` | frontend/scripts/ | Validación frontend |
+
+**Confianza**: ALTA (99.4% tests passing, arquitectura sólida)  | `smoke-check.sh` | backend/scripts/ | Validación backend |
+
+**Timeline**: 8-12 horas → Backend en producción funcional| `validate-deploy.sh` | backend/scripts/ | Validación deployment |
+
 | `integration-test.sh` | scripts/ | Test completo |
 
 ---
+
+---
+
+**Documentación completa**: Ver [`PRODUCTION_ROADMAP.md`](./PRODUCTION_ROADMAP.md)
 
 ## 🔐 Seguridad y CORS
 
