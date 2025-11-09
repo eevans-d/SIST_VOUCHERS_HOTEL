@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">90% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>9/10</span>
+                <span class='fraction'>0/10</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">78.57% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>11/14</span>
+                <span class='fraction'>0/14</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">90% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>9/10</span>
+                <span class='fraction'>0/10</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -145,17 +145,17 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -164,16 +164,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -190,8 +181,17 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -202,7 +202,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -222,17 +222,17 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 &nbsp;
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __filename = <span class="cstat-no" title="statement not covered" >fileURLToPath(import.meta.url);</span>
+const __dirname = <span class="cstat-no" title="statement not covered" >path.dirname(__filename);</span>
 &nbsp;
 // Crear directorio de logs
-const logDir = path.join(__dirname, '../../logs');
-<span class="missing-if-branch" title="if path not taken" >I</span>if (!fs.existsSync(logDir)) {
+const logDir = <span class="cstat-no" title="statement not covered" >path.join(__dirname, '../../logs');</span>
+<span class="cstat-no" title="statement not covered" >if (!fs.existsSync(logDir)) {</span>
 <span class="cstat-no" title="statement not covered" >  fs.mkdirSync(logDir, { recursive: true });</span>
 }
 &nbsp;
 // Formato personalizado
-const customFormat = winston.format.combine(
+const customFormat = <span class="cstat-no" title="statement not covered" >winston.format.combine(</span>
   winston.format.timestamp({
     format: 'YYYY-MM-DD HH:mm:ss.SSS'
   }),
@@ -241,13 +241,13 @@ const customFormat = winston.format.combine(
 );
 &nbsp;
 // Logger principal
-export const logger = winston.createLogger({
+export const logger = <span class="cstat-no" title="statement not covered" >winston.createLogger({</span>
   level: process.env.LOG_LEVEL || 'info',
   format: customFormat,
   defaultMeta: {
     service: 'vouchers-api',
     version: process.env.APP_VERSION || '3.0.0',
-    environment: process.env.NODE_ENV || <span class="branch-1 cbranch-no" title="branch not covered" >'development'</span>
+    environment: process.env.NODE_ENV || 'development'
   },
   transports: [
     // Logs de error
@@ -267,8 +267,8 @@ export const logger = winston.createLogger({
 });
 &nbsp;
 // Console en desarrollo
-<span class="missing-if-branch" title="else path not taken" >E</span>if (process.env.NODE_ENV !== 'production') {
-  logger.add(
+<span class="cstat-no" title="statement not covered" >if (process.env.NODE_ENV !== 'production') {</span>
+<span class="cstat-no" title="statement not covered" >  logger.add(</span>
     new winston.transports.Console({
       format: winston.format.combine(
         winston.format.colorize(),
@@ -279,7 +279,7 @@ export const logger = winston.createLogger({
 }
 &nbsp;
 // Logger de auditoría (operaciones críticas)
-export const auditLogger = winston.createLogger({
+export const auditLogger = <span class="cstat-no" title="statement not covered" >winston.createLogger({</span>
   level: 'info',
   format: customFormat,
   defaultMeta: {
@@ -301,7 +301,7 @@ export const auditLogger = winston.createLogger({
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-11-03T06:37:01.154Z
+                at 2025-11-06T05:20:18.069Z
             </div>
         <script src="../prettify.js"></script>
         <script>

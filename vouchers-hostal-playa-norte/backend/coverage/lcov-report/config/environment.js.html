@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">63.63% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>7/11</span>
+                <span class='fraction'>0/11</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">50% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>1/2</span>
+                <span class='fraction'>0/2</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">50% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>1/2</span>
+                <span class='fraction'>0/2</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">63.63% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>7/11</span>
+                <span class='fraction'>0/11</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line medium'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -141,10 +141,10 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -165,7 +165,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -187,8 +187,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -199,11 +199,11 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -214,10 +214,10 @@ import { z } from 'zod';
 import { logger } from './logger.js';
 &nbsp;
 // Cargar .env
-dotenv.config();
+<span class="cstat-no" title="statement not covered" >dotenv.config();</span>
 &nbsp;
 // Schema de validación
-const envSchema = z.object({
+const envSchema = <span class="cstat-no" title="statement not covered" >z.object({</span>
   NODE_ENV: z
     .enum(['development', 'production', 'test'])
     .default('development'),
@@ -238,7 +238,7 @@ const envSchema = z.object({
 &nbsp;
   ENABLE_OFFLINE_SYNC: z
     .string()
-    .transform((val) =&gt; val === 'true')
+    .transform(<span class="fstat-no" title="function not covered" >(v</span>al) =&gt; <span class="cstat-no" title="statement not covered" >val === 'true')</span>
     .default('true'),
   MAX_SYNC_ATTEMPTS: z.string().regex(/^\d+$/).transform(Number).default('5'),
   SYNC_RETRY_DELAY: z
@@ -260,8 +260,8 @@ const envSchema = z.object({
 &nbsp;
 // Validar y exportar
 let config;
-try {
-  config = envSchema.parse(process.env);
+<span class="cstat-no" title="statement not covered" >try {</span>
+<span class="cstat-no" title="statement not covered" >  config = envSchema.parse(process.env);</span>
 &nbsp;
   // Configurar zona horaria
 <span class="cstat-no" title="statement not covered" >  process.env.TZ = config.TZ;</span>
@@ -272,11 +272,11 @@ try {
     timezone: config.TZ
   });
 } catch (error) {
-  logger.error({
+<span class="cstat-no" title="statement not covered" >  logger.error({</span>
     event: 'environment_validation_failed',
     errors: error.errors
   });
-  <span class="missing-if-branch" title="if path not taken" >I</span>if (process.env.NODE_ENV !== 'test') {
+<span class="cstat-no" title="statement not covered" >  if (process.env.NODE_ENV !== 'test') {</span>
 <span class="cstat-no" title="statement not covered" >    process.exit(1);</span>
   }
 }
@@ -289,7 +289,7 @@ export default config;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-11-03T06:37:01.154Z
+                at 2025-11-06T05:20:18.069Z
             </div>
         <script src="../prettify.js"></script>
         <script>
