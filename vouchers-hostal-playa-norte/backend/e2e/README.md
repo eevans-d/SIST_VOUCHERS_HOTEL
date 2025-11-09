@@ -1,3 +1,28 @@
+# E2E - Guía rápida
+
+- Smoke test sin Playwright (no despliega ni duplica servidores):
+
+```bash
+npm run smoke
+```
+
+Levanta el backend en puerto 3100 (para evitar colisiones con otros servicios) y verifica:
+- /health
+- /auth/login (modo e2e)
+- /auth/refresh
+- /api/vouchers
+- /api/vouchers/stats/overview
+
+Al finalizar detiene el backend automáticamente.
+
+- Suite Playwright (opcional):
+
+```bash
+npm run test:e2e
+```
+
+Antes siembra la BD en `backend/db/e2e.db` y luego ejecuta Playwright. El servidor corre con `NODE_ENV=e2e`.
+
 # 🧪 E2E Testing Suite - Vouchers Hotel
 
 ## Descripción

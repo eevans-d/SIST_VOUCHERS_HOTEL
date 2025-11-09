@@ -13,7 +13,8 @@ import path from 'node:path';
 
 const ROOT = new URL('..', import.meta.url).pathname; // carpeta backend/
 const DB_PATH = process.env.DATABASE_PATH || path.join(ROOT, 'db', 'e2e.db');
-const PORT = process.env.PORT || '3000';
+// Usar puerto alternativo para evitar colisión con otros servicios (e.g. Grafana en 3000)
+const PORT = process.env.SMOKE_PORT || '3100';
 const BASE_URL = `http://localhost:${PORT}`;
 
 function log(step, msg, extra) {
@@ -47,7 +48,7 @@ function startServer() {
   log('server', 'Iniciando backend (modo e2e)…');
   const child = spawn('node', ['src/index.js'], {
     cwd: ROOT,
-    env: { ...process.env, NODE_ENV: 'e2e', DATABASE_PATH: DB_PATH, PORT },
+  env: { ...process.env, NODE_ENV: 'e2e', DATABASE_PATH: DB_PATH, PORT },
     stdio: ['ignore', 'pipe', 'pipe']
   });
   child.stdout.on('data', (d) => process.stdout.write(`[backend] ${d}`));
