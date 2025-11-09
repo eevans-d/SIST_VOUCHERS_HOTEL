@@ -79,7 +79,7 @@ async function main() {
     log('health', 'OK');
 
     // 1) Login (bypass e2e devuelve tokens fijos)
-    const loginRes = await axios.post(`${BASE_URL}/auth/login`, {
+  const loginRes = await axios.post(`${BASE_URL}/api/auth/login`, {
       email: 'admin@hotel.com',
       password: 'password123'
     }).catch(err => {
@@ -91,19 +91,19 @@ async function main() {
     log('auth/login', 'OK', loginRes.data?.accessToken);
 
     // 2) Refresh usando bypass e2e (requiere body.refreshToken)
-    const refreshRes = await axios.post(`${BASE_URL}/auth/refresh`, {
+  const refreshRes = await axios.post(`${BASE_URL}/api/auth/refresh`, {
       refreshToken: 'e2e-refresh-token'
     });
     if (!refreshRes.data?.accessToken) throw new Error('Refresh sin accessToken');
     log('auth/refresh', 'OK');
 
     // 3) Vouchers list (middleware authenticate bypass en e2e)
-    const listRes = await axios.get(`${BASE_URL}/api/vouchers`);
+  const listRes = await axios.get(`${BASE_URL}/api/vouchers`);
     if (!Array.isArray(listRes.data)) throw new Error('Vouchers GET no devolvió array');
     log('GET /api/vouchers', `OK (count=${listRes.data.length})`);
 
     // 4) Stats overview
-    const statsRes = await axios.get(`${BASE_URL}/api/vouchers/stats/overview`);
+  const statsRes = await axios.get(`${BASE_URL}/api/vouchers/stats/overview`);
     if (!statsRes.data || typeof statsRes.data.totalGenerated === 'undefined') {
       throw new Error('Stats overview inválido');
     }
