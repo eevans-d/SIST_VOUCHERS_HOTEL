@@ -11,7 +11,7 @@ import { spawn } from 'node:child_process';
 import axios from 'axios';
 
 const ROOT = new URL('..', import.meta.url).pathname; // carpeta backend/
-const DB_PATH = process.env.DATABASE_PATH || '../db/e2e.db';
+const DB_PATH = process.env.DATABASE_PATH || './db/e2e.db';
 const PORT = process.env.PORT || '3000';
 const BASE_URL = `http://localhost:${PORT}`;
 
@@ -36,7 +36,7 @@ function runNode(script, opts = {}) {
 
 async function seedE2E() {
   log('seed', `Sembrando BD en ${DB_PATH}`);
-  await runNode('../scripts/seed-e2e.mjs', {
+  await runNode('./scripts/seed-e2e.mjs', {
     cwd: ROOT,
     env: { ...process.env, DATABASE_PATH: DB_PATH }
   });
@@ -46,7 +46,7 @@ function startServer() {
   log('server', 'Iniciando backend (modo e2e)…');
   const child = spawn('node', ['src/index.js'], {
     cwd: ROOT,
-    env: { ...process.env, NODE_ENV: 'e2e', DATABASE_PATH: './db/e2e.db', PORT },
+    env: { ...process.env, NODE_ENV: 'e2e', DATABASE_PATH: DB_PATH, PORT },
     stdio: ['ignore', 'pipe', 'pipe']
   });
   child.stdout.on('data', (d) => process.stdout.write(`[backend] ${d}`));
