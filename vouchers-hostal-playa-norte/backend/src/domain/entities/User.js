@@ -195,8 +195,8 @@ export class User {
   static fromPersistence(data) {
     return new User({
       ...data,
-        // Normalizar nulls
-        phone: data.phone ?? undefined,
+      // Normalizar nulls
+      phone: data.phone ?? undefined,
       isActive: Boolean(data.isActive),
       createdAt: new Date(data.createdAt),
       updatedAt: new Date(data.updatedAt)
