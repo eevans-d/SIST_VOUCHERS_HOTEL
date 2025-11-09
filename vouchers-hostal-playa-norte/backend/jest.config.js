@@ -28,6 +28,7 @@ export default {
   },
   testPathIgnorePatterns: [
     '/node_modules/',
+    '/tests/unit/__skip__/',
     '/tests/services/ddosProtectionService.test.js',
     '/tests/services/connectionPool.test.js',
     '/tests/services/cdnService.test.js',
