@@ -1,0 +1,79 @@
+[smoke] seed: Sembrando BD en ./db/e2e.db 
+[seed-e2e] Usando base de datos: ./db/e2e.db 
+[seed-e2e] Usuario admin creado: {
+  id: '0d566410-789e-4f97-9d27-be8cd349ba9f',
+  email: 'admin@hotel.com'
+}
+[seed-e2e] Seed E2E completado 
+[smoke] server: Iniciando backend (modo e2e)… 
+[backend] [32minfo[39m: 🚀 Iniciando aplicación en modo: e2e {"service":"voucher-system","timestamp":"2025-11-09 08:58:07"}
+[backend] [32minfo[39m: ✅ Base de datos conectada: ./db/e2e.db {"service":"voucher-system","timestamp":"2025-11-09 08:58:07"}
+[backend] [32minfo[39m: ✅ Servicios inicializados correctamente {"service":"voucher-system","timestamp":"2025-11-09 08:58:07"}
+[backend] [32minfo[39m: ✅ HTTPS enforcement activado {"service":"voucher-system","timestamp":"2025-11-09 08:58:07"}
+[backend] [32minfo[39m: ✅ Helmet security headers configurados {"service":"voucher-system","timestamp":"2025-11-09 08:58:07"}
+[backend] [32minfo[39m: ✅ Helmet mejorado con CSP dinámico {"service":"voucher-system","timestamp":"2025-11-09 08:58:07"}
+[backend] [32minfo[39m: ✅ CORS dinámico configurado por entorno {"service":"voucher-system","timestamp":"2025-11-09 08:58:07"}
+[backend] [32minfo[39m: ✅ Métricas Prometheus registradas {"service":"voucher-system","timestamp":"2025-11-09 08:58:07"}
+[backend] [32minfo[39m: ✅ Rate limiting global activado (100 req/15min) {"service":"voucher-system","timestamp":"2025-11-09 08:58:07"}
+[backend] [32minfo[39m: 
+╔═══════════════════════════════════════════╗
+║   🏛️  SISTEMA VOUCHERS HOTEL              ║
+║   Backend API - Constitucional            ║
+╚═══════════════════════════════════════════╝
+
+  🌐 URL: http://localhost:3100
+  📡 Environment: e2e
+  🗄️  Database: ./db/e2e.db
+
+  Rutas disponibles:
+  - GET  /live               (Liveness)
+  - GET  /health             (Estado de la API)
+  - GET  /ready              (Readiness)
+  - POST /api/auth/register  (Registrar usuario)
+  - POST /api/auth/login     (Autenticación)
+  - POST /api/auth/logout    (Cerrar sesión)
+  - GET  /api/auth/me        (Mi perfil)
+
+  - GET    /api/stays              (Listar estadías)
+  - GET    /api/stays/:id          (Obtener estadía)
+  - POST   /api/stays              (Crear estadía)
+  - PUT    /api/stays/:id          (Actualizar)
+  - DELETE /api/stays/:id          (Cancelar)
+  - POST   /api/stays/:id/activate (Activar)
+  - POST   /api/stays/:id/complete (Completar)
+  - GET    /api/stays/occupancy/:hotelCode (Ocupación)
+  - GET    /api/stays/checkpoints/:hotelCode (Check-in/out hoy)
+
+  Documentación: docs/API.md
+   {"service":"voucher-system","timestamp":"2025-11-09 08:58:07"}
+[smoke] health: OK 
+[smoke] auth/login: RESP {
+  status: 200,
+  data: {
+    success: true,
+    data: {
+      user: [Object],
+      accessToken: 'e2e-access-token',
+      refreshToken: 'e2e-refresh-token',
+      expiresIn: 604800
+    },
+    user: {
+      id: 'user-e2e',
+      email: 'admin@hotel.com',
+      firstName: 'E2E',
+      lastName: 'User',
+      role: 'admin'
+    },
+    accessToken: 'e2e-access-token',
+    refreshToken: 'e2e-refresh-token',
+    expiresIn: 604800
+  }
+}
+[smoke] auth/login: OK e2e-access-token
+[smoke] auth/refresh: OK 
+[smoke] GET /api/vouchers: OK (count=0) 
+[smoke] GET /api/vouchers/stats/overview: OK 
+[smoke] resultado: SMOKE E2E OK 
+[smoke] server: Deteniendo backend… 
+[backend] [32minfo[39m: SIGTERM recibido. Cerrando gracefully... {"service":"voucher-system","timestamp":"2025-11-09 08:58:08"}
+[backend] [32minfo[39m: ✅ Servidor cerrado {"service":"voucher-system","timestamp":"2025-11-09 08:58:08"}
