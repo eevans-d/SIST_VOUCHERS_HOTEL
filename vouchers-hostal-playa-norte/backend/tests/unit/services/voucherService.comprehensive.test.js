@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
-import { VoucherService } from '../../../src/services/voucherService.js';
+import { voucherService } from '../../../src/services/voucherService.js';
 import { getDb } from '../../../src/config/database.js';
 import { CryptoService } from '../../../src/services/cryptoService.js';
 import { QRService } from '../../../src/services/qrService.js';
@@ -98,7 +98,7 @@ describe('VoucherService', () => {
       });
 
       // Act
-      const result = await VoucherService.emitVouchers(validParams);
+      const result = await voucherService.emitVouchers(validParams);
 
       // Assert
       expect(result).toHaveProperty('vouchers');
@@ -120,7 +120,7 @@ describe('VoucherService', () => {
       mockGet.mockReturnValue(null);
 
       // Act & Assert
-      await expect(VoucherService.emitVouchers(validParams))
+      await expect(voucherService.emitVouchers(validParams))
         .rejects
         .toThrow(NotFoundError);      expect(mockGet).toHaveBeenCalledWith(1);
     });
@@ -136,7 +136,7 @@ describe('VoucherService', () => {
       };
 
       // Act & Assert
-      await expect(VoucherService.emitVouchers(invalidParams))
+      await expect(voucherService.emitVouchers(invalidParams))
         .rejects
         .toThrow(ValidationError);
     });
@@ -147,7 +147,7 @@ describe('VoucherService', () => {
       const paramsWithZero = { ...validParams, breakfast_count: 0 };
 
       // Act
-      const result = await VoucherService.emitVouchers(paramsWithZero);
+      const result = await voucherService.emitVouchers(paramsWithZero);
 
       // Assert
       expect(result.vouchers).toHaveLength(0);
@@ -165,7 +165,7 @@ describe('VoucherService', () => {
       QRService.generateVoucherQR.mockRejectedValue(new Error('QR generation failed'));
 
       // Act & Assert
-      await expect(VoucherService.emitVouchers(validParams))
+      await expect(voucherService.emitVouchers(validParams))
         .rejects
         .toThrow('QR generation failed');
     });
@@ -200,7 +200,7 @@ describe('VoucherService', () => {
       CryptoService.verifyVoucherHMAC.mockReturnValue(true);
 
       // Act
-      const result = await VoucherService.validateVoucher(validParams);
+      const result = await voucherService.validateVoucher(validParams);
 
       // Assert
       expect(result).toMatchObject({
@@ -225,7 +225,7 @@ describe('VoucherService', () => {
       mockGet.mockReturnValue(null);
 
       // Act
-      const result = await VoucherService.validateVoucher(validParams);
+      const result = await voucherService.validateVoucher(validParams);
 
       // Assert
       expect(result).toMatchObject({
@@ -243,7 +243,7 @@ describe('VoucherService', () => {
       mockGet.mockReturnValue(expiredVoucher);
 
       // Act
-      const result = await VoucherService.validateVoucher(validParams);
+      const result = await voucherService.validateVoucher(validParams);
 
       // Assert
       expect(result).toMatchObject({
@@ -262,7 +262,7 @@ describe('VoucherService', () => {
       mockGet.mockReturnValue(usedVoucher);
 
       // Act
-      const result = await VoucherService.validateVoucher(validParams);
+      const result = await voucherService.validateVoucher(validParams);
 
       // Assert
       expect(result).toMatchObject({
@@ -277,7 +277,7 @@ describe('VoucherService', () => {
       CryptoService.verifyVoucherHMAC.mockReturnValue(false);
 
       // Act
-      const result = await VoucherService.validateVoucher(validParams);
+      const result = await voucherService.validateVoucher(validParams);
 
       // Assert
       expect(result).toMatchObject({
@@ -291,7 +291,7 @@ describe('VoucherService', () => {
       const invalidParams = { code: '', receptionista: 'Juan' };
 
       // Act & Assert
-      await expect(VoucherService.validateVoucher(invalidParams))
+      await expect(voucherService.validateVoucher(invalidParams))
         .rejects
         .toThrow(ValidationError);
     });
@@ -324,7 +324,7 @@ describe('VoucherService', () => {
       mockTransaction.mockImplementation((fn) => fn());
 
       // Act
-      const result = await VoucherService.redeemVoucher(validParams);
+      const result = await voucherService.redeemVoucher(validParams);
 
       // Assert
       expect(result).toMatchObject({
@@ -350,7 +350,7 @@ describe('VoucherService', () => {
       mockGet.mockReturnValue(usedVoucher);
 
       // Act & Assert
-      await expect(VoucherService.redeemVoucher(validParams))
+      await expect(voucherService.redeemVoucher(validParams))
         .rejects
         .toThrow(ConflictError);
     });
@@ -360,7 +360,7 @@ describe('VoucherService', () => {
       mockGet.mockReturnValue(null);
 
       // Act & Assert
-      await expect(VoucherService.redeemVoucher(validParams))
+      await expect(voucherService.redeemVoucher(validParams))
         .rejects
         .toThrow(NotFoundError);
     });
@@ -373,7 +373,7 @@ describe('VoucherService', () => {
       mockTransaction.mockImplementation((fn) => fn());
 
       // Act & Assert
-      await expect(VoucherService.redeemVoucher(validParams))
+      await expect(voucherService.redeemVoucher(validParams))
         .rejects
         .toThrow('Error al actualizar voucher');
     });
@@ -389,7 +389,7 @@ describe('VoucherService', () => {
         .mockReturnValueOnce({ expired: 5 });
 
       // Act
-      const result = await VoucherService.getVoucherStats({
+      const result = await voucherService.getVoucherStats({
         stay_id: 1,
         correlation_id: 'test-123'
       });
@@ -413,7 +413,7 @@ describe('VoucherService', () => {
         .mockReturnValueOnce({ expired: 0 });
 
       // Act
-      const result = await VoucherService.getVoucherStats({
+      const result = await voucherService.getVoucherStats({
         stay_id: 1,
         correlation_id: 'test-123'
       });
@@ -434,7 +434,7 @@ describe('VoucherService', () => {
       });
 
       // Act & Assert
-      await expect(VoucherService.emitVouchers({
+      await expect(voucherService.emitVouchers({
         stay_id: 1,
         valid_from: '2025-11-01',
         valid_until: '2025-11-05',
@@ -458,7 +458,7 @@ describe('VoucherService', () => {
       };
 
       // Act & Assert
-      await expect(VoucherService.emitVouchers(invalidDateParams))
+      await expect(voucherService.emitVouchers(invalidDateParams))
         .rejects
         .toThrow();
     });
@@ -476,7 +476,7 @@ describe('VoucherService', () => {
       });
 
       // Act & Assert
-      await expect(VoucherService.emitVouchers({
+      await expect(voucherService.emitVouchers({
         stay_id: 1,
         valid_from: '2025-11-01',
         valid_until: '2025-11-05',

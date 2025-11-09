@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
-import { VoucherService } from '../../../src/services/voucherService.js';
+import { voucherService } from '../../../src/services/voucherService.js';
 
 // Mock dependencies
 jest.mock('../../../src/config/database');
@@ -25,12 +25,12 @@ describe('VoucherService - Basic Tests', () => {
 
   describe('Service Instantiation', () => {
     it('should be properly instantiated', () => {
-      expect(VoucherService).toBeDefined();
-      expect(typeof VoucherService.emitVouchers).toBe('function');
-      expect(typeof VoucherService.validateVoucher).toBe('function');
-      expect(typeof VoucherService.redeemVoucher).toBe('function');
-      expect(typeof VoucherService.getVoucher).toBe('function');
-      expect(typeof VoucherService.cancelVoucher).toBe('function');
+      expect(voucherService).toBeDefined();
+      expect(typeof voucherService.emitVouchers).toBe('function');
+      expect(typeof voucherService.validateVoucher).toBe('function');
+      expect(typeof voucherService.redeemVoucher).toBe('function');
+      expect(typeof voucherService.getVoucher).toBe('function');
+      expect(typeof voucherService.cancelVoucher).toBe('function');
     });
   });
 
@@ -45,8 +45,8 @@ describe('VoucherService - Basic Tests', () => {
       ];
 
       expectedMethods.forEach(method => {
-        expect(VoucherService[method]).toBeDefined();
-        expect(typeof VoucherService[method]).toBe('function');
+        expect(voucherService[method]).toBeDefined();
+        expect(typeof voucherService[method]).toBe('function');
       });
     });
   });
@@ -55,7 +55,7 @@ describe('VoucherService - Basic Tests', () => {
     it('should handle missing parameters gracefully', async () => {
       // This will test basic parameter validation
       try {
-        await VoucherService.emitVouchers({});
+        await voucherService.emitVouchers({});
       } catch (error) {
         expect(error).toBeDefined();
       }
@@ -65,7 +65,7 @@ describe('VoucherService - Basic Tests', () => {
   describe('Basic Integration', () => {
     it('should be able to call methods without throwing immediately', () => {
       expect(() => {
-        VoucherService.emitVouchers({
+        voucherService.emitVouchers({
           stay_id: 1,
           valid_from: '2025-11-01',
           valid_until: '2025-11-05',

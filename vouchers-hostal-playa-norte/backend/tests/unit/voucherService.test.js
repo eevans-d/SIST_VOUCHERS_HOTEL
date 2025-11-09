@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from '@jest/globals';
-import { VoucherService } from '../../src/services/voucherService.js';
+import { voucherService } from '../../src/services/voucherService.js';
 import { getDb } from '../../src/config/database.js';
 
 describe('VoucherService', () => {
@@ -29,7 +29,7 @@ describe('VoucherService', () => {
         VALUES (?, ?, ?, ?, ?)
       `).run('Test Guest', '101', '2025-01-01', '2025-01-05', 3);
 
-      const result = await VoucherService.emitVouchers({
+      const result = await voucherService.emitVouchers({
         stay_id: stayResult.lastInsertRowid,
         valid_from: '2025-01-02',
         valid_until: '2025-01-04',
@@ -51,7 +51,7 @@ describe('VoucherService', () => {
         VALUES (?, ?, ?, ?, ?)
       `).run('Test Guest', '101', '2025-01-01', '2025-01-05', 3);
 
-      const result = await VoucherService.emitVouchers({
+      const result = await voucherService.emitVouchers({
         stay_id: stayResult.lastInsertRowid,
         valid_from: '2025-01-02',
         valid_until: '2025-01-04',
@@ -76,7 +76,7 @@ describe('VoucherService', () => {
       `).run('Test Guest', '101', '2025-01-01', '2025-01-05', 3);
 
       await expect(
-        VoucherService.emitVouchers({
+        voucherService.emitVouchers({
           stay_id: stayResult.lastInsertRowid,
           valid_from: '2025-01-10', // Después del checkout
           valid_until: '2025-01-15',
@@ -89,7 +89,7 @@ describe('VoucherService', () => {
 
     it('debe rechazar estadía inexistente', async () => {
       await expect(
-        VoucherService.emitVouchers({
+        voucherService.emitVouchers({
           stay_id: 9999,
           valid_from: '2025-01-02',
           valid_until: '2025-01-04',
@@ -111,7 +111,7 @@ describe('VoucherService', () => {
         VALUES (?, ?, ?, ?, ?)
       `).run('Test Guest', '101', '2025-01-01', '2025-12-31', 1);
 
-      const result = await VoucherService.emitVouchers({
+      const result = await voucherService.emitVouchers({
         stay_id: stayResult.lastInsertRowid,
         valid_from: '2025-01-01',
         valid_until: '2025-12-31',
@@ -124,7 +124,7 @@ describe('VoucherService', () => {
     });
 
     it('debe validar voucher activo correctamente', async () => {
-      const result = await VoucherService.validateVoucher({
+      const result = await voucherService.validateVoucher({
         code: testVoucher.code,
         hmac: testVoucher.hmac_signature,
         correlation_id: 'test-005'
@@ -137,7 +137,7 @@ describe('VoucherService', () => {
 
     it('debe rechazar HMAC inválido', async () => {
       await expect(
-        VoucherService.validateVoucher({
+        voucherService.validateVoucher({
           code: testVoucher.code,
           hmac: 'invalid-hmac-signature',
           correlation_id: 'test-006'
@@ -147,7 +147,7 @@ describe('VoucherService', () => {
 
     it('debe detectar voucher ya canjeado', async () => {
       // Canjear voucher
-      await VoucherService.redeemVoucher({
+      await voucherService.redeemVoucher({
         code: testVoucher.code,
         cafeteria_id: 1,
         device_id: 'test-device',
@@ -156,7 +156,7 @@ describe('VoucherService', () => {
       });
 
       // Intentar validar nuevamente
-      const result = await VoucherService.validateVoucher({
+      const result = await voucherService.validateVoucher({
         code: testVoucher.code,
         correlation_id: 'test-008'
       });
@@ -175,7 +175,7 @@ describe('VoucherService', () => {
         VALUES (?, ?, ?, ?, ?)
       `).run('Test Guest', '101', '2025-01-01', '2025-12-31', 1);
 
-      const result = await VoucherService.emitVouchers({
+      const result = await voucherService.emitVouchers({
         stay_id: stayResult.lastInsertRowid,
         valid_from: '2025-01-01',
         valid_until: '2025-12-31',
@@ -188,7 +188,7 @@ describe('VoucherService', () => {
     });
 
     it('debe canjear voucher exitosamente', async () => {
-      const result = await VoucherService.redeemVoucher({
+      const result = await voucherService.redeemVoucher({
         code: testVoucher.code,
         cafeteria_id: 1,
         device_id: 'test-device',
@@ -203,7 +203,7 @@ describe('VoucherService', () => {
 
     it('debe prevenir doble canje (mismo dispositivo)', async () => {
       // Primer canje
-      await VoucherService.redeemVoucher({
+      await voucherService.redeemVoucher({
         code: testVoucher.code,
         cafeteria_id: 1,
         device_id: 'test-device',
@@ -213,7 +213,7 @@ describe('VoucherService', () => {
 
       // Segundo intento
       await expect(
-        VoucherService.redeemVoucher({
+        voucherService.redeemVoucher({
           code: testVoucher.code,
           cafeteria_id: 1,
           device_id: 'test-device',
@@ -225,7 +225,7 @@ describe('VoucherService', () => {
 
     it('debe prevenir doble canje (diferente dispositivo)', async () => {
       // Primer canje
-      await VoucherService.redeemVoucher({
+      await voucherService.redeemVoucher({
         code: testVoucher.code,
         cafeteria_id: 1,
         device_id: 'device-1',
@@ -235,7 +235,7 @@ describe('VoucherService', () => {
 
       // Segundo intento desde otro dispositivo
       await expect(
-        VoucherService.redeemVoucher({
+        voucherService.redeemVoucher({
           code: testVoucher.code,
           cafeteria_id: 1,
           device_id: 'device-2',
@@ -246,7 +246,7 @@ describe('VoucherService', () => {
     });
 
     it('debe actualizar estado del voucher a "redeemed"', async () => {
-      await VoucherService.redeemVoucher({
+      await voucherService.redeemVoucher({
         code: testVoucher.code,
         cafeteria_id: 1,
         device_id: 'test-device',
@@ -270,7 +270,7 @@ describe('VoucherService', () => {
         VALUES (?, ?, ?, ?, ?)
       `).run('Test Guest', '101', '2025-01-01', '2025-12-31', 1);
 
-      const result = await VoucherService.emitVouchers({
+      const result = await voucherService.emitVouchers({
         stay_id: stayResult.lastInsertRowid,
         valid_from: '2025-01-01',
         valid_until: '2025-12-31',
@@ -283,7 +283,7 @@ describe('VoucherService', () => {
     });
 
     it('debe cancelar voucher correctamente', async () => {
-      const result = await VoucherService.cancelVoucher({
+      const result = await voucherService.cancelVoucher({
         code: testVoucher.code,
         reason: 'Test cancellation',
         correlation_id: 'test-015',
@@ -300,7 +300,7 @@ describe('VoucherService', () => {
 
     it('debe rechazar cancelación de voucher canjeado', async () => {
       // Canjear primero
-      await VoucherService.redeemVoucher({
+      await voucherService.redeemVoucher({
         code: testVoucher.code,
         cafeteria_id: 1,
         device_id: 'test-device',
@@ -310,7 +310,7 @@ describe('VoucherService', () => {
 
       // Intentar cancelar
       await expect(
-        VoucherService.cancelVoucher({
+        voucherService.cancelVoucher({
           code: testVoucher.code,
           reason: 'Test',
           correlation_id: 'test-017',
