@@ -1,4 +1,5 @@
 import { Order } from '../entities/Order.js';
+import { insertOrder, insertOrderItems, insertOrderVouchers, updateOrder, replaceOrderItems, replaceOrderVouchers } from './order.helpers.js';
 
 /**
  * OrderRepository - Capa de persistencia para Órdenes
@@ -107,63 +108,10 @@ export class OrderRepository {
     return this.db.transaction(() => {
       const data = order.toJSON();
       const existing = this.findById(data.id);
-
-      if (existing) {
-        return this.update(order);
-      }
-
-      // Insertar orden
-      const query = `
-        INSERT INTO orders (
-          id, stayId, status, total, discountAmount,
-          finalTotal, notes, createdAt, updatedAt
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `;
-
-      this.db
-        .prepare(query)
-        .run(
-          data.id,
-          data.stayId,
-          data.status,
-          data.total,
-          data.discountAmount,
-          data.finalTotal,
-          data.notes,
-          data.createdAt,
-          data.updatedAt
-        );
-
-      // Insertar items
-      for (const item of data.items) {
-        const itemQuery = `
-          INSERT INTO order_items (
-            id, orderId, productCode, productName,
-            quantity, unitPrice, subtotal
-          ) VALUES (?, ?, ?, ?, ?, ?, ?)
-        `;
-        this.db
-          .prepare(itemQuery)
-          .run(
-            item.id,
-            data.id,
-            item.productCode,
-            item.productName,
-            item.quantity,
-            item.unitPrice,
-            item.subtotal
-          );
-      }
-
-      // Insertar vouchers
-      for (const voucherId of data.vouchersUsed) {
-        const voucherQuery = `
-          INSERT INTO order_vouchers (orderId, voucherId)
-          VALUES (?, ?)
-        `;
-        this.db.prepare(voucherQuery).run(data.id, voucherId);
-      }
-
+      if (existing) return this.update(order);
+      insertOrder(this.db, data);
+      insertOrderItems(this.db, data.id, data.items);
+      insertOrderVouchers(this.db, data.id, data.vouchersUsed);
       return data.id;
     })();
   }
@@ -174,63 +122,9 @@ export class OrderRepository {
   update(order) {
     return this.db.transaction(() => {
       const data = order.toJSON();
-
-      // Actualizar orden
-      const query = `
-        UPDATE orders 
-        SET stayId = ?, status = ?, total = ?, 
-            discountAmount = ?, finalTotal = ?, 
-            notes = ?, updatedAt = ?
-        WHERE id = ?
-      `;
-
-      this.db
-        .prepare(query)
-        .run(
-          data.stayId,
-          data.status,
-          data.total,
-          data.discountAmount,
-          data.finalTotal,
-          data.notes,
-          data.updatedAt,
-          data.id
-        );
-
-      // Limpiar y reinsertar items
-      this.db.prepare('DELETE FROM order_items WHERE orderId = ?').run(data.id);
-      for (const item of data.items) {
-        const itemQuery = `
-          INSERT INTO order_items (
-            id, orderId, productCode, productName,
-            quantity, unitPrice, subtotal
-          ) VALUES (?, ?, ?, ?, ?, ?, ?)
-        `;
-        this.db
-          .prepare(itemQuery)
-          .run(
-            item.id,
-            data.id,
-            item.productCode,
-            item.productName,
-            item.quantity,
-            item.unitPrice,
-            item.subtotal
-          );
-      }
-
-      // Limpiar y reinsertar vouchers
-      this.db
-        .prepare('DELETE FROM order_vouchers WHERE orderId = ?')
-        .run(data.id);
-      for (const voucherId of data.vouchersUsed) {
-        const voucherQuery = `
-          INSERT INTO order_vouchers (orderId, voucherId)
-          VALUES (?, ?)
-        `;
-        this.db.prepare(voucherQuery).run(data.id, voucherId);
-      }
-
+      updateOrder(this.db, data);
+      replaceOrderItems(this.db, data.id, data.items);
+      replaceOrderVouchers(this.db, data.id, data.vouchersUsed);
       return data.id;
     })();
   }

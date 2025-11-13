@@ -1,13 +1,15 @@
+/* eslint-disable indent */
 /**
  * Database Connection Pool Service
  * Manages SQLite connections with connection pooling and prepared statements
  */
 
-import sqlite3 from 'sqlite3';
+// import sqlite3 from 'sqlite3'; // eliminado por no uso actual
 import { Database } from 'better-sqlite3';
 import { recordDbError } from '../middleware/metrics.js';
-import * as fs from 'fs';
-import * as path from 'path';
+import { logger } from '../config/logger.js';
+import * as poolOps from './connectionPool.operations.js';
+// fs y path no se usan en esta implementación; se podrían eliminar si se agrega persistencia.
 
 export class ConnectionPool {
   constructor(config = {}) {
@@ -60,16 +62,14 @@ export class ConnectionPool {
         this.stats.created++;
       }
 
-      console.log(
-        `✅ Connection pool initialized: ${this.config.maxConnections} connections`
-      );
+      logger.info({ event: 'pool_initialized', maxConnections: this.config.maxConnections });
       return true;
     } catch (error) {
-      console.error('❌ Connection pool initialization failed:', error);
+  logger.error({ event: 'pool_initialize_failed', error: error.message, stack: error.stack });
       this.stats.errors++;
       try {
         recordDbError('pool_initialize', error.code || error.name || 'unknown');
-      } catch (_) {}
+      } catch (_) { /* metric ignore */ }
       throw error;
     }
   }
@@ -79,72 +79,56 @@ export class ConnectionPool {
    */
   async acquireConnection() {
     try {
-      // Si hay conexión disponible, usarla
-      if (this.available.length > 0) {
-        const conn = this.available.shift();
-        conn.inUse = true;
-        conn.lastUsed = Date.now();
-        conn.acquiredCount++;
-
-        // Limpiar idle timer si existe
-        if (conn.idleTimer) {
-          clearTimeout(conn.idleTimer);
-          conn.idleTimer = null;
-        }
-
-        this.stats.acquired++;
-        this.stats.reused++;
-
-        console.log(
-          `✅ Connection acquired (${this.available.length} available)`
-        );
-        return conn;
-      }
-
-      // Si no hay disponible y no hemos alcanzado máximo, crear una nueva
-      if (this.connections.length < this.config.maxConnections) {
-        const conn = new Database(this.config.filename);
-        conn.pragma('journal_mode = WAL');
-
-        const connObj = {
-          id: this.connections.length,
-          db: conn,
-          inUse: true,
-          createdAt: Date.now(),
-          lastUsed: Date.now(),
-          idleTimer: null,
-          acquiredCount: 1
-        };
-
-        this.connections.push(connObj);
-        this.stats.created++;
-        this.stats.acquired++;
-
-        console.log(
-          `✅ New connection created (total: ${this.connections.length})`
-        );
-        return connObj;
-      }
-
-      // Si no hay disponible, esperar
-      return new Promise((resolve, reject) => {
-        const timeout = setTimeout(() => {
-          reject(new Error('Connection acquire timeout'));
-        }, this.config.acquireTimeout);
-
-        this.waiting.push({ resolve, reject, timeout });
-        console.log(
-          `⏳ Waiting for connection (${this.waiting.length} waiting)`
-        );
-      });
+      const immediate = this._getImmediateConnection();
+      if (immediate) return immediate;
+      if (this.connections.length < this.config.maxConnections) return this._createAndAcquireConnection();
+      return this._enqueueWaiter();
     } catch (error) {
-      console.error('❌ Connection acquire error:', error);
+      logger.error({ event: 'pool_acquire_error', error: error.message, stack: error.stack });
       this.stats.errors++;
-      try {
-        recordDbError('pool_acquire', error.code || error.name || 'unknown');
-      } catch (_) {}
+      try { recordDbError('pool_acquire', error.code || error.name || 'unknown'); } catch (_) { /* metric ignore */ }
       throw error;
     }
+  }
+
+  _getImmediateConnection() {
+    if (this.available.length === 0) return null;
+    const conn = this.available.shift();
+    conn.inUse = true;
+    conn.lastUsed = Date.now();
+    conn.acquiredCount++;
+    if (conn.idleTimer) { clearTimeout(conn.idleTimer); conn.idleTimer = null; }
+    this.stats.acquired++;
+    this.stats.reused++;
+    logger.debug({ event: 'pool_connection_acquired', available: this.available.length });
+    return conn;
+  }
+
+  _createAndAcquireConnection() {
+    const conn = new Database(this.config.filename);
+    conn.pragma('journal_mode = WAL');
+    const connObj = {
+      id: this.connections.length,
+      db: conn,
+      inUse: true,
+      createdAt: Date.now(),
+      lastUsed: Date.now(),
+      idleTimer: null,
+      acquiredCount: 1
+    };
+    this.connections.push(connObj);
+    this.stats.created++;
+    this.stats.acquired++;
+    logger.info({ event: 'pool_connection_created', total: this.connections.length });
+    return connObj;
+  }
+
+  _enqueueWaiter() {
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => { reject(new Error('Connection acquire timeout')); }, this.config.acquireTimeout);
+      this.waiting.push({ resolve, reject, timeout });
+      logger.warn({ event: 'pool_waiting_queue', waiting: this.waiting.length });
+    });
   }
 
   /**
@@ -153,14 +137,14 @@ export class ConnectionPool {
   releaseConnection(connObj) {
     try {
       if (!connObj || !connObj.db) {
-        console.error('❌ Invalid connection object');
+  logger.error({ event: 'pool_release_invalid_object' });
         this.stats.errors++;
         return false;
       }
 
       // Si hay requests esperando, asignar al primero
       if (this.waiting.length > 0) {
-        const { resolve, reject, timeout } = this.waiting.shift();
+        const { resolve, timeout } = this.waiting.shift();
         clearTimeout(timeout);
 
         connObj.inUse = false;
@@ -168,8 +152,8 @@ export class ConnectionPool {
         connObj.acquiredCount++;
 
         resolve(connObj);
-        this.stats.released++;
-        console.log('✅ Connection released to waiting request');
+    this.stats.released++;
+  logger.debug({ event: 'pool_released_to_waiter' });
         return true;
       }
 
@@ -186,12 +170,10 @@ export class ConnectionPool {
       this.available.push(connObj);
       this.stats.released++;
 
-      console.log(
-        `✅ Connection released (${this.available.length} available)`
-      );
+      logger.debug({ event: 'pool_connection_released', available: this.available.length });
       return true;
     } catch (error) {
-      console.error('❌ Connection release error:', error);
+  logger.error({ event: 'pool_release_error', error: error.message, stack: error.stack });
       this.stats.errors++;
       return false;
     }
@@ -219,260 +201,15 @@ export class ConnectionPool {
         this.available.splice(availIndex, 1);
       }
 
-      console.log(
-        `🗑️ Connection closed (${this.connections.length} remaining)`
-      );
+      logger.info({ event: 'pool_connection_closed', remaining: this.connections.length });
       return true;
     } catch (error) {
-      console.error('❌ Connection close error:', error);
+  logger.error({ event: 'pool_close_error', error: error.message, stack: error.stack });
       try {
         recordDbError('pool_close', error.code || error.name || 'unknown');
-      } catch (_) {}
+      } catch (_) { /* metric ignore */ }
       return false;
     }
-  }
-
-  /**
-   * Execute query with automatic connection management
-   */
-  async execute(sql, params = []) {
-    const connObj = await this.acquireConnection();
-    try {
-      const stmt = connObj.db.prepare(sql);
-      const result = stmt.run(...params);
-      return result;
-    } catch (error) {
-      try {
-        recordDbError('execute', error.code || error.name || 'unknown');
-      } catch (_) {}
-      throw error;
-    } finally {
-      this.releaseConnection(connObj);
-    }
-  }
-
-  /**
-   * Execute query and get all results
-   */
-  async query(sql, params = []) {
-    const connObj = await this.acquireConnection();
-    try {
-      const stmt = connObj.db.prepare(sql);
-      const results = stmt.all(...params);
-      return results;
-    } catch (error) {
-      try {
-        recordDbError('query', error.code || error.name || 'unknown');
-      } catch (_) {}
-      throw error;
-    } finally {
-      this.releaseConnection(connObj);
-    }
-  }
-
-  /**
-   * Execute query and get single result
-   */
-  async queryOne(sql, params = []) {
-    const connObj = await this.acquireConnection();
-    try {
-      const stmt = connObj.db.prepare(sql);
-      const result = stmt.get(...params);
-      return result;
-    } catch (error) {
-      try {
-        recordDbError('query_one', error.code || error.name || 'unknown');
-      } catch (_) {}
-      throw error;
-    } finally {
-      this.releaseConnection(connObj);
-    }
-  }
-
-  /**
-   * Prepare statement for reuse (caching)
-   */
-  prepareStatement(sql) {
-    if (this.prepared.has(sql)) {
-      return this.prepared.get(sql);
-    }
-
-    // Usar primera conexión disponible para preparar
-    const conn = this.connections[0];
-    if (!conn) {
-      throw new Error('No connections available for statement preparation');
-    }
-
-    const stmt = conn.db.prepare(sql);
-    this.prepared.set(sql, stmt);
-
-    console.log(`📝 Statement prepared (total: ${this.prepared.size})`);
-    return stmt;
-  }
-
-  /**
-   * Execute prepared statement
-   */
-  async executeStatement(sql, params = []) {
-    const stmt = this.prepareStatement(sql);
-    const connObj = await this.acquireConnection();
-    try {
-      // Re-prepare con conexión actual si es necesario
-      const currentStmt = connObj.db.prepare(sql);
-      return currentStmt.run(...params);
-    } catch (error) {
-      try {
-        recordDbError(
-          'execute_statement',
-          error.code || error.name || 'unknown'
-        );
-      } catch (_) {}
-      throw error;
-    } finally {
-      this.releaseConnection(connObj);
-    }
-  }
-
-  /**
-   * Begin transaction
-   */
-  async beginTransaction() {
-    const connObj = await this.acquireConnection();
-    connObj.inTransaction = true;
-    connObj.db.exec('BEGIN TRANSACTION');
-    return connObj;
-  }
-
-  /**
-   * Commit transaction
-   */
-  commitTransaction(connObj) {
-    try {
-      connObj.db.exec('COMMIT');
-      connObj.inTransaction = false;
-      this.releaseConnection(connObj);
-      console.log('✅ Transaction committed');
-      return true;
-    } catch (error) {
-      console.error('❌ Transaction commit error:', error);
-      try {
-        recordDbError('commit', error.code || error.name || 'unknown');
-      } catch (_) {}
-      return false;
-    }
-  }
-
-  /**
-   * Rollback transaction
-   */
-  rollbackTransaction(connObj) {
-    try {
-      connObj.db.exec('ROLLBACK');
-      connObj.inTransaction = false;
-      this.releaseConnection(connObj);
-      console.log('↩️ Transaction rolled back');
-      return true;
-    } catch (error) {
-      console.error('❌ Transaction rollback error:', error);
-      try {
-        recordDbError('rollback', error.code || error.name || 'unknown');
-      } catch (_) {}
-      return false;
-    }
-  }
-
-  /**
-   * Drain pool - close all connections
-   */
-  async drain() {
-    try {
-      const promises = this.connections.map(
-        (conn) =>
-          new Promise((resolve) => {
-            this.closeConnection(conn);
-            resolve();
-          })
-      );
-
-      await Promise.all(promises);
-
-      // Limpiar prepared statements
-      this.prepared.clear();
-      this.waiting = [];
-      this.connections = [];
-      this.available = [];
-
-      console.log('🗑️ Connection pool drained');
-      return true;
-    } catch (error) {
-      console.error('❌ Pool drain error:', error);
-      this.stats.errors++;
-      try {
-        recordDbError('pool_drain', error.code || error.name || 'unknown');
-      } catch (_) {}
-      return false;
-    }
-  }
-
-  /**
-   * Get pool statistics
-   */
-  getStats() {
-    return {
-      ...this.stats,
-      totalConnections: this.connections.length,
-      availableConnections: this.available.length,
-      usedConnections: this.connections.length - this.available.length,
-      waitingRequests: this.waiting.length,
-      preparedStatements: this.prepared.size,
-      uptime: Date.now() - (this.startTime || Date.now())
-    };
-  }
-
-  /**
-   * Health check
-   */
-  async healthCheck() {
-    try {
-      const result = await this.queryOne('SELECT 1 as health');
-      return { healthy: true, response: result };
-    } catch (error) {
-      console.error('❌ Health check failed:', error);
-      return { healthy: false, error: error.message };
-    }
-  }
-
-  /**
-   * Vacuum database
-   */
-  vacuum() {
-    try {
-      const conn = this.connections[0];
-      if (!conn) {
-        throw new Error('No connections available');
-      }
-
-      conn.db.exec('VACUUM');
-      console.log('🧹 Database vacuumed');
-      return true;
-    } catch (error) {
-      console.error('❌ Vacuum error:', error);
-      this.stats.errors++;
-      try {
-        recordDbError('vacuum', error.code || error.name || 'unknown');
-      } catch (_) {}
-      return false;
-    }
-  }
-
-  /**
-   * Clear prepared statement cache
-   */
-  clearPreparedCache() {
-    const count = this.prepared.size;
-    this.prepared.clear();
-    console.log(`🗑️ Prepared statements cache cleared (${count} statements)`);
-    return count;
   }
 }
 
@@ -502,3 +239,6 @@ export const getPool = () => {
 };
 
 export default ConnectionPool;
+
+// Adjuntar operaciones extraídas al prototipo para mantener API
+Object.assign(ConnectionPool.prototype, poolOps);

@@ -26,7 +26,7 @@ describe('Reports API - Test Case #10', () => {
 
       // Crear estadía
       const stayResult = dbManager.getDb().prepare(`
-        INSERT INTO stays (guest_name, room_number, checkin_date, checkout_date, breakfast_count)
+        INSERT INTO stays (guest_name, room_number, check_in, check_out, breakfast_count)
         VALUES (?, ?, ?, ?, ?)
       `).run('Test Guest CSV', '301', '2025-01-01', '2025-01-10', 10);
 

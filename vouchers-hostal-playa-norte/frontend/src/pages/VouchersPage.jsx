@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import QRCode from 'qrcode.react';
+import { QRCodeSVG } from 'react-zxing';
 import { useVouchers } from '@/store';
 import api from '@/services/api';
 import toast from 'react-hot-toast';
@@ -122,7 +122,7 @@ export default function VouchersPage() {
           <div className="bg-white rounded-lg shadow-lg p-6">
             <h2 className="text-2xl font-bold mb-4 text-gray-800">Código QR</h2>
             <div className="flex flex-col items-center space-y-4">
-              <QRCode value={`VOC|${current.id}|${current.code}|${current.stayId}`} size={200} />
+              <QRCodeSVG value={`VOC|${current.id}|${current.code}|${current.stayId}`} size={200} />
               <p className="text-center font-mono text-sm">{current.code}</p>
               <button
                 onClick={handleRedeem}

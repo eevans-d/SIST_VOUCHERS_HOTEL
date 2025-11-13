@@ -26,7 +26,7 @@ describe('Sync API Integration', () => {
 
     // Crear estadía y vouchers de prueba
     const stayResult = dbManager.getDb().prepare(`
-      INSERT INTO stays (guest_name, room_number, checkin_date, checkout_date, breakfast_count)
+      INSERT INTO stays (guest_name, room_number, check_in, check_out, breakfast_count)
       VALUES (?, ?, ?, ?, ?)
     `).run('Sync Test', '201', '2025-01-01', '2025-12-31', 5);
 

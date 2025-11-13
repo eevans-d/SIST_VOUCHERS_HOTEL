@@ -44,57 +44,81 @@ export class LoginUser {
     const validated = LoginUserDTO.parse(input);
 
     try {
-      // 1. Buscar usuario por email
-      const user = this.userRepository.findByEmail(validated.email);
-
-      if (!user) {
-        this.logger.warn(
-          `Login fallido: email no encontrado: ${validated.email}`
-        );
-        throw new Error('Email o contraseña incorrectos');
-      }
-
-      // 2. Verificar que está activo
-      if (!user.isActive) {
-        this.logger.warn(`Login fallido: usuario inactivo: ${user.id}`);
-        throw new Error('Cuenta desactivada. Contacta con soporte.');
-      }
-
-      // 3. Verificar contraseña
-      const passwordValid = await this.passwordService.verify(
-        validated.password,
-        user.passwordHash
-      );
-
-      if (!passwordValid) {
-        this.logger.warn(
-          `Login fallido: password incorrecta para: ${user.email}`
-        );
-        throw new Error('Email o contraseña incorrectos');
-      }
-
-      // 4. Generar tokens
-      const { accessToken, refreshToken } =
-        this.jwtService.generateTokenPair(user);
-
-      // 5. Log exitoso
-      this.logger.info(
-        `Login exitoso para usuario: ${user.email} (${user.id})`
-      );
-
-      // 6. Retornar resultado (sin password)
-      return {
-        user: user.toJSON(),
-        accessToken,
-        refreshToken,
-        expiresIn: this.getTokenExpiration()
-      };
+      const user = this._findActiveUserByEmail(validated.email);
+      await this._verifyPassword(validated.password, user);
+      const tokens = this._issueTokenPair(user);
+      this._logLoginSuccess(user);
+      return this._formatLoginResponse(user, tokens);
     } catch (error) {
       if (error instanceof z.ZodError) {
         throw new Error(`Datos inválidos: ${error.message}`);
       }
       throw error;
     }
+  }
+
+  /**
+   * Buscar usuario y validar que está activo
+   * @private
+   */
+  _findActiveUserByEmail(email) {
+    const user = this.userRepository.findByEmail(email);
+    if (!user) {
+      this.logger.warn(`Login fallido: email no encontrado: ${email}`);
+      throw new Error('Email o contraseña incorrectos');
+    }
+    if (!user.isActive) {
+      this.logger.warn(`Login fallido: usuario inactivo: ${user.id}`);
+      throw new Error('Cuenta desactivada. Contacta con soporte.');
+    }
+    return user;
+  }
+
+  /**
+   * Verificar contraseña
+   * @private
+   */
+  async _verifyPassword(password, user) {
+    const passwordValid = await this.passwordService.verify(
+      password,
+      user.passwordHash
+    );
+    if (!passwordValid) {
+      this.logger.warn(
+        `Login fallido: password incorrecta para: ${user.email}`
+      );
+      throw new Error('Email o contraseña incorrectos');
+    }
+  }
+
+  /**
+   * Generar par de tokens
+   * @private
+   */
+  _issueTokenPair(user) {
+    return this.jwtService.generateTokenPair(user);
+  }
+
+  /**
+   * Log de éxito
+   * @private
+   */
+  _logLoginSuccess(user) {
+    this.logger.info(`Login exitoso para usuario: ${user.email} (${user.id})`);
+  }
+
+  /**
+   * Formatear respuesta de login
+   * @private
+   */
+  _formatLoginResponse(user, tokens) {
+    const { accessToken, refreshToken } = tokens;
+    return {
+      user: user.toJSON(),
+      accessToken,
+      refreshToken,
+      expiresIn: this.getTokenExpiration()
+    };
   }
 
   /**

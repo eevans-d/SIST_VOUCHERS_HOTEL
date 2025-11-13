@@ -1,3 +1,4 @@
+/* eslint-disable indent, max-lines */
 import {
   SecretsManagerClient,
   GetSecretValueCommand
@@ -5,6 +6,7 @@ import {
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { logger } from '../config/logger.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -55,14 +57,14 @@ export class SecretsManager {
     try {
       await this.loadSecrets();
       this.isInitialized = true;
-      console.log('✅ Secrets Manager initialized successfully');
+  logger.info({ event: 'secrets_initialized' });
       return this.secrets;
     } catch (error) {
-      console.error('❌ Failed to initialize Secrets Manager:', error);
+  logger.error({ event: 'secrets_init_failed', error: error.message, stack: error.stack });
 
       // Fallback to .env in development
       if (process.env.NODE_ENV !== 'production') {
-        console.warn('⚠️ Falling back to .env file');
+  logger.warn({ event: 'secrets_fallback_env' });
         this._loadFromEnvFile();
         return this.secrets;
       }
@@ -80,7 +82,7 @@ export class SecretsManager {
     if (this.secrets && this.lastLoadTime) {
       const cacheAge = Date.now() - this.lastLoadTime;
       if (cacheAge < this.cacheMaxAge) {
-        console.debug('✓ Using cached secrets');
+  logger.debug({ event: 'secrets_cache_used' });
         return this.secrets;
       }
     }
@@ -106,50 +108,22 @@ export class SecretsManager {
 
     for (let attempt = 1; attempt <= this.retryAttempts; attempt++) {
       try {
-        const command = new GetSecretValueCommand({
-          SecretId: secretName
-        });
-
-        const response = await this.client.send(command);
-
-        // Parse secret (JSON or plain text)
-        let secretData;
-        if (response.SecretString) {
-          try {
-            secretData = JSON.parse(response.SecretString);
-          } catch {
-            // Handle as plain string
-            secretData = { value: response.SecretString };
-          }
-        } else if (response.SecretBinary) {
-          // Handle binary secrets
-          const buff = Buffer.from(response.SecretBinary, 'base64');
-          secretData = JSON.parse(buff.toString('utf-8'));
-        }
-
-        // Merge with environment variables (env vars take precedence)
-        this.secrets = {
-          ...secretData,
-          ...this._getEnvironmentSecrets()
-        };
-
+        const response = await this._fetchSecretFromAWS(secretName);
+        const secretData = this._parseSecretResponse(response);
+        this._mergeWithEnv(secretData);
         this.lastLoadTime = Date.now();
-
-        console.log(
-          `✅ Secrets loaded from AWS (attempt ${attempt}/${this.retryAttempts})`
-        );
+        logger.info({
+          event: 'secrets_loaded_aws',
+          attempt,
+          retryAttempts: this.retryAttempts
+        });
         return this.secrets;
       } catch (error) {
         lastError = error;
-        console.error(
-          `❌ Attempt ${attempt}/${this.retryAttempts} failed:`,
-          error.message
-        );
-
+        this._handleAwsAttemptError(attempt, error);
         if (attempt < this.retryAttempts) {
-          // Exponential backoff
           const delayMs = this.retryDelayMs * Math.pow(2, attempt - 1);
-          console.log(`⏳ Retrying in ${delayMs}ms...`);
+          logger.warn({ event: 'secrets_retry_wait', attempt, delayMs });
           await this._sleep(delayMs);
         }
       }
@@ -158,6 +132,47 @@ export class SecretsManager {
     throw new Error(
       `Failed to load secrets from AWS after ${this.retryAttempts} attempts: ${lastError.message}`
     );
+  }
+
+  _buildGetSecretCommand(secretName) {
+    return new GetSecretValueCommand({ SecretId: secretName });
+  }
+
+  async _fetchSecretFromAWS(secretName) {
+    const command = this._buildGetSecretCommand(secretName);
+    return this.client.send(command);
+  }
+
+  _parseSecretResponse(response) {
+    if (response.SecretString) {
+      try {
+        return JSON.parse(response.SecretString);
+      } catch {
+        return { value: response.SecretString };
+      }
+    }
+    if (response.SecretBinary) {
+      const buff = Buffer.from(response.SecretBinary, 'base64');
+      return JSON.parse(buff.toString('utf-8'));
+    }
+    return {};
+  }
+
+  _mergeWithEnv(secretData) {
+    this.secrets = {
+      ...secretData,
+      ...this._getEnvironmentSecrets()
+    };
+  }
+
+  _handleAwsAttemptError(attempt, error) {
+    logger.error({
+      event: 'secrets_aws_attempt_failed',
+      attempt,
+      retryAttempts: this.retryAttempts,
+      error: error.message,
+      stack: error.stack
+    });
   }
 
   /**
@@ -171,15 +186,15 @@ export class SecretsManager {
       const result = dotenv.config({ path: envPath });
 
       if (result.error && result.error.code !== 'ENOENT') {
-        console.warn('⚠️ Error loading .env file:', result.error.message);
+  logger.warn({ event: 'secrets_env_load_warning', error: result.error.message });
       }
 
       this.secrets = this._getEnvironmentSecrets();
       this.lastLoadTime = Date.now();
 
-      console.log('✅ Secrets loaded from .env file');
+  logger.info({ event: 'secrets_loaded_env_file' });
     } catch (error) {
-      console.error('❌ Error loading .env file:', error);
+  logger.error({ event: 'secrets_env_load_error', error: error.message, stack: error.stack });
       this.secrets = this._getEnvironmentSecrets();
     }
   }
@@ -220,7 +235,7 @@ export class SecretsManager {
    */
   get(key, defaultValue = null) {
     if (!this.isInitialized) {
-      console.warn(`⚠️ Secrets not initialized. Returning default for ${key}`);
+  logger.warn({ event: 'secrets_get_uninitialized', key });
       return defaultValue;
     }
 
@@ -233,7 +248,7 @@ export class SecretsManager {
    */
   getAll() {
     if (!this.isInitialized) {
-      console.warn('⚠️ Secrets not initialized');
+  logger.warn({ event: 'secrets_get_all_uninitialized' });
       return {};
     }
 
@@ -254,15 +269,15 @@ export class SecretsManager {
    * Useful for manual secret rotation without restart
    */
   async rotate() {
-    console.log('🔄 Rotating secrets...');
+  logger.info({ event: 'secrets_rotation_start' });
     this.lastLoadTime = null; // Invalidate cache
 
     try {
       await this.loadSecrets();
-      console.log('✅ Secrets rotated successfully');
+  logger.info({ event: 'secrets_rotation_success' });
       return true;
     } catch (error) {
-      console.error('❌ Failed to rotate secrets:', error);
+  logger.error({ event: 'secrets_rotation_failed', error: error.message, stack: error.stack });
       return false;
     }
   }
@@ -276,11 +291,11 @@ export class SecretsManager {
     const missing = requiredKeys.filter((key) => !this.has(key));
 
     if (missing.length > 0) {
-      console.error('❌ Missing required secrets:', missing);
+  logger.error({ event: 'secrets_missing_required', missing });
       return false;
     }
 
-    console.log('✅ All required secrets present');
+  logger.info({ event: 'secrets_required_present' });
     return true;
   }
 

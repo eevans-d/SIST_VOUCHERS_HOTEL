@@ -53,88 +53,143 @@ export class CreateStay {
     const validated = CreateStayDTO.parse(input);
 
     try {
-      // 1. Verificar que usuario existe
-      const user = this.userRepository.findById(validated.userId);
-      if (!user) {
-        this.logger.warn(
-          `CreateStay: usuario no encontrado: ${validated.userId}`
-        );
-        throw new Error(`Usuario no encontrado: ${validated.userId}`);
-      }
-
-      // 2. Verificar que usuario está activo
-      if (!user.isActive) {
-        this.logger.warn(`CreateStay: usuario inactivo: ${user.id}`);
-        throw new Error('Cuenta de usuario desactivada');
-      }
-
-      // 3. Calcular cantidad de noches
-      const nights = this.calculateNights(
+      const user = this._findActiveUser(validated.userId);
+      const nights = this._validateDates(
         validated.checkInDate,
         validated.checkOutDate
       );
-      if (nights < 1) {
-        throw new Error('Duración mínima de estadía: 1 noche');
-      }
-
-      // 4. Validar que check-in no sea en el pasado
-      const now = new Date();
-      if (validated.checkInDate < now) {
-        throw new Error('Fecha de check-in no puede ser en el pasado');
-      }
-
-      // 5. Verificar disponibilidad de habitación
-      const isAvailable = this.stayRepository.isRoomAvailable(
+      this._ensureAvailability(
         validated.roomNumber,
         validated.hotelCode,
         validated.checkInDate,
         validated.checkOutDate
       );
 
-      if (!isAvailable) {
-        this.logger.warn(
-          `CreateStay: habitación ${validated.roomNumber} no disponible: ${validated.checkInDate} - ${validated.checkOutDate}`
-        );
-        throw new Error('Habitación no disponible para estas fechas');
-      }
+      const totalPrice = this._calculateTotal(nights, validated.basePrice);
+      const stay = this._createStayEntity(validated, nights, totalPrice);
+      const savedStay = this._persistStay(stay);
 
-      // 6. Calcular precio total
-      const totalPrice = nights * validated.basePrice;
-
-      // 7. Crear entidad Stay
-      const stay = Stay.create({
-        userId: validated.userId,
-        hotelCode: validated.hotelCode,
-        roomNumber: validated.roomNumber,
-        checkInDate: validated.checkInDate,
-        checkOutDate: validated.checkOutDate,
-        numberOfGuests: validated.numberOfGuests,
-        numberOfNights: nights,
-        roomType: validated.roomType || 'double',
-        basePrice: validated.basePrice,
-        totalPrice,
-        status: 'pending'
-      });
-
-      // 8. Persistir en base de datos
-      const savedStay = this.stayRepository.create(stay);
-
-      // 9. Log
-      this.logger.info(
-        `Estadía creada: ${savedStay.id} para usuario ${user.email} (${validated.checkInDate} - ${validated.checkOutDate})`
+      this._logCreated(savedStay, user, validated);
+      return this._formatCreateStayResponse(
+        savedStay,
+        nights,
+        validated.checkInDate
       );
-
-      // 10. Retornar resultado
-      return {
-        stay: savedStay.toJSON(),
-        message: `Estadía creada exitosamente. Check-in: ${validated.checkInDate.toLocaleDateString('es-ES')}, ${nights} noche(s).`
-      };
     } catch (error) {
       if (error instanceof z.ZodError) {
         throw new Error(`Datos inválidos: ${error.message}`);
       }
       throw error;
     }
+  }
+
+  /**
+   * Buscar usuario y validar que esté activo
+   * @private
+   */
+  _findActiveUser(userId) {
+    const user = this.userRepository.findById(userId);
+    if (!user) {
+      this.logger.warn(`CreateStay: usuario no encontrado: ${userId}`);
+      throw new Error(`Usuario no encontrado: ${userId}`);
+    }
+    if (!user.isActive) {
+      this.logger.warn(`CreateStay: usuario inactivo: ${user.id}`);
+      throw new Error('Cuenta de usuario desactivada');
+    }
+    return user;
+  }
+
+  /**
+   * Validar fechas y calcular noches
+   * @private
+   */
+  _validateDates(checkInDate, checkOutDate) {
+    const nights = this.calculateNights(checkInDate, checkOutDate);
+    if (nights < 1) {
+      throw new Error('Duración mínima de estadía: 1 noche');
+    }
+    const now = new Date();
+    if (checkInDate < now) {
+      throw new Error('Fecha de check-in no puede ser en el pasado');
+    }
+    return nights;
+  }
+
+  /**
+   * Verificar disponibilidad de habitación
+   * @private
+   */
+  _ensureAvailability(roomNumber, hotelCode, checkInDate, checkOutDate) {
+    const isAvailable = this.stayRepository.isRoomAvailable(
+      roomNumber,
+      hotelCode,
+      checkInDate,
+      checkOutDate
+    );
+    if (!isAvailable) {
+      this.logger.warn(
+        `CreateStay: habitación ${roomNumber} no disponible: ${checkInDate} - ${checkOutDate}`
+      );
+      throw new Error('Habitación no disponible para estas fechas');
+    }
+  }
+
+  /**
+   * Calcular total de la estadía
+   * @private
+   */
+  _calculateTotal(nights, basePrice) {
+    return nights * basePrice;
+  }
+
+  /**
+   * Construir entidad Stay
+   * @private
+   */
+  _createStayEntity(validated, nights, totalPrice) {
+    return Stay.create({
+      userId: validated.userId,
+      hotelCode: validated.hotelCode,
+      roomNumber: validated.roomNumber,
+      checkInDate: validated.checkInDate,
+      checkOutDate: validated.checkOutDate,
+      numberOfGuests: validated.numberOfGuests,
+      numberOfNights: nights,
+      roomType: validated.roomType || 'double',
+      basePrice: validated.basePrice,
+      totalPrice,
+      status: 'pending'
+    });
+  }
+
+  /**
+   * Persistir estadía
+   * @private
+   */
+  _persistStay(stay) {
+    return this.stayRepository.create(stay);
+  }
+
+  /**
+   * Log de creación
+   * @private
+   */
+  _logCreated(savedStay, user, validated) {
+    this.logger.info(
+      `Estadía creada: ${savedStay.id} para usuario ${user.email} (${validated.checkInDate} - ${validated.checkOutDate})`
+    );
+  }
+
+  /**
+   * Formatear respuesta
+   * @private
+   */
+  _formatCreateStayResponse(savedStay, nights, checkInDate) {
+    return {
+      stay: savedStay.toJSON(),
+      message: `Estadía creada exitosamente. Check-in: ${checkInDate.toLocaleDateString('es-ES')}, ${nights} noche(s).`
+    };
   }
 
   /**

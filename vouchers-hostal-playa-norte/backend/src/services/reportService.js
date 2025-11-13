@@ -1,17 +1,21 @@
 import { getDb } from '../config/database.js';
 import { logger } from '../config/logger.js';
-import { ValidationError } from '../middleware/errorHandler.js';
+// import { ValidationError } from '../middleware/errorHandler.js';
+import {
+  validateDateRange,
+  buildRedemptionsQuery,
+  generateCSV,
+  fetchTodayStats,
+  fetchActiveVouchersCount,
+  fetchRecentConflictsCount,
+  fetchActiveDevicesCount
+} from './helpers/report.helpers.js';
 
 class ReportService {
   /**
-   * Genera reporte de canjes en formato CSV
+   * Genera CSV de redenciones
    */
-  async generateRedemptionsCSV({
-    from_date,
-    to_date,
-    cafeteria_id,
-    correlation_id
-  }) {
+  async generateRedemptionsCSV({ from_date, to_date, cafeteria_id, correlation_id }) {
     const db = getDb();
     const startTime = Date.now();
 
@@ -19,68 +23,14 @@ class ReportService {
       event: 'generate_csv_start',
       correlation_id,
       from_date,
-      to_date,
-      cafeteria_id
+      to_date
     });
 
-    // Validar fechas
-    if (from_date && to_date && new Date(from_date) > new Date(to_date)) {
-      throw new ValidationError(
-        'La fecha de inicio debe ser anterior a la fecha de fin'
-      );
-    }
+    validateDateRange(from_date, to_date);
 
-    let query = `
-      SELECT
-        v.code,
-        s.guest_name,
-        s.room_number as room,
-        r.redeemed_at,
-        c.name as cafeteria,
-        r.device_id,
-        CASE
-          WHEN r.sync_status = 'synced' THEN 'online'
-          ELSE 'offline'
-        END as origin
-      FROM redemptions r
-      JOIN vouchers v ON r.voucher_id = v.id
-      JOIN stays s ON v.stay_id = s.id
-      JOIN cafeterias c ON r.cafeteria_id = c.id
-      WHERE 1=1
-    `;
-
-    const params = [];
-
-    if (from_date) {
-      query += ' AND DATE(r.redeemed_at) >= ?';
-      params.push(from_date);
-    }
-
-    if (to_date) {
-      query += ' AND DATE(r.redeemed_at) <= ?';
-      params.push(to_date);
-    }
-
-    if (cafeteria_id) {
-      query += ' AND r.cafeteria_id = ?';
-      params.push(cafeteria_id);
-    }
-
-    query += ' ORDER BY r.redeemed_at DESC';
-
+    const { query, params } = buildRedemptionsQuery(from_date, to_date, cafeteria_id);
     const redemptions = db.prepare(query).all(...params);
-
-    // Generar CSV
-    const csvHeader =
-      'code,guest_name,room,redeemed_at,cafeteria,device_id,origin\n';
-    const csvRows = redemptions
-      .map(
-        (r) =>
-          `${r.code},${r.guest_name},${r.room},${r.redeemed_at},${r.cafeteria},${r.device_id},${r.origin}`
-      )
-      .join('\n');
-
-    const csv = csvHeader + csvRows;
+    const csv = generateCSV(redemptions);
 
     logger.info({
       event: 'generate_csv_complete',
@@ -102,7 +52,7 @@ class ReportService {
   /**
    * Genera reporte de vouchers emitidos vs canjeados
    */
-  async getReconciliationReport({ from_date, to_date, correlation_id }) {
+  async getReconciliationReport({ from_date, to_date, _correlation_id }) {
     const db = getDb();
 
     const stats = db
@@ -149,62 +99,14 @@ class ReportService {
   /**
    * Obtiene métricas operativas
    */
-  async getOperationalMetrics({ correlation_id }) {
+  async getOperationalMetrics({ _correlation_id }) {
     const db = getDb();
-
-    // Métricas de hoy
     const today = new Date().toISOString().split('T')[0];
 
-    const todayStats = db
-      .prepare(
-        `
-      SELECT
-        COUNT(DISTINCT v.id) as vouchers_emitted,
-        COUNT(DISTINCT r.id) as vouchers_redeemed,
-        COUNT(DISTINCT CASE WHEN r.sync_status = 'synced' THEN r.id END) as online_redemptions,
-        COUNT(DISTINCT CASE WHEN r.sync_status != 'synced' THEN r.id END) as offline_redemptions
-      FROM vouchers v
-      LEFT JOIN redemptions r ON v.id = r.voucher_id AND DATE(r.redeemed_at) = ?
-      WHERE DATE(v.created_at) = ?
-    `
-      )
-      .get(today, today);
-
-    // Vouchers activos
-    const activeVouchers = db
-      .prepare(
-        `
-      SELECT COUNT(*) as count
-      FROM vouchers
-      WHERE status = 'active'
-        AND DATE(valid_from) <= DATE('now', 'localtime')
-        AND DATE(valid_until) >= DATE('now', 'localtime')
-    `
-      )
-      .get();
-
-    // Conflictos recientes (últimos 7 días)
-    const recentConflicts = db
-      .prepare(
-        `
-      SELECT COUNT(*) as count
-      FROM sync_log
-      WHERE result = 'conflict'
-        AND DATE(synced_at) >= DATE('now', '-7 days')
-    `
-      )
-      .get();
-
-    // Dispositivos activos
-    const activeDevices = db
-      .prepare(
-        `
-      SELECT COUNT(DISTINCT device_id) as count
-      FROM sync_log
-      WHERE DATE(synced_at) >= DATE('now', '-1 day')
-    `
-      )
-      .get();
+    const todayStats = fetchTodayStats(db, today);
+    const activeVouchers = fetchActiveVouchersCount(db);
+    const recentConflicts = fetchRecentConflictsCount(db);
+    const activeDevices = fetchActiveDevicesCount(db);
 
     return {
       today: todayStats,

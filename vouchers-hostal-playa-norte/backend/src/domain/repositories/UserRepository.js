@@ -5,7 +5,6 @@
  * @ref Pilar 8.1 (Data Management)
  */
 
-import Database from 'better-sqlite3';
 import User from '../entities/User.js';
 
 /**

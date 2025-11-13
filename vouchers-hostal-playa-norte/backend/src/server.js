@@ -6,11 +6,7 @@ const { logger } = require('./config/logger');
 const { dbManager } = require('./config/database');
 const { correlationMiddleware } = require('./middleware/correlation');
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
-const {
-  cacheMiddleware,
-  invalidateCacheMiddleware,
-  cacheService
-} = require('./services/cacheService');
+const { cacheMiddleware, invalidateCacheMiddleware } = require('./services/cacheService');
 
 // Routes
 const vouchersRoutes = require('./routes/vouchers');
@@ -175,17 +171,14 @@ const server = app.listen(PORT, () => {
     version: config.APP_VERSION
   });
 
-  console.log(`
-╔═══════════════════════════════════════════════════════════╗
-║  🏨 Sistema de Vouchers Digitales - Hostal Playa Norte   ║
-║                                                           ║
-║  Servidor iniciado exitosamente                          ║
-║  Puerto: ${PORT}                                              ║
-║  Entorno: ${config.NODE_ENV}                                   ║
-║  Versión: ${config.APP_VERSION}                                      ║
-║  Zona Horaria: ${config.TZ}              ║
-╚═══════════════════════════════════════════════════════════╝
-  `);
+  logger.info({
+    event: 'server_banner',
+    message: 'Sistema de Vouchers Digitales - Hostal Playa Norte iniciado',
+    port: PORT,
+    environment: config.NODE_ENV,
+    version: config.APP_VERSION,
+    timezone: config.TZ
+  });
 });
 
 module.exports = { app, server };

@@ -1,20 +1,7 @@
-/**
- * @file StayRepository
- * @description Repositorio de Estadía con persistencia SQLite
- * @ref BLUEPRINT_ARQUITECTURA.md - Persistence Layer
- * @ref Pilar 8.1 (Data Management)
- */
-
 import Stay from '../entities/Stay.js';
+import { getOccupancyMap, getStayStats, checkRoomAvailability } from './stay.helpers.js';
 
-/**
- * StayRepository - Abstracción de persistencia de estadías
- * Ref: Pilar 5.1 (Repository Pattern)
- */
 export class StayRepository {
-  /**
-   * @param {Database.Database} db - Instancia de SQLite
-   */
   constructor(db) {
     this.db = db;
   }
@@ -279,76 +266,16 @@ export class StayRepository {
     return result.total;
   }
 
-  /**
-   * Obtener ocupación por habitación
-   * @param {string} hotelCode
-   * @param {Date} date
-   * @returns {Object} Mapa de roomNumber -> booleano (ocupado)
-   */
   getOccupancy(hotelCode, date) {
-    const dateStr = date.toISOString().split('T')[0];
-    const stmt = this.db.prepare(`
-      SELECT DISTINCT roomNumber FROM stays
-      WHERE hotelCode = ?
-        AND status != 'cancelled'
-        AND DATE(checkInDate) <= ?
-        AND DATE(checkOutDate) > ?
-    `);
-    const rows = stmt.all(hotelCode, dateStr, dateStr);
-
-    const occupancy = {};
-    rows.forEach((row) => {
-      occupancy[row.roomNumber] = true;
-    });
-    return occupancy;
+    return getOccupancyMap(this.db, hotelCode, date);
   }
 
-  /**
-   * Obtener estadísticas de estadías
-   * @param {string} hotelCode
-   * @returns {Object}
-   */
   getStats(hotelCode) {
-    const stmt = this.db.prepare(`
-      SELECT
-        COUNT(*) as total,
-        SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as active,
-        SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
-        SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending,
-        SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) as cancelled,
-        AVG(totalPrice) as avgPrice,
-        SUM(totalPrice) as totalRevenue,
-        COUNT(DISTINCT userId) as uniqueGuests
-      FROM stays
-      WHERE hotelCode = ?
-    `);
-    return stmt.get(hotelCode);
+    return getStayStats(this.db, hotelCode);
   }
 
-  /**
-   * Verificar disponibilidad de habitación
-   * @param {string} roomNumber
-   * @param {string} hotelCode
-   * @param {Date} checkInDate
-   * @param {Date} checkOutDate
-   * @returns {boolean}
-   */
   isRoomAvailable(roomNumber, hotelCode, checkInDate, checkOutDate) {
-    const stmt = this.db.prepare(`
-      SELECT COUNT(*) as count FROM stays
-      WHERE roomNumber = ?
-        AND hotelCode = ?
-        AND status != 'cancelled'
-        AND checkInDate < ?
-        AND checkOutDate > ?
-    `);
-    const result = stmt.get(
-      roomNumber,
-      hotelCode,
-      checkOutDate.toISOString(),
-      checkInDate.toISOString()
-    );
-    return result.count === 0;
+    return checkRoomAvailability(this.db, roomNumber, hotelCode, checkInDate, checkOutDate);
   }
 }
 

@@ -14,38 +14,15 @@ class DatabaseManager {
 
     const dbPath =
       process.env.DATABASE_PATH || path.join(__dirname, '../../vouchers.db');
-    const dbDir = path.dirname(dbPath);
-
-    // Crear directorio si no existe
-    if (!fs.existsSync(dbDir)) {
-      fs.mkdirSync(dbDir, { recursive: true });
-    }
+    ensureDbDir(dbPath);
 
     try {
-      this.db = new Database(dbPath, {
-        verbose: process.env.NODE_ENV === 'development' ? console.log : null
-      });
-
-      // Configuraciones SQLite optimizadas
-      this.db.pragma('journal_mode = WAL'); // Write-Ahead Logging para concurrencia
-      this.db.pragma('foreign_keys = ON'); // Integridad referencial
-      this.db.pragma('synchronous = NORMAL'); // Balance performance/seguridad
-
-      // Configurar zona horaria
-      this.db.function('current_timestamp_tz', () => {
-        return new Date().toISOString();
-      });
+      this.db = openDatabase(dbPath);
+      configureSqlite(this.db);
 
       this.initialized = true;
 
-      logger.info({
-        event: 'database_initialized',
-        path: dbPath,
-        pragmas: {
-          journal_mode: this.db.pragma('journal_mode', { simple: true }),
-          foreign_keys: this.db.pragma('foreign_keys', { simple: true })
-        }
-      });
+      logInitialization(dbPath, this.db);
 
       return this.db;
     } catch (error) {
@@ -83,3 +60,38 @@ class DatabaseManager {
 // Singleton exportado
 export const dbManager = new DatabaseManager();
 export const getDb = () => dbManager.getDb();
+
+// Helpers privados del módulo
+function ensureDbDir(dbPath) {
+  const dbDir = path.dirname(dbPath);
+  if (!fs.existsSync(dbDir)) {
+    fs.mkdirSync(dbDir, { recursive: true });
+  }
+}
+
+function openDatabase(dbPath) {
+  return new Database(dbPath, {
+    verbose:
+      process.env.NODE_ENV === 'development'
+        ? (msg) => logger.debug({ event: 'sqlite_verbose', sql: msg })
+        : null
+  });
+}
+
+function configureSqlite(db) {
+  db.pragma('journal_mode = WAL'); // Write-Ahead Logging para concurrencia
+  db.pragma('foreign_keys = ON'); // Integridad referencial
+  db.pragma('synchronous = NORMAL'); // Balance performance/seguridad
+  db.function('current_timestamp_tz', () => new Date().toISOString());
+}
+
+function logInitialization(dbPath, db) {
+  logger.info({
+    event: 'database_initialized',
+    path: dbPath,
+    pragmas: {
+      journal_mode: db.pragma('journal_mode', { simple: true }),
+      foreign_keys: db.pragma('foreign_keys', { simple: true })
+    }
+  });
+}

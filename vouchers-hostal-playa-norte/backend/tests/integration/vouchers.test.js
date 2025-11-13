@@ -37,7 +37,7 @@ describe('Voucher API', () => {
       firstName: 'Test',
       lastName: 'User',
       password: 'password123',
-      passwordHash: 'a-very-long-and-secret-password-hash',
+      passwordHash: 'x'.repeat(60),
       role: 'admin',
     });
     userRepository.save(user);

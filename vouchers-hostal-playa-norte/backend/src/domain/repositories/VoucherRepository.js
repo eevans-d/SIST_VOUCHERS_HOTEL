@@ -1,35 +1,22 @@
 import { Voucher } from '../entities/Voucher.js';
 
-/**
- * VoucherRepository - Capa de persistencia para Vouchers
- * Gestiona todas las operaciones de BD de vouchers
- */
 export class VoucherRepository {
   constructor(db) {
     this.db = db;
   }
-
-  /**
-   * Buscar voucher por ID
-   */
+  // Buscar voucher por ID
   findById(voucherId) {
     const query = 'SELECT * FROM vouchers WHERE id = ?';
     const voucher = this.db.prepare(query).get(voucherId);
     return voucher ? Voucher.fromDatabase(voucher) : null;
   }
-
-  /**
-   * Buscar voucher por código
-   */
+  // Buscar voucher por código
   findByCode(code) {
     const query = 'SELECT * FROM vouchers WHERE code = ?';
     const voucher = this.db.prepare(query).get(code);
     return voucher ? Voucher.fromDatabase(voucher) : null;
   }
-
-  /**
-   * Buscar vouchers por stay
-   */
+  // Buscar vouchers por stay
   findByStayId(stayId, limit = 100, offset = 0) {
     const query = `
       SELECT * FROM vouchers 

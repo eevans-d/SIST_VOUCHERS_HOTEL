@@ -1,4 +1,5 @@
 import redis from 'redis';
+import { logger } from '../config/logger.js';
 
 /**
  * TokenBlacklist Service
@@ -22,10 +23,10 @@ export class TokenBlacklist {
   async blacklist(token, expiresIn = this.ttl) {
     try {
       await this.client.setEx(`blacklist:${token}`, expiresIn, 'true');
-      console.log('✅ Token blacklisted');
+      logger.info({ event: 'token_blacklisted' });
       return true;
     } catch (error) {
-      console.error('❌ Failed to blacklist token:', error);
+      logger.error({ event: 'token_blacklist_failed', error: error.message, stack: error.stack });
       return false;
     }
   }
@@ -38,7 +39,7 @@ export class TokenBlacklist {
       const exists = await this.client.exists(`blacklist:${token}`);
       return exists === 1;
     } catch (error) {
-      console.error('❌ Error checking blacklist:', error);
+      logger.error({ event: 'token_blacklist_check_error', error: error.message, stack: error.stack });
       return false; // Safe default: allow if Redis fails
     }
   }
@@ -51,7 +52,7 @@ export class TokenBlacklist {
       await this.client.del(`blacklist:${token}`);
       return true;
     } catch (error) {
-      console.error('❌ Failed to remove token:', error);
+      logger.error({ event: 'token_blacklist_remove_failed', error: error.message, stack: error.stack });
       return false;
     }
   }
@@ -64,7 +65,7 @@ export class TokenBlacklist {
       const ttl = await this.client.ttl(`blacklist:${token}`);
       return ttl > 0 ? ttl : 0;
     } catch (error) {
-      console.error('❌ Error getting TTL:', error);
+      logger.error({ event: 'token_blacklist_ttl_error', error: error.message, stack: error.stack });
       return 0;
     }
   }
@@ -77,11 +78,11 @@ export class TokenBlacklist {
       const keys = await this.client.keys('blacklist:*');
       if (keys.length > 0) {
         await this.client.del(keys);
-        console.log(`✅ Cleared ${keys.length} tokens`);
+        logger.info({ event: 'token_blacklist_cleared', count: keys.length });
       }
       return true;
     } catch (error) {
-      console.error('❌ Failed to clear blacklist:', error);
+      logger.error({ event: 'token_blacklist_clear_failed', error: error.message, stack: error.stack });
       return false;
     }
   }
@@ -94,7 +95,7 @@ export class TokenBlacklist {
       const keys = await this.client.keys('blacklist:*');
       return { blacklistedCount: keys.length };
     } catch (error) {
-      console.error('❌ Error getting stats:', error);
+      logger.error({ event: 'token_blacklist_stats_error', error: error.message, stack: error.stack });
       return { blacklistedCount: 0 };
     }
   }
@@ -121,7 +122,7 @@ export const checkTokenBlacklist = async (req, res, next) => {
 
     next();
   } catch (error) {
-    console.error('❌ Token blacklist check error:', error);
+    logger.error({ event: 'token_blacklist_middleware_error', error: error.message, stack: error.stack });
     next(); // Fail-safe: let request through on error
   }
 };

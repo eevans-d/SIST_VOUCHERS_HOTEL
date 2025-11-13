@@ -45,62 +45,108 @@ export class RegisterUser {
     const validated = RegisterUserDTO.parse(input);
 
     try {
-      // 1. Verificar que las contraseñas coincidan
-      if (validated.password !== validated.confirmPassword) {
-        throw new Error('Las contraseñas no coinciden');
-      }
+      this._ensurePasswordsMatch(validated.password, validated.confirmPassword);
+      this._ensurePasswordStrength(validated.password);
+      this._ensureEmailAvailable(validated.email);
 
-      // 2. Validar fortaleza de contraseña
-      const strength = this.passwordService.validateStrength(
-        validated.password
-      );
-      if (strength.score < 2) {
-        throw new Error(
-          `Contraseña ${strength.message}. Usa mayúsculas, números y caracteres especiales.`
-        );
-      }
-
-      // 3. Verificar si email ya existe
-      if (this.userRepository.emailExists(validated.email)) {
-        this.logger.warn(
-          `Registro fallido: email ya existe: ${validated.email}`
-        );
-        throw new Error(`Email ya registrado: ${validated.email}`);
-      }
-
-      // 4. Hashear contraseña
-      const passwordHash = await this.passwordService.hash(validated.password);
-
-      // 5. Crear usuario
-      const user = User.create({
-        email: validated.email,
-        firstName: validated.firstName,
-        lastName: validated.lastName,
-        phone: validated.phone,
-        passwordHash,
-        role: 'guest', // Rol por defecto
-        isActive: true
-      });
-
-      // 6. Persistir en base de datos
-      const savedUser = this.userRepository.create(user);
-
-      // 7. Log de registro exitoso
-      this.logger.info(
-        `Registro exitoso para usuario: ${savedUser.email} (${savedUser.id})`
-      );
-
-      // 8. Retornar resultado
-      return {
-        user: savedUser.toJSON(),
-        message: `Bienvenido ${savedUser.getFullName()}! Tu cuenta ha sido creada.`
-      };
+      const passwordHash = await this._hashPassword(validated.password);
+      const user = this._createUserEntity(validated, passwordHash);
+      const savedUser = this._persistUser(user);
+      this._logRegistered(savedUser);
+      return this._formatRegisterResponse(savedUser);
     } catch (error) {
       if (error instanceof z.ZodError) {
         throw new Error(`Datos inválidos: ${error.message}`);
       }
       throw error;
     }
+  }
+
+  /**
+   * Validar coincidencia de contraseñas
+   * @private
+   */
+  _ensurePasswordsMatch(password, confirmPassword) {
+    if (password !== confirmPassword) {
+      throw new Error('Las contraseñas no coinciden');
+    }
+  }
+
+  /**
+   * Validar fortaleza de contraseña
+   * @private
+   */
+  _ensurePasswordStrength(password) {
+    const strength = this.passwordService.validateStrength(password);
+    if (strength.score < 2) {
+      throw new Error(
+        `Contraseña ${strength.message}. Usa mayúsculas, números y caracteres especiales.`
+      );
+    }
+  }
+
+  /**
+   * Verificar disponibilidad de email
+   * @private
+   */
+  _ensureEmailAvailable(email) {
+    if (this.userRepository.emailExists(email)) {
+      this.logger.warn(`Registro fallido: email ya existe: ${email}`);
+      throw new Error(`Email ya registrado: ${email}`);
+    }
+  }
+
+  /**
+   * Hashear contraseña
+   * @private
+   */
+  async _hashPassword(password) {
+    return this.passwordService.hash(password);
+  }
+
+  /**
+   * Crear entidad de usuario
+   * @private
+   */
+  _createUserEntity(validated, passwordHash) {
+    return User.create({
+      email: validated.email,
+      firstName: validated.firstName,
+      lastName: validated.lastName,
+      phone: validated.phone,
+      passwordHash,
+      role: 'guest',
+      isActive: true
+    });
+  }
+
+  /**
+   * Persistir usuario
+   * @private
+   */
+  _persistUser(user) {
+    return this.userRepository.create(user);
+  }
+
+  /**
+   * Log de registro exitoso
+   * @private
+   */
+  _logRegistered(savedUser) {
+    this.logger.info(
+      `Registro exitoso para usuario: ${savedUser.email} (${savedUser.id})`
+    );
+  }
+
+  /**
+   * Formatear respuesta de registro
+   * @private
+   */
+  _formatRegisterResponse(savedUser) {
+    return {
+      user: savedUser.toJSON(),
+      message: `Bienvenido ${savedUser.getFullName()}! Tu cuenta ha sido creada.`
+    };
   }
 }
 

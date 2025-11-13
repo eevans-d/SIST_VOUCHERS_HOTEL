@@ -62,57 +62,34 @@ export function enforceHttps(req, res, next) {
  *
  * Establece headers de seguridad HTTP recomendados
  */
-export const helmetConfig = () => {
-  return helmet({
-    // Content Security Policy (CSP)
-    // Previene XSS, clickjacking, etc.
+export const helmetConfig = () => helmet(buildHelmetOptions());
+
+function buildHelmetOptions() {
+  return {
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ['\'self\''],
-        styleSrc: ['\'self\'', '\'unsafe-inline\''], // Para Tailwind CSS
-        scriptSrc: ['\'self\'', '\'unsafe-inline\''], // Para bundlers
+        styleSrc: ['\'self\'', '\'unsafe-inline\''],
+        scriptSrc: ['\'self\'', '\'unsafe-inline\''],
         imgSrc: ['\'self\'', 'data:', 'https:'],
         fontSrc: ['\'self\''],
         connectSrc: ['\'self\'', 'https://api.example.com'],
-        frameSrc: ['\'none\''], // Previene clickjacking
-        objectSrc: ['\'none\''] // Flash/plugins
+        frameSrc: ['\'none\''],
+        objectSrc: ['\'none\'']
       }
     },
-
-    // Strict Transport Security (HSTS)
-    // Força HTTPS por 1 año (incluir subdomios, preload)
     strictTransportSecurity: {
-      maxAge: 31536000, // 1 año en segundos
+      maxAge: 31536000,
       includeSubDomains: true,
-      preload: true // Agregar a HSTS preload list
+      preload: true
     },
-
-    // X-Frame-Options
-    // Previene clickjacking
-    frameguard: {
-      action: 'deny' // No permitir en iframe
-    },
-
-    // X-Content-Type-Options
-    // Previene MIME sniffing
+    frameguard: { action: 'deny' },
     noSniff: true,
-
-    // X-XSS-Protection
-    // Activar XSS filter del navegador (legacy)
     xssFilter: true,
-
-    // Referrer-Policy
-    referrerPolicy: {
-      policy: 'strict-origin-when-cross-origin'
-    },
-
-    // Permissions-Policy (heredó de Feature-Policy)
-    // Controla acceso a features del navegador
-    permittedCrossDomainPolicies: {
-      permittedPolicies: 'none'
-    }
-  });
-};
+    referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+    permittedCrossDomainPolicies: { permittedPolicies: 'none' }
+  };
+}
 
 /**
  * HSTS PRELOAD MIDDLEWARE

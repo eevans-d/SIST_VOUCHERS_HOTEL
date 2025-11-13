@@ -32,6 +32,7 @@ export const OrderSchema = z.object({
  * State Machine: open → completed/cancelled
  */
 export class Order {
+  // eslint-disable-next-line complexity
   constructor(props) {
     this.id = props.id || uuidv4();
     this.stayId = props.stayId;

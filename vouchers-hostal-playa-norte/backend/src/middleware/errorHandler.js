@@ -33,7 +33,7 @@ class ConflictError extends AppError {
 }
 
 // Middleware de manejo de errores
-function errorHandler(err, req, res, next) {
+function errorHandler(err, req, res, _next) {
   const correlationId = req.correlationId || 'unknown';
 
   // Error operacional esperado

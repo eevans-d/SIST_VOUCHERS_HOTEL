@@ -1,9 +1,11 @@
+/* eslint-disable indent */
 /**
  * Redis Caching Service
  * Cache API responses with configurable TTL
  */
 
 import redis from 'redis';
+import { logger } from '../config/logger.js';
 
 export class CacheService {
   constructor() {
@@ -42,12 +44,12 @@ export class CacheService {
     try {
       const cached = await this.client.get(key);
       if (cached) {
-        console.log(`✅ Cache HIT: ${key}`);
+        logger.debug({ event: 'cache_hit', key });
         return JSON.parse(cached);
       }
       return null;
     } catch (error) {
-      console.error(`❌ Cache GET error: ${key}`, error);
+      logger.error({ event: 'cache_get_error', key, error: error.message, stack: error.stack });
       return null;
     }
   }
@@ -57,11 +59,11 @@ export class CacheService {
    */
   async set(key, value, ttl = 300) {
     try {
-      await this.client.setEx(key, ttl, JSON.stringify(value));
-      console.log(`💾 Cache SET: ${key} (TTL: ${ttl}s)`);
+  await this.client.setEx(key, ttl, JSON.stringify(value));
+  logger.debug({ event: 'cache_set', key, ttl });
       return true;
     } catch (error) {
-      console.error(`❌ Cache SET error: ${key}`, error);
+      logger.error({ event: 'cache_set_error', key, error: error.message, stack: error.stack });
       return false;
     }
   }
@@ -74,11 +76,11 @@ export class CacheService {
       const keys = await this.client.keys(pattern);
       if (keys.length > 0) {
         await this.client.del(keys);
-        console.log(`🗑️ Cache INVALIDATED: ${pattern} (${keys.length} keys)`);
+        logger.info({ event: 'cache_invalidated', pattern, count: keys.length });
       }
       return keys.length;
     } catch (error) {
-      console.error(`❌ Cache INVALIDATE error: ${pattern}`, error);
+      logger.error({ event: 'cache_invalidate_error', pattern, error: error.message, stack: error.stack });
       return 0;
     }
   }
@@ -88,11 +90,11 @@ export class CacheService {
    */
   async clear() {
     try {
-      await this.client.flushDb();
-      console.log('🗑️ Cache CLEARED (all)');
+  await this.client.flushDb();
+  logger.info({ event: 'cache_cleared_all' });
       return true;
     } catch (error) {
-      console.error('❌ Cache CLEAR error', error);
+      logger.error({ event: 'cache_clear_error', error: error.message, stack: error.stack });
       return false;
     }
   }
@@ -109,7 +111,7 @@ export class CacheService {
         memory: info
       };
     } catch (error) {
-      console.error('❌ Cache STATS error', error);
+      logger.error({ event: 'cache_stats_error', error: error.message, stack: error.stack });
       return { totalKeys: 0 };
     }
   }
@@ -127,8 +129,8 @@ export class CacheService {
    */
   setTTL(method, path, ttl) {
     const key = `${method}:${path}`;
-    this.ttls[key] = ttl;
-    console.log(`⚙️ TTL configured: ${key} = ${ttl}s`);
+  this.ttls[key] = ttl;
+  logger.info({ event: 'cache_ttl_configured', endpoint: key, ttl });
   }
 }
 
@@ -163,7 +165,7 @@ export const cacheMiddleware = async (req, res, next) => {
     res.json = function (data) {
       // Cache the response
       const ttl = cacheService.getTTL(req.method, req.path);
-      cacheService.set(key, data, ttl).catch((err) => console.error(err));
+    cacheService.set(key, data, ttl).catch((err) => logger.error({ event: 'cache_set_middleware_error', key, error: err.message, stack: err.stack }));
 
       // Send response
       return originalJson(data);
@@ -171,7 +173,7 @@ export const cacheMiddleware = async (req, res, next) => {
 
     next();
   } catch (error) {
-    console.error('❌ Cache middleware error:', error);
+    logger.error({ event: 'cache_middleware_error', error: error.message, stack: error.stack });
     next(); // Continue without caching
   }
 };
@@ -193,17 +195,17 @@ export const invalidateCacheMiddleware = async (req, res, next) => {
       const resourceType = req.path.split('/')[1]; // /vouchers → vouchers
       cacheService
         .invalidate(`cache:GET:/${resourceType}:*`)
-        .catch((err) => console.error(err));
+        .catch((err) => logger.error({ event: 'cache_invalidate_related_error', resourceType, error: err.message, stack: err.stack }));
       cacheService
         .invalidate('cache:GET:/dashboard:*')
-        .catch((err) => console.error(err));
+        .catch((err) => logger.error({ event: 'cache_invalidate_dashboard_error', error: err.message, stack: err.stack }));
 
       return originalJson(data);
     };
 
     next();
   } catch (error) {
-    console.error('❌ Invalidate cache middleware error:', error);
+    logger.error({ event: 'cache_invalidate_middleware_error', error: error.message, stack: error.stack });
     next();
   }
 };

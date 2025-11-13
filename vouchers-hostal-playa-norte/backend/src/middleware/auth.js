@@ -1,39 +1,30 @@
-const jwt = require('jsonwebtoken');
 const { logger } = require('../config/logger');
 const config = require('../config/environment');
+const {
+  extractToken,
+  decodeToken,
+  mapDecodedToUser,
+  unauthorized,
+  invalidToken,
+  forbidden
+} = require('./helpers/auth.helpers');
 
 function authMiddleware(req, res, next) {
-  const authHeader = req.headers.authorization;
+  const token = extractToken(req);
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  if (!token) {
     logger.warn({
       event: 'auth_missing_token',
       correlation_id: req.correlationId,
       ip: req.ip,
       path: req.path
     });
-    return res.status(401).json({
-      error: 'NO_TOKEN',
-      message: 'Token de autenticación requerido'
-    });
+    return unauthorized(res);
   }
 
-  const token = authHeader.split(' ')[1];
-
   try {
-    const decoded = jwt.verify(token, config.JWT_SECRET);
-
-    // Validar estructura del token
-    if (!decoded.user_id || !decoded.role) {
-      throw new Error('INVALID_TOKEN_STRUCTURE');
-    }
-
-    req.user = {
-      id: decoded.user_id,
-      username: decoded.username,
-      role: decoded.role,
-      cafeteria_id: decoded.cafeteria_id
-    };
+    const decoded = decodeToken(token, config.JWT_SECRET);
+    req.user = mapDecodedToUser(decoded);
 
     logger.debug({
       event: 'auth_success',
@@ -50,11 +41,7 @@ function authMiddleware(req, res, next) {
       error: error.message,
       ip: req.ip
     });
-
-    return res.status(401).json({
-      error: 'INVALID_TOKEN',
-      message: 'Token inválido o expirado'
-    });
+    return invalidToken(res);
   }
 }
 
@@ -62,10 +49,7 @@ function authMiddleware(req, res, next) {
 function requireRole(...allowedRoles) {
   return (req, res, next) => {
     if (!req.user) {
-      return res.status(401).json({
-        error: 'NOT_AUTHENTICATED',
-        message: 'Autenticación requerida'
-      });
+      return unauthorized(res, 'Autenticación requerida', 'NOT_AUTHENTICATED');
     }
 
     if (!allowedRoles.includes(req.user.role)) {
@@ -76,11 +60,7 @@ function requireRole(...allowedRoles) {
         user_role: req.user.role,
         required_roles: allowedRoles
       });
-
-      return res.status(403).json({
-        error: 'INSUFFICIENT_PERMISSIONS',
-        message: 'Permisos insuficientes para esta operación'
-      });
+      return forbidden(res);
     }
 
     next();

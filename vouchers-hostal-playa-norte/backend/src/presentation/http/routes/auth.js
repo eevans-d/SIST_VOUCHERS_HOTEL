@@ -5,15 +5,9 @@
  */
 
 import express from 'express';
-import {
-  loginLimiter,
-  registerLimiter,
-  refreshTokenLimiter
-} from '../middleware/rateLimiter.middleware.js';
-import {
-  tokenBlacklist,
-  checkTokenBlacklist
-} from '../../../services/tokenBlacklist.service.js';
+import { loginLimiter, registerLimiter, refreshTokenLimiter } from '../middleware/rateLimiter.middleware.js';
+import { tokenBlacklist } from '../../../services/tokenBlacklist.service.js';
+import { registerController, loginController, refreshController, logoutController, meController } from '../controllers/auth.controllers.js';
 
 /**
  * Crear router de autenticación
@@ -22,7 +16,6 @@ import {
  */
 export function createAuthRoutes(services) {
   const router = express.Router();
-
   const { loginUser, registerUser, jwtService, userRepository } = services;
 
   /**
@@ -32,19 +25,7 @@ export function createAuthRoutes(services) {
    * RATE LIMITING: 3 intentos por IP en 15 minutos
    * @see rateLimiter.middleware.js - registerLimiter
    */
-  router.post('/register', registerLimiter, async (req, res, next) => {
-    try {
-      const result = await registerUser.execute(req.body);
-
-      res.status(201).json({
-        success: true,
-        data: result.user,
-        message: result.message
-      });
-    } catch (error) {
-      next(error);
-    }
-  });
+  router.post('/register', registerLimiter, registerController(registerUser));
 
   /**
    * POST /auth/login
@@ -57,66 +38,7 @@ export function createAuthRoutes(services) {
    * después de un login exitoso, pero se incrementa para cada intento fallido.
    */
   const loginMiddlewares = process.env.SKIP_RATE_LIMIT_E2E === 'true' ? [] : [loginLimiter];
-  router.post('/login', ...loginMiddlewares, async (req, res, next) => {
-    try {
-      // Modo E2E: bypass total para no bloquear pruebas por auth
-      if (process.env.NODE_ENV === 'e2e') {
-        const email = req.body?.email || 'admin@hotel.com';
-        const fakeUser = {
-          id: 'user-e2e',
-          email,
-          firstName: 'E2E',
-          lastName: 'User',
-          role: 'admin'
-        };
-        const accessToken = 'e2e-access-token';
-        const refreshToken = 'e2e-refresh-token';
-
-        res.cookie('refreshToken', refreshToken, {
-          httpOnly: true,
-          secure: false,
-          sameSite: 'strict',
-          maxAge: 30 * 24 * 60 * 60 * 1000
-        });
-
-        return res.json({
-          success: true,
-          data: { user: fakeUser, accessToken, refreshToken, expiresIn: 604800 },
-          user: fakeUser,
-          accessToken,
-          refreshToken,
-          expiresIn: 604800
-        });
-      }
-
-      const result = await loginUser.execute(req.body);
-
-      // Opcional: guardar refresh token en cookie segura
-      res.cookie('refreshToken', result.refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: 30 * 24 * 60 * 60 * 1000 // 30 días
-      });
-
-      res.json({
-        success: true,
-        data: {
-          user: result.user,
-          accessToken: result.accessToken,
-          refreshToken: result.refreshToken,
-          expiresIn: result.expiresIn
-        },
-        // Campos en plano para compatibilidad con E2E
-        user: result.user,
-        accessToken: result.accessToken,
-        refreshToken: result.refreshToken,
-        expiresIn: result.expiresIn
-      });
-    } catch (error) {
-      next(error);
-    }
-  });
+  router.post('/login', ...loginMiddlewares, loginController(loginUser, jwtService));
 
   /**
    * POST /auth/refresh
@@ -125,103 +47,20 @@ export function createAuthRoutes(services) {
    * RATE LIMITING: 10 intentos por IP en 15 minutos
    * @see rateLimiter.middleware.js - refreshTokenLimiter
    */
-  router.post('/refresh', refreshTokenLimiter, async (req, res, next) => {
-    try {
-      const refreshToken = req.cookies?.refreshToken || req.body?.refreshToken;
-
-      if (!refreshToken) {
-        return res.status(401).json({
-          success: false,
-          error: 'Refresh token no proporcionado'
-        });
-      }
-
-      try {
-        // Modo E2E: bypass verificación, devolver token fijo
-        if (process.env.NODE_ENV === 'e2e') {
-          return res.json({
-            success: true,
-            data: { accessToken: 'e2e-access-token-2', expiresIn: 604800 },
-            accessToken: 'e2e-access-token-2',
-            expiresIn: 604800
-          });
-        }
-
-        const payload = jwtService.verifyRefreshToken(refreshToken);
-
-        // Buscar usuario y generar nuevo access token
-        if (!userRepository) {
-          throw new Error('UserRepository no disponible');
-        }
-        const user = userRepository.findById(payload.sub);
-        if (!user) {
-          return res.status(404).json({
-            success: false,
-            error: 'Usuario no encontrado'
-          });
-        }
-
-        const newAccessToken = jwtService.generateAccessToken(user);
-        const expiresIn = 7 * 24 * 60 * 60; // 7 días en segundos
-
-        res.json({
-          success: true,
-          data: {
-            accessToken: newAccessToken,
-            expiresIn
-          },
-          // Campos en plano para compatibilidad con E2E
-          accessToken: newAccessToken,
-          expiresIn
-        });
-      } catch (tokenError) {
-        return res.status(401).json({
-          success: false,
-          error: tokenError.message
-        });
-      }
-    } catch (error) {
-      next(error);
-    }
-  });
+  router.post('/refresh', refreshTokenLimiter, refreshController(jwtService, userRepository));
 
   /**
    * POST /auth/logout
    * Logout + Blacklist token
    */
-  router.post(
-    '/logout',
-    authenticateToken(jwtService),
-    async (req, res, next) => {
-      try {
-        const authHeader = req.headers['authorization'];
-        const token = jwtService.extractBearerToken(authHeader);
-
-        // Add token to blacklist
-        await tokenBlacklist.blacklist(token);
-
-        res.clearCookie('refreshToken');
-        res.json({
-          success: true,
-          message: 'Sesión cerrada correctamente'
-        });
-      } catch (error) {
-        next(error);
-      }
-    }
-  );
+  router.post('/logout', authenticateToken(jwtService), logoutController(jwtService, tokenBlacklist));
 
   /**
    * GET /auth/me
    * Obtener perfil del usuario autenticado
    * Requiere: Authorization: Bearer <token>
    */
-  router.get('/me', authenticateToken(jwtService), (req, res) => {
-    res.json({
-      success: true,
-      data: req.user
-    });
-  });
+  router.get('/me', authenticateToken(jwtService), meController());
 
   return router;
 }

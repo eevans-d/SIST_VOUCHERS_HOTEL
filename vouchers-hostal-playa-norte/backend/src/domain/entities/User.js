@@ -164,8 +164,18 @@ export class User {
    * @returns {Object}
    */
   toJSON() {
-    const { passwordHash, ...safe } = this;
-    return safe;
+    // Serializar sin exponer passwordHash
+    return {
+      id: this.id,
+      email: this.email,
+      firstName: this.firstName,
+      lastName: this.lastName,
+      phone: this.phone,
+      role: this.role,
+      isActive: this.isActive,
+      createdAt: this.createdAt,
+      updatedAt: this.updatedAt
+    };
   }
 
   /**

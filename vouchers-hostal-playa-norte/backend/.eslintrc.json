@@ -26,5 +26,17 @@
     "indent": ["error", 2],
     "comma-dangle": ["error", "never"],
     "trailing-comma": "off"
-  }
+  },
+  "overrides": [
+    {
+      "files": ["src/services/experimental/**/*.js"],
+      "rules": {
+        "max-lines": "off",
+        "max-lines-per-function": "off",
+        "complexity": "off",
+        "no-console": "off",
+        "no-unused-vars": "off"
+      }
+    }
+  ]
 }

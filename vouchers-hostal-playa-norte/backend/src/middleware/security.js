@@ -94,38 +94,7 @@ export function corsMiddleware() {
  */
 export function helmetMiddleware() {
   const env = process.env.NODE_ENV || 'development';
-
-  // CSP adaptado por entorno
-  const cspConfig = {
-    development: {
-      directives: {
-        defaultSrc: ['\'self\''],
-        scriptSrc: ['\'self\'', '\'unsafe-inline\''], // Permite inline en dev (para debugging)
-        styleSrc: ['\'self\'', '\'unsafe-inline\''],
-        imgSrc: ['\'self\'', 'data:', 'https:'],
-        fontSrc: ['\'self\''],
-        connectSrc: ['\'self\'', 'http://localhost:*', 'ws://localhost:*'],
-        upgradeInsecureRequests: []
-      }
-    },
-    production: {
-      directives: {
-        defaultSrc: ['\'self\''],
-        scriptSrc: ['\'self\''], // No inline en producción
-        styleSrc: ['\'self\''],
-        imgSrc: ['\'self\'', 'data:', 'https:'],
-        fontSrc: ['\'self\''],
-        connectSrc: ['\'self\'', 'https://hpn-vouchers-backend.fly.dev'],
-        upgradeInsecureRequests: [''], // Fuerza HTTPS
-        frameSrc: ['\'none\''], // No permitir iframes
-        formAction: ['\'self\''],
-        baseUri: ['\'self\'']
-      },
-      reportOnly: false
-    }
-  };
-
-  const selectedCsp = cspConfig[env] || cspConfig.development;
+  const selectedCsp = getCspByEnv(env);
 
   return helmet({
     contentSecurityPolicy: selectedCsp,
@@ -147,6 +116,38 @@ export function helmetMiddleware() {
     referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
     xssFilter: true
   });
+}
+
+function getCspByEnv(env) {
+  const cspConfig = {
+    development: {
+      directives: {
+        defaultSrc: ['\'self\''],
+        scriptSrc: ['\'self\'', '\'unsafe-inline\''],
+        styleSrc: ['\'self\'', '\'unsafe-inline\''],
+        imgSrc: ['\'self\'', 'data:', 'https:'],
+        fontSrc: ['\'self\''],
+        connectSrc: ['\'self\'', 'http://localhost:*', 'ws://localhost:*'],
+        upgradeInsecureRequests: []
+      }
+    },
+    production: {
+      directives: {
+        defaultSrc: ['\'self\''],
+        scriptSrc: ['\'self\''],
+        styleSrc: ['\'self\''],
+        imgSrc: ['\'self\'', 'data:', 'https:'],
+        fontSrc: ['\'self\''],
+        connectSrc: ['\'self\'', 'https://hpn-vouchers-backend.fly.dev'],
+        upgradeInsecureRequests: [''],
+        frameSrc: ['\'none\''],
+        formAction: ['\'self\''],
+        baseUri: ['\'self\'']
+      },
+      reportOnly: false
+    }
+  };
+  return cspConfig[env] || cspConfig.development;
 }
 
 /**

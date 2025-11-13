@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
-import { WebSocketService, emitToUser, emitToRoom, broadcast } from '../services/websocketService.js';
+import { WebSocketService, emitToUser, emitToRoom, broadcast } from '../../src/services/websocketService.js';
 
 describe('WebSocketService', () => {
   let wsService;
